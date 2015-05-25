@@ -14,7 +14,7 @@
 #include "driverlib/rom.h"
 #include "driverlib/sysctl.h"
 #include "driverlib/uart.h"
-#include "lib-c/uartstdio.h"
+#include "../lib-c/uartstdio.h"
 
 uint8_t calculateChecksum(uint8_t* pData, uint32_t bytesCount)
 {
@@ -118,8 +118,6 @@ int main()
     pMsg->footer1 = '\x0D';
     pMsg->footer2 = '\x0A';
     UARTwrite(pOutputMessageBuffer, sizeof(struct MessageGetVersion));
-
-    int a;
 
     // library was fucking with the \x0D\x0A sequence and spoiling everything
     // need to reimplement my own stuff
