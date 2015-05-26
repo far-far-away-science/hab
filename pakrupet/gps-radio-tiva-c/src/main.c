@@ -10,5 +10,5 @@ int main()
 
     signalSuccess();
 
-    return 0;
+    while (true) {}
 }
