@@ -413,6 +413,41 @@
               <FileType>1</FileType>
               <FilePath>.\src\main.c</FilePath>
             </File>
+            <File>
+              <FileName>signals.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\signals.h</FilePath>
+            </File>
+            <File>
+              <FileName>signals.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\signals.c</FilePath>
+            </File>
+            <File>
+              <FileName>tiva_c.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\tiva_c.h</FilePath>
+            </File>
+            <File>
+              <FileName>tiva_c.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\tiva_c.c</FilePath>
+            </File>
+            <File>
+              <FileName>venus_gps.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\venus_gps.h</FilePath>
+            </File>
+            <File>
+              <FileName>venus_gps_internal.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\venus_gps_internal.h</FilePath>
+            </File>
+            <File>
+              <FileName>venus_gps.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\venus_gps.c</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>
@@ -428,16 +463,6 @@
         <Group>
           <GroupName>Libraries-c</GroupName>
           <Files>
-            <File>
-              <FileName>uartstdio.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\lib-c\uartstdio.c</FilePath>
-            </File>
-            <File>
-              <FileName>uartstdio.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\lib-c\uartstdio.h</FilePath>
-            </File>
             <File>
               <FileName>startup_rvmdk.S</FileName>
               <FileType>2</FileType>
