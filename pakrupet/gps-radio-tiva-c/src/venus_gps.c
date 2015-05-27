@@ -1,6 +1,8 @@
 #include "venus_gps.h"
 #include "venus_gps_internal.h"
 
+#include <string.h>
+
 #include <inc/hw_ints.h>
 #include <inc/hw_memmap.h>
 
@@ -19,16 +21,16 @@
 
 struct VenusGpsStatics
 {
-    bool messageIsBeingRead;
-
-    int8_t messageBeingWrittenIdx;
-    int8_t messageAvailableForReadingIdx;
-
+    bool isFull;
+    int8_t startIdx;
+    int8_t endIdx;
     struct VenusGpsMessage buffer[VENUS_GPS_BUFFER_SIZE];
 } gVenusGps;
 
 void initializeVenusGps(void)
 {
+    memset(&gVenusGps, 0, sizeof(gVenusGps));
+
     // venus GPS runs on UART 1 (PortB)
     ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
     ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_UART1);
@@ -53,9 +55,14 @@ void initializeVenusGps(void)
     MAP_UARTEnable(VENUS_GPS_UART_BASE);
 }
 
-int8_t getNextWriteBufferIdx()
+uint8_t advanceIndex(uint8_t currentValue)
 {
-    return 0; // TODO advance to next available write spot
+    ++currentValue;
+    if (currentValue >= VENUS_GPS_BUFFER_SIZE)
+    {
+        currentValue = 0;
+    }
+    return currentValue;
 }
 
 /*
@@ -65,7 +72,7 @@ void Uart1IntHandler(void)
 {
     static bool previousCharWasCR = false;
 
-    uint32_t status = MAP_UARTIntStatus(VENUS_GPS_UART_BASE, true);
+    const uint32_t status = MAP_UARTIntStatus(VENUS_GPS_UART_BASE, true);
     MAP_UARTIntClear(VENUS_GPS_UART_BASE, status);
 
     if(status & (UART_INT_RX | UART_INT_RT))
@@ -78,26 +85,24 @@ void Uart1IntHandler(void)
             encodedChar = MAP_UARTCharGetNonBlocking(VENUS_GPS_UART_BASE);
             decodedChar = (uint8_t) (encodedChar & 0xFF);
 
-            if (gVenusGps.messageBeingWrittenIdx == -1)
+            if (!gVenusGps.isFull)
             {
-                gVenusGps.messageBeingWrittenIdx = getNextWriteBufferIdx();
-                gVenusGps.buffer[gVenusGps.messageBeingWrittenIdx].size = 0;
-            }
-
-            if (gVenusGps.messageBeingWrittenIdx < VENUS_GPS_BUFFER_SIZE)
-            {
-                const uint8_t writeIdx = gVenusGps.buffer[gVenusGps.messageBeingWrittenIdx].size;
-                const bool thereIsSpaceForNewCharacter = writeIdx < VENUS_GPS_MESSAGE_MAX_LEN;
+                const uint8_t charWriteIdx = gVenusGps.buffer[gVenusGps.endIdx].size;
+                const bool thereIsSpaceForNewCharacter = charWriteIdx < VENUS_GPS_MESSAGE_MAX_LEN;
 
                 if (thereIsSpaceForNewCharacter)
                 {
-                    gVenusGps.buffer[gVenusGps.messageBeingWrittenIdx].message[writeIdx] = decodedChar;
-                    ++gVenusGps.buffer[gVenusGps.messageBeingWrittenIdx].size;
+                    gVenusGps.buffer[gVenusGps.endIdx].message[charWriteIdx] = decodedChar;
+                    ++gVenusGps.buffer[gVenusGps.endIdx].size;
                 }
 
                 if (!thereIsSpaceForNewCharacter || (previousCharWasCR && decodedChar == '\x0A'))
                 {
-                    gVenusGps.messageBeingWrittenIdx = -1;
+                    gVenusGps.endIdx = advanceIndex(gVenusGps.endIdx);
+                    if (gVenusGps.endIdx == gVenusGps.startIdx)
+                    {
+                        gVenusGps.isFull = true;
+                    }
                 }
             }
 
