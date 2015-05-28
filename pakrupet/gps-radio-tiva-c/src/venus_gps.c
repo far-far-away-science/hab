@@ -1,5 +1,4 @@
 #include "venus_gps.h"
-#include "venus_gps_internal.h"
 
 #include <string.h>
 
@@ -24,7 +23,7 @@ struct VenusGpsStatics
     bool isFull;
     int8_t startIdx;
     int8_t endIdx;
-    struct VenusGpsMessage buffer[VENUS_GPS_BUFFER_SIZE];
+    struct Message buffer[VENUS_GPS_BUFFER_SIZE];
 } gVenusGps;
 
 void initializeVenusGps(void)
@@ -65,13 +64,13 @@ uint8_t advanceIndex(uint8_t currentValue)
     return currentValue;
 }
 
-bool readVenusGpsMessage(struct VenusGpsMessage* pResult)
+bool readVenusGpsMessage(struct Message* pResult)
 {
     if (!gVenusGps.isFull && gVenusGps.startIdx == gVenusGps.endIdx)
     {
         return false;
     }
-    memcpy(pResult, &gVenusGps.buffer[gVenusGps.startIdx], sizeof(struct VenusGpsMessage));
+    memcpy(pResult, &gVenusGps.buffer[gVenusGps.startIdx], sizeof(struct Message));
     gVenusGps.buffer[gVenusGps.startIdx].size = 0;
     gVenusGps.startIdx = advanceIndex(gVenusGps.startIdx);
     return true;
@@ -105,7 +104,7 @@ void Uart1IntHandler(void)
             if (!gVenusGps.isFull)
             {
                 const uint8_t charWriteIdx = gVenusGps.buffer[gVenusGps.endIdx].size;
-                const bool thereIsSpaceForNewCharacter = charWriteIdx < VENUS_GPS_MESSAGE_MAX_LEN;
+                const bool thereIsSpaceForNewCharacter = charWriteIdx < MESSAGE_MAX_LEN;
 
                 if (thereIsSpaceForNewCharacter)
                 {

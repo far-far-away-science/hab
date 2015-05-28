@@ -347,7 +347,7 @@
           </ArmAdsMisc>
           <Cads>
             <interw>1</interw>
-            <Optim>4</Optim>
+            <Optim>1</Optim>
             <oTime>0</oTime>
             <SplitLS>0</SplitLS>
             <OneElfS>1</OneElfS>
@@ -409,9 +409,24 @@
           <GroupName>Source</GroupName>
           <Files>
             <File>
+              <FileName>common.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\common.h</FilePath>
+            </File>
+            <File>
               <FileName>main.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\main.c</FilePath>
+            </File>
+            <File>
+              <FileName>radio_board.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\radio_board.h</FilePath>
+            </File>
+            <File>
+              <FileName>radio_board.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\radio_board.c</FilePath>
             </File>
             <File>
               <FileName>signals.h</FileName>
@@ -422,6 +437,16 @@
               <FileName>signals.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\signals.c</FilePath>
+            </File>
+            <File>
+              <FileName>telemetry_board.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\telemetry_board.h</FilePath>
+            </File>
+            <File>
+              <FileName>telemetry_board.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\telemetry_board.c</FilePath>
             </File>
             <File>
               <FileName>tiva_c.h</FileName>
@@ -437,11 +462,6 @@
               <FileName>venus_gps.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\src\venus_gps.h</FilePath>
-            </File>
-            <File>
-              <FileName>venus_gps_internal.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\src\venus_gps_internal.h</FilePath>
             </File>
             <File>
               <FileName>venus_gps.c</FileName>
