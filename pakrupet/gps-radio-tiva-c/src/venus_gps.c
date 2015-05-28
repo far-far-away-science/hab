@@ -17,7 +17,7 @@
 #define VENUS_GPS_UART_BASE UART1_BASE
 #define VENUS_GPS_UART_SYS_CTL SYSCTL_PERIPH_UART1
 
-#define VENUS_GPS_BUFFER_SIZE 3
+#define VENUS_GPS_BUFFER_SIZE 4
 
 struct VenusGpsStatics
 {
@@ -65,6 +65,18 @@ uint8_t advanceIndex(uint8_t currentValue)
     return currentValue;
 }
 
+bool readVenusGpsMessage(struct VenusGpsMessage* pResult)
+{
+    if (!gVenusGps.isFull && gVenusGps.startIdx == gVenusGps.endIdx)
+    {
+        return false;
+    }
+    memcpy(pResult, &gVenusGps.buffer[gVenusGps.startIdx], sizeof(struct VenusGpsMessage));
+    gVenusGps.buffer[gVenusGps.startIdx].size = 0;
+    gVenusGps.startIdx = advanceIndex(gVenusGps.startIdx);
+    return true;
+}
+
 /*
  * See startup_rvmdk.S file for declaration and mapping
  */
@@ -85,6 +97,11 @@ void Uart1IntHandler(void)
             encodedChar = MAP_UARTCharGetNonBlocking(VENUS_GPS_UART_BASE);
             decodedChar = (uint8_t) (encodedChar & 0xFF);
 
+            if (gVenusGps.startIdx != gVenusGps.endIdx && gVenusGps.isFull)
+            {
+                gVenusGps.isFull = false;
+            }
+
             if (!gVenusGps.isFull)
             {
                 const uint8_t charWriteIdx = gVenusGps.buffer[gVenusGps.endIdx].size;
@@ -95,6 +112,10 @@ void Uart1IntHandler(void)
                     gVenusGps.buffer[gVenusGps.endIdx].message[charWriteIdx] = decodedChar;
                     ++gVenusGps.buffer[gVenusGps.endIdx].size;
                 }
+                else
+                {
+                    // put some code below to test message is too long scenarios
+                }
 
                 if (!thereIsSpaceForNewCharacter || (previousCharWasCR && decodedChar == '\x0A'))
                 {
@@ -103,7 +124,15 @@ void Uart1IntHandler(void)
                     {
                         gVenusGps.isFull = true;
                     }
+                    else
+                    {
+                        gVenusGps.buffer[gVenusGps.endIdx].size = 0;
+                    }
                 }
+            }
+            else
+            {
+                // put some code below to test full buffer scenarios
             }
 
             if (decodedChar == '\x0D')

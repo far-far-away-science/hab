@@ -347,7 +347,7 @@
           </ArmAdsMisc>
           <Cads>
             <interw>1</interw>
-            <Optim>1</Optim>
+            <Optim>4</Optim>
             <oTime>0</oTime>
             <SplitLS>0</SplitLS>
             <OneElfS>1</OneElfS>
@@ -363,7 +363,7 @@
             <useXO>0</useXO>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>rvmdk PART_TM4C123GH6PM TARGET_IS_TM4C123_RB1</Define>
+              <Define>rvmdk PART_TM4C123GH6PM TARGET_IS_TM4C123_RB1 DEBUG</Define>
               <Undefine></Undefine>
               <IncludePath>C:\Tools\ti\TivaWare_C_Series-2.1.0.12573</IncludePath>
             </VariousControls>
