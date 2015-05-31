@@ -439,16 +439,6 @@
               <FilePath>.\src\signals.c</FilePath>
             </File>
             <File>
-              <FileName>telemetry_board.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\src\telemetry_board.h</FilePath>
-            </File>
-            <File>
-              <FileName>telemetry_board.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\telemetry_board.c</FilePath>
-            </File>
-            <File>
               <FileName>tiva_c.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\src\tiva_c.h</FilePath>
@@ -459,14 +449,24 @@
               <FilePath>.\src\tiva_c.c</FilePath>
             </File>
             <File>
-              <FileName>venus_gps.h</FileName>
+              <FileName>uart.h</FileName>
               <FileType>5</FileType>
-              <FilePath>.\src\venus_gps.h</FilePath>
+              <FilePath>.\src\uart.h</FilePath>
             </File>
             <File>
-              <FileName>venus_gps.c</FileName>
+              <FileName>uart_initialize.c</FileName>
               <FileType>1</FileType>
-              <FilePath>.\src\venus_gps.c</FilePath>
+              <FilePath>.\src\uart_initialize.c</FilePath>
+            </File>
+            <File>
+              <FileName>uart_read.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\uart_read.c</FilePath>
+            </File>
+            <File>
+              <FileName>uart_write.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\uart_write.c</FilePath>
             </File>
           </Files>
         </Group>

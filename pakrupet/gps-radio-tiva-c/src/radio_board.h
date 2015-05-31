@@ -1,5 +1,10 @@
 #pragma once
 
-#include "common.h"
+#include <stdint.h>
+#include <stdbool.h>
 
-void writeMessageToRadioBoard(const struct Message* pMessage);
+#include "uart.h"
+
+bool createRadioBoardMessageFromGpggaMessage(uint8_t gpsSourceCode,
+                                             const struct Message* pGpsGpggaMessage,
+                                             struct Message* pRadioBoardGpsMessage);

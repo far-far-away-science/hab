@@ -80,6 +80,9 @@ __heap_limit
 ;******************************************************************************
 
         EXTERN  Uart1IntHandler
+        EXTERN  Uart2IntHandler
+        EXTERN  Uart3IntHandler
+        EXTERN  Uart4IntHandler
 
 ;******************************************************************************
 ;
@@ -138,7 +141,7 @@ __Vectors
         DCD     IntDefaultHandler           ; GPIO Port F
         DCD     IntDefaultHandler           ; GPIO Port G
         DCD     IntDefaultHandler           ; GPIO Port H
-        DCD     IntDefaultHandler           ; UART2 Rx and Tx
+        DCD     Uart2IntHandler             ; UART2 Rx and Tx
         DCD     IntDefaultHandler           ; SSI1 Rx and Tx
         DCD     IntDefaultHandler           ; Timer 3 subtimer A
         DCD     IntDefaultHandler           ; Timer 3 subtimer B
@@ -164,8 +167,8 @@ __Vectors
         DCD     IntDefaultHandler           ; GPIO Port L
         DCD     IntDefaultHandler           ; SSI2 Rx and Tx
         DCD     IntDefaultHandler           ; SSI3 Rx and Tx
-        DCD     IntDefaultHandler           ; UART3 Rx and Tx
-        DCD     IntDefaultHandler           ; UART4 Rx and Tx
+        DCD     Uart3IntHandler             ; UART3 Rx and Tx
+        DCD     Uart4IntHandler             ; UART4 Rx and Tx
         DCD     IntDefaultHandler           ; UART5 Rx and Tx
         DCD     IntDefaultHandler           ; UART6 Rx and Tx
         DCD     IntDefaultHandler           ; UART7 Rx and Tx
