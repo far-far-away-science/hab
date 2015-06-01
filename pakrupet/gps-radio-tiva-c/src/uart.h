@@ -3,15 +3,16 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define UART_NUMBER_OF_CHANNELS 4
-#define UART_BUFFER_MAX_LEN     3
-#define UART_MESSAGE_MAX_LEN    12
+#define UART_NUMBER_OF_CHANNELS   4
+#define UART_READ_BUFFER_MAX_LEN  3
+#define UART_WRITE_BUFFER_MAX_LEN 3
+#define UART_MESSAGE_MAX_LEN      128
 
 struct Message
 {
     uint8_t size;
     // to make sure there is no overflow check last 2 characters are 0x0D,0x0A.
-    uint8_t message[UART_MESSAGE_MAX_LEN + 1];
+    uint8_t message[UART_MESSAGE_MAX_LEN];
 };
 
 #define UART_0     0
@@ -31,5 +32,8 @@ bool initializeUartChannel(uint8_t channel,
                            uint32_t cpuSpeedHz,
                            uint32_t flags);
 
+// those functions should be used from main 'thread' only
+// if you use them from other interrupts (higher priority than UART ones
+// behaviour is undefined).
 bool readMessage(uint8_t channel, struct Message* pResultBuffer);
-void writeMessage(uint8_t channel, const struct Message* pMessage);
+bool writeMessage(uint8_t channel, const struct Message* pMessage);

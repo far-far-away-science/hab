@@ -104,14 +104,14 @@ bool initializeUartChannel(uint8_t channel,
         }
     }
 
+    UARTClockSourceSet(uartBase, UART_CLOCK_PIOSC);
+
     if(!MAP_SysCtlPeripheralPresent(uartPeripheralSysCtl))
     {
         return false;
     }
 
     MAP_SysCtlPeripheralEnable(uartPeripheralSysCtl);
-
-    UARTClockSourceSet(uartBase, UART_CLOCK_PIOSC);
     
     MAP_UARTConfigSetExpClk(uartBase,
                             cpuSpeedHz,
@@ -123,13 +123,18 @@ bool initializeUartChannel(uint8_t channel,
     if (flags & UART_FLAGS_RECEIVE)
     {
         MAP_UARTIntEnable(uartBase, UART_INT_RX | UART_INT_RT);
-        MAP_IntEnable(uartInterruptId);
+    }
+    if (flags & UART_FLAGS_SEND)
+    {
+        MAP_UARTIntEnable(uartBase, UART_INT_TX);
     }
 
+    MAP_IntEnable(uartInterruptId);
     MAP_UARTEnable(uartBase);
 
     uartChannelData[channel].base = uartBase;
     uartChannelData[channel].interruptId = uartInterruptId;
+    uartChannelData[channel].writeBuffer.isEmpty = true;
     uart2UartChannelData[uartPort] = &uartChannelData[channel];
 
     return true;
@@ -195,10 +200,10 @@ void Uart4IntHandler(void)
     }
 }
 
-uint8_t advanceIndex(uint8_t currentValue)
+uint8_t advanceIndex(uint8_t currentValue, uint8_t maxLen)
 {
     ++currentValue;
-    if (currentValue >= UART_BUFFER_MAX_LEN)
+    if (currentValue >= maxLen)
     {
         currentValue = 0;
     }

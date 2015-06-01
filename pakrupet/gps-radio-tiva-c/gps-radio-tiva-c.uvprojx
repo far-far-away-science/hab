@@ -409,24 +409,34 @@
           <GroupName>Source</GroupName>
           <Files>
             <File>
+              <FileName>aprs_board.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\aprs_board.h</FilePath>
+            </File>
+            <File>
+              <FileName>aprs_board.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\aprs_board.c</FilePath>
+            </File>
+            <File>
               <FileName>common.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\src\common.h</FilePath>
             </File>
             <File>
+              <FileName>nmea_messages.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\nmea_messages.h</FilePath>
+            </File>
+            <File>
+              <FileName>nmea_messages.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\nmea_messages.c</FilePath>
+            </File>
+            <File>
               <FileName>main.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\main.c</FilePath>
-            </File>
-            <File>
-              <FileName>radio_board.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\src\radio_board.h</FilePath>
-            </File>
-            <File>
-              <FileName>radio_board.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\radio_board.c</FilePath>
             </File>
             <File>
               <FileName>signals.h</FileName>
@@ -452,6 +462,11 @@
               <FileName>uart.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\src\uart.h</FilePath>
+            </File>
+            <File>
+              <FileName>uart_impl.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\uart_impl.h</FilePath>
             </File>
             <File>
               <FileName>uart_initialize.c</FileName>
