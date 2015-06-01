@@ -449,6 +449,16 @@
               <FilePath>.\src\signals.c</FilePath>
             </File>
             <File>
+              <FileName>timer.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\timer.h</FilePath>
+            </File>
+            <File>
+              <FileName>timer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\timer.c</FilePath>
+            </File>
+            <File>
               <FileName>tiva_c.h</FileName>
               <FileType>5</FileType>
               <FilePath>.\src\tiva_c.h</FilePath>
