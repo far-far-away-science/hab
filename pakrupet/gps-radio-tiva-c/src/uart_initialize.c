@@ -50,6 +50,20 @@ bool initializeUartChannel(uint8_t channel,
 
     switch (uartPort)
     {
+#ifdef DEBUG
+        case UART_0:
+        {
+            uartBase = UART0_BASE;
+            uartInterruptId = INT_UART0;
+            uartPeripheralSysCtl = SYSCTL_PERIPH_UART0;
+            ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
+            ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_UART0);
+            ROM_GPIOPinConfigure(GPIO_PA0_U0RX);
+            ROM_GPIOPinConfigure(GPIO_PA1_U0TX);
+            ROM_GPIOPinTypeUART(GPIO_PORTA_BASE, GPIO_PIN_0 | GPIO_PIN_1);
+            break;
+        }
+#endif
         case UART_1:
         {
             uartBase = UART1_BASE;
@@ -140,63 +154,83 @@ bool initializeUartChannel(uint8_t channel,
     return true;
 }
 
-void Uart1IntHandler(void)
+void Uart0IntHandler(void)
 {
-    const uint32_t status = MAP_UARTIntStatus(uart2UartChannelData[UART_1]->base, true);
-    MAP_UARTIntClear(uart2UartChannelData[UART_1]->base, status);
+    struct UartChannelData* const pChannelData = uart2UartChannelData[UART_0];
+    const uint32_t status = MAP_UARTIntStatus(pChannelData->base, true);
+    MAP_UARTIntClear(pChannelData->base, status);
 
     if (status & (UART_INT_RX | UART_INT_RT))
     {
-        UartReadIntHandler(uart2UartChannelData[UART_1]);
+        UartReadIntHandler(pChannelData);
     }
     if (status & UART_INT_TX)
     {
-        UartWriteIntHandler(uart2UartChannelData[UART_1]);
+        UartWriteIntHandler(pChannelData);
+    }
+}
+
+void Uart1IntHandler(void)
+{
+    struct UartChannelData* const pChannelData = uart2UartChannelData[UART_1];
+    const uint32_t status = MAP_UARTIntStatus(pChannelData->base, true);
+    MAP_UARTIntClear(pChannelData->base, status);
+
+    if (status & (UART_INT_RX | UART_INT_RT))
+    {
+        UartReadIntHandler(pChannelData);
+    }
+    if (status & UART_INT_TX)
+    {
+        UartWriteIntHandler(pChannelData);
     }
 }
 
 void Uart2IntHandler(void)
 {
-    const uint32_t status = MAP_UARTIntStatus(uart2UartChannelData[UART_2]->base, true);
-    MAP_UARTIntClear(uart2UartChannelData[UART_2]->base, status);
+    struct UartChannelData* const pChannelData = uart2UartChannelData[UART_2];
+    const uint32_t status = MAP_UARTIntStatus(pChannelData->base, true);
+    MAP_UARTIntClear(pChannelData->base, status);
 
     if (status & (UART_INT_RX | UART_INT_RT))
     {
-        UartReadIntHandler(uart2UartChannelData[UART_2]);
+        UartReadIntHandler(pChannelData);
     }
     if (status & UART_INT_TX)
     {
-        UartWriteIntHandler(uart2UartChannelData[UART_2]);
+        UartWriteIntHandler(pChannelData);
     }
 }
 
 void Uart3IntHandler(void)
 {
-    const uint32_t status = MAP_UARTIntStatus(uart2UartChannelData[UART_3]->base, true);
-    MAP_UARTIntClear(uart2UartChannelData[UART_3]->base, status);
+    struct UartChannelData* const pChannelData = uart2UartChannelData[UART_3];
+    const uint32_t status = MAP_UARTIntStatus(pChannelData->base, true);
+    MAP_UARTIntClear(pChannelData->base, status);
 
     if (status & (UART_INT_RX | UART_INT_RT))
     {
-        UartReadIntHandler(uart2UartChannelData[UART_3]);
+        UartReadIntHandler(pChannelData);
     }
     if (status & UART_INT_TX)
     {
-        UartWriteIntHandler(uart2UartChannelData[UART_3]);
+        UartWriteIntHandler(pChannelData);
     }
 }
 
 void Uart4IntHandler(void)
 {
-    const uint32_t status = MAP_UARTIntStatus(uart2UartChannelData[UART_4]->base, true);
-    MAP_UARTIntClear(uart2UartChannelData[UART_4]->base, status);
+    struct UartChannelData* const pChannelData = uart2UartChannelData[UART_4];
+    const uint32_t status = MAP_UARTIntStatus(pChannelData->base, true);
+    MAP_UARTIntClear(pChannelData->base, status);
 
     if (status & (UART_INT_RX | UART_INT_RT))
     {
-        UartReadIntHandler(uart2UartChannelData[UART_4]);
+        UartReadIntHandler(pChannelData);
     }
     if (status & UART_INT_TX)
     {
-        UartWriteIntHandler(uart2UartChannelData[UART_4]);
+        UartWriteIntHandler(pChannelData);
     }
 }
 

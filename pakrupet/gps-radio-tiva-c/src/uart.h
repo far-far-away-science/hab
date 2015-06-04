@@ -3,7 +3,12 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#define UART_NUMBER_OF_CHANNELS   4
+#ifdef DEBUG
+    #define UART_NUMBER_OF_CHANNELS 5
+#else
+    #define UART_NUMBER_OF_CHANNELS 4
+#endif
+
 #define UART_READ_BUFFER_MAX_LEN  3
 #define UART_WRITE_BUFFER_MAX_LEN 3
 #define UART_MESSAGE_MAX_LEN      128

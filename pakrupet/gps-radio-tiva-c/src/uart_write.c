@@ -7,10 +7,12 @@
 #include <driverlib/rom_map.h>
 #include <driverlib/interrupt.h>
 
-// TODO think about concurrency issues here
-
 void UartTransmit(struct UartChannelData* pChannelData)
 {
+    // this function can be called from main 'thread' and from the interrupt
+    // need to make sure that we aren't interrupted while executing in the
+    // main 'thread' or we will get race condition and unexpected behaviour
+    
     MAP_UARTIntDisable(pChannelData->base, UART_INT_TX);
 
     while(MAP_UARTSpaceAvail(pChannelData->base))
@@ -52,9 +54,7 @@ bool writeMessage(uint8_t channel, const struct Message* pMessage)
     memcpy(&pChannelData->writeBuffer.buffer[pChannelData->writeBuffer.endIdx], pMessage, sizeof(struct Message));
     pChannelData->writeBuffer.endIdx = advanceIndex(pChannelData->writeBuffer.endIdx, UART_WRITE_BUFFER_MAX_LEN);
     MAP_UARTIntEnable(pChannelData->base, UART_INT_TX);
-
     UartTransmit(pChannelData);
-
     return true;
 }
 

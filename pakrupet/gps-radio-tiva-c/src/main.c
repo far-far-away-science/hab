@@ -20,9 +20,12 @@ int main()
     bool r = true;
 
     r &= initializeUartChannel(CHANNEL_VENUS_GPS, UART_1, 9600, CPU_SPEED, UART_FLAGS_RECEIVE);
-    r &= initializeUartChannel(CHANNEL_COPERNICUS_GPS, UART_2, 9600, CPU_SPEED, UART_FLAGS_RECEIVE);
+    r &= initializeUartChannel(CHANNEL_COPERNICUS_GPS, UART_2, 4800, CPU_SPEED, UART_FLAGS_RECEIVE);
     r &= initializeUartChannel(CHANNEL_RADIO_MCU, UART_3, 1200, CPU_SPEED, UART_FLAGS_SEND);
     r &= initializeUartChannel(CHANNEL_TELEMETRY_MCU, UART_4, 115200, CPU_SPEED, UART_FLAGS_SEND);
+#ifdef DEBUG
+    r &= initializeUartChannel(CHANNEL_DEBUG, UART_0, 115200, CPU_SPEED, UART_FLAGS_SEND);
+#endif
 
     if (r)
     {
@@ -34,8 +37,12 @@ int main()
     }
 
     uint32_t startTime = getSecondsSinceStart();
+
     struct GpsData venusGpsData;
+    struct GpsData copernicusGpsData;
+
     struct Message venusGpsMessage;
+    struct Message copernicusGpsMessage;
 
     while (true)
     {
@@ -58,8 +65,27 @@ int main()
             }
         }
 
+        if (readMessage(CHANNEL_COPERNICUS_GPS, &copernicusGpsMessage) && copernicusGpsMessage.size > 6)
+        {
+            if (memcmp(copernicusGpsMessage.message, "$GP", 3) == 0)
+            {
+                if (memcmp(copernicusGpsMessage.message + 3, "GGA", 3) == 0)
+                {
+                    parseGpggaMessageIfValid(&copernicusGpsMessage, &copernicusGpsData);
+                    copernicusGpsMessage.message[0] = COPERNICUS_GPS_ID;
+                    writeMessage(CHANNEL_TELEMETRY_MCU, &copernicusGpsMessage);
+                }
+                else if (memcmp(copernicusGpsMessage.message + 3, "VTG", 3) == 0)
+                {
+                    parseGpvtgMessageIfValid(&copernicusGpsMessage, &copernicusGpsData);
+                    copernicusGpsMessage.message[0] = COPERNICUS_GPS_ID;
+                    writeMessage(CHANNEL_TELEMETRY_MCU, &copernicusGpsMessage);
+                }
+            }
+        }
+
         uint32_t currentTime = getSecondsSinceStart();
-        
+
         if (currentTime - startTime >= RADIO_MCU_MESSAGE_SENDING_INTERVAL_SECONDS)
         {
             writeMessage(CHANNEL_RADIO_MCU, &venusGpsMessage);
