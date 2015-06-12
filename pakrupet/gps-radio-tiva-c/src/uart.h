@@ -9,9 +9,9 @@
     #define UART_NUMBER_OF_CHANNELS 4
 #endif
 
-#define UART_READ_BUFFER_MAX_LEN  3
-#define UART_WRITE_BUFFER_MAX_LEN 3
-#define UART_MESSAGE_MAX_LEN      128
+#define UART_READ_BUFFER_MAX_MESSAGES_LEN 3
+#define UART_WRITE_BUFFER_MAX_CHARS_LEN   512
+#define UART_MESSAGE_MAX_LEN              128
 
 struct Message
 {

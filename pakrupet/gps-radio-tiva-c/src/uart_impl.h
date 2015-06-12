@@ -10,16 +10,15 @@ struct ReadBuffer
     bool previousCharWasCR;
     uint8_t startIdx;
     uint8_t endIdx;
-    struct Message buffer[UART_READ_BUFFER_MAX_LEN];
+    struct Message buffer[UART_READ_BUFFER_MAX_MESSAGES_LEN];
 };
 
 struct WriteBuffer
 {
     bool isEmpty;
-    uint8_t messageCharIdx;
-    uint8_t startIdx;
-    uint8_t endIdx;
-    struct Message buffer[UART_WRITE_BUFFER_MAX_LEN];
+    uint16_t startIdx;
+    uint16_t endIdx;
+    uint8_t buffer[UART_WRITE_BUFFER_MAX_CHARS_LEN];
 };
 
 struct UartChannelData
@@ -30,9 +29,7 @@ struct UartChannelData
     struct WriteBuffer writeBuffer;
 };
 
-uint8_t advanceIndex(uint8_t currentValue, uint8_t maxLen);
-
-void UartReadIntHandler(struct UartChannelData* pChannelData);
-void UartWriteIntHandler(struct UartChannelData* pChannelData);
+void uartReadIntHandler(struct UartChannelData* pChannelData);
+void uartWriteIntHandler(struct UartChannelData* pChannelData);
 
 extern struct UartChannelData uartChannelData[UART_NUMBER_OF_CHANNELS];

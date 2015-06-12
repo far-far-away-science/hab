@@ -6,6 +6,16 @@
 #include <driverlib/uart.h>
 #include <driverlib/rom_map.h>
 
+uint8_t advanceUint8Index(uint8_t currentValue, uint8_t maxLen)
+{
+    ++currentValue;
+    if (currentValue >= maxLen)
+    {
+        currentValue = 0;
+    }
+    return currentValue;
+}
+
 bool readMessage(uint8_t channel, struct Message* pResultBuffer)
 {
     struct UartChannelData* const pChannelData = &uartChannelData[channel];
@@ -21,12 +31,12 @@ bool readMessage(uint8_t channel, struct Message* pResultBuffer)
     // so we fine here as well
     memcpy(pResultBuffer, &pChannelData->readBuffer.buffer[pChannelData->readBuffer.startIdx], sizeof(struct Message));
     pChannelData->readBuffer.buffer[pChannelData->readBuffer.startIdx].size = 0;
-    pChannelData->readBuffer.startIdx = advanceIndex(pChannelData->readBuffer.startIdx, UART_READ_BUFFER_MAX_LEN);
+    pChannelData->readBuffer.startIdx = advanceUint8Index(pChannelData->readBuffer.startIdx, UART_READ_BUFFER_MAX_MESSAGES_LEN);
 
     return true;
 }
 
-void UartReadIntHandler(struct UartChannelData* pChannelData)
+void uartReadIntHandler(struct UartChannelData* pChannelData)
 {
     int32_t encodedChar;
     uint8_t decodedChar;
@@ -61,7 +71,7 @@ void UartReadIntHandler(struct UartChannelData* pChannelData)
             if (!thereIsSpaceForNewCharacter || (pChannelData->readBuffer.previousCharWasCR && decodedChar == '\x0A'))
             {
                 // start index can only get away and cannot get past end index so we are fine here
-                pChannelData->readBuffer.endIdx = advanceIndex(pChannelData->readBuffer.endIdx, UART_READ_BUFFER_MAX_LEN);
+                pChannelData->readBuffer.endIdx = advanceUint8Index(pChannelData->readBuffer.endIdx, UART_READ_BUFFER_MAX_MESSAGES_LEN);
                 // if start index moves on we are golden and can continue writing
                 if (pChannelData->readBuffer.endIdx == pChannelData->readBuffer.startIdx)
                 {

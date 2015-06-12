@@ -162,11 +162,11 @@ void Uart0IntHandler(void)
 
     if (status & (UART_INT_RX | UART_INT_RT))
     {
-        UartReadIntHandler(pChannelData);
+        uartReadIntHandler(pChannelData);
     }
     if (status & UART_INT_TX)
     {
-        UartWriteIntHandler(pChannelData);
+        uartWriteIntHandler(pChannelData);
     }
 }
 
@@ -178,11 +178,11 @@ void Uart1IntHandler(void)
 
     if (status & (UART_INT_RX | UART_INT_RT))
     {
-        UartReadIntHandler(pChannelData);
+        uartReadIntHandler(pChannelData);
     }
     if (status & UART_INT_TX)
     {
-        UartWriteIntHandler(pChannelData);
+        uartWriteIntHandler(pChannelData);
     }
 }
 
@@ -194,11 +194,11 @@ void Uart2IntHandler(void)
 
     if (status & (UART_INT_RX | UART_INT_RT))
     {
-        UartReadIntHandler(pChannelData);
+        uartReadIntHandler(pChannelData);
     }
     if (status & UART_INT_TX)
     {
-        UartWriteIntHandler(pChannelData);
+        uartWriteIntHandler(pChannelData);
     }
 }
 
@@ -210,11 +210,11 @@ void Uart3IntHandler(void)
 
     if (status & (UART_INT_RX | UART_INT_RT))
     {
-        UartReadIntHandler(pChannelData);
+        uartReadIntHandler(pChannelData);
     }
     if (status & UART_INT_TX)
     {
-        UartWriteIntHandler(pChannelData);
+        uartWriteIntHandler(pChannelData);
     }
 }
 
@@ -226,20 +226,10 @@ void Uart4IntHandler(void)
 
     if (status & (UART_INT_RX | UART_INT_RT))
     {
-        UartReadIntHandler(pChannelData);
+        uartReadIntHandler(pChannelData);
     }
     if (status & UART_INT_TX)
     {
-        UartWriteIntHandler(pChannelData);
+        uartWriteIntHandler(pChannelData);
     }
-}
-
-uint8_t advanceIndex(uint8_t currentValue, uint8_t maxLen)
-{
-    ++currentValue;
-    if (currentValue >= maxLen)
-    {
-        currentValue = 0;
-    }
-    return currentValue;
 }
