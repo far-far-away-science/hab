@@ -19,34 +19,34 @@ uint16_t advanceUint16Index(uint16_t currentValue, uint16_t maxLen)
 
 uint16_t getBufferCapacity(const struct WriteBuffer* pWriteBuffer, uint16_t maxLen)
 {
-		const bool isEmpty = pWriteBuffer->isEmpty;
-		const uint16_t start = pWriteBuffer->startIdx;
-		const uint16_t end = pWriteBuffer->endIdx;
+    const bool isEmpty = pWriteBuffer->isEmpty;
+    const uint16_t start = pWriteBuffer->startIdx;
+    const uint16_t end = pWriteBuffer->endIdx;
 	
-	  if (isEmpty && start == end)
-		{
-	      return maxLen;
-		}
-		else if (end >= start)
-		{
-				return end - start;
-		}
-		else
-		{
-				return maxLen - start + end;
-		}
+    if (isEmpty && start == end)
+    {
+        return maxLen;
+    }
+    else if (end >= start)
+    {
+        return end - start;
+    }
+    else
+    {
+        return maxLen - start + end;
+    }
 }
 
 void uartTransmit(struct UartChannelData* pChannelData)
 {
     while(MAP_UARTSpaceAvail(pChannelData->base) && !pChannelData->writeBuffer.isEmpty)
     {
-					MAP_UARTCharPutNonBlocking(pChannelData->base, pChannelData->writeBuffer.buffer[pChannelData->writeBuffer.startIdx]);
-					pChannelData->writeBuffer.startIdx = advanceUint16Index(pChannelData->writeBuffer.startIdx, UART_WRITE_BUFFER_MAX_CHARS_LEN);
-					if (pChannelData->writeBuffer.startIdx == pChannelData->writeBuffer.endIdx) 
-					{
-							pChannelData->writeBuffer.isEmpty = true;
-					}
+        MAP_UARTCharPutNonBlocking(pChannelData->base, pChannelData->writeBuffer.buffer[pChannelData->writeBuffer.startIdx]);
+        pChannelData->writeBuffer.startIdx = advanceUint16Index(pChannelData->writeBuffer.startIdx, UART_WRITE_BUFFER_MAX_CHARS_LEN);
+        if (pChannelData->writeBuffer.startIdx == pChannelData->writeBuffer.endIdx) 
+        {
+            pChannelData->writeBuffer.isEmpty = true;
+        }
     }
 }
 
@@ -61,11 +61,11 @@ bool writeMessage(uint8_t channel, const struct Message* pMessage)
         return false;
     }
 
-		for (uint8_t i = 0; i < pMessage->size; ++i)
-		{
-				pChannelData->writeBuffer.buffer[pChannelData->writeBuffer.endIdx] = pMessage->message[i];
-				pChannelData->writeBuffer.endIdx = advanceUint16Index(pChannelData->writeBuffer.endIdx, UART_WRITE_BUFFER_MAX_CHARS_LEN);
-		}
+    for (uint8_t i = 0; i < pMessage->size; ++i)
+    {
+        pChannelData->writeBuffer.buffer[pChannelData->writeBuffer.endIdx] = pMessage->message[i];
+        pChannelData->writeBuffer.endIdx = advanceUint16Index(pChannelData->writeBuffer.endIdx, UART_WRITE_BUFFER_MAX_CHARS_LEN);
+    }
 		
     uartTransmit(pChannelData);
     MAP_UARTIntEnable(pChannelData->base, UART_INT_TX);
