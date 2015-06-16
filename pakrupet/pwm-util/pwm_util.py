@@ -130,12 +130,12 @@ def calculateTransition(arrayFrom, arrayTo):
             toType = getType(arrayTo, j)
             if fromType == ItemType.UP and (toType == ItemType.UP or toType == ItemType.PEAK):
                 newDistance = abs(arrayTo[j] - arrayFrom[i])
-                if arrayTo[j] - arrayFrom[i] > 0 and newDistance < distance:
+                if arrayTo[j] - arrayFrom[i] >= 0 and newDistance < distance:
                     index = j
                     distance = newDistance
             elif fromType == ItemType.DOWN and (toType == ItemType.DOWN or toType == ItemType.VALLEY):
                 newDistance = abs(arrayTo[j] - arrayFrom[i])
-                if arrayTo[j] - arrayFrom[i] < 0 and newDistance < distance:
+                if arrayTo[j] - arrayFrom[i] <= 0 and newDistance < distance:
                     index = j
                     distance = newDistance
             elif fromType == toType:
