@@ -1,0 +1,17 @@
+ACPI\BCM2836\0
+    Hardware IDs:
+        ACPI\VEN_BCM&DEV_2836
+        ACPI\BCM2836 <---------- this is a hardware id to be used when installing the driver
+        *BCM2836
+    Compatible IDs:
+        ACPI\MINIUART
+        MINIUART
+
+setup:
+http://ms-iot.github.io/content/en-US/win10/samples/PowerShell.htm
+
+command lines:
+http://ms-iot.github.io/content/en-US/win10/tools/CommandLineUtils.htm
+
+log:
+K:\Windows\INF\setupapi.dev.log
