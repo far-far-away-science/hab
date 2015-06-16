@@ -13,6 +13,7 @@
 int main()
 {
     initializeTivaC();
+    initializeAprs();
     initializeTimer();
     initializeUart();
     initializeSignals();
@@ -21,8 +22,7 @@ int main()
 
     r &= initializeUartChannel(CHANNEL_VENUS_GPS, UART_1, 9600, CPU_SPEED, UART_FLAGS_RECEIVE);
     r &= initializeUartChannel(CHANNEL_COPERNICUS_GPS, UART_2, 4800, CPU_SPEED, UART_FLAGS_RECEIVE);
-    r &= initializeUartChannel(CHANNEL_RADIO_MCU, UART_3, 1200, CPU_SPEED, UART_FLAGS_SEND);
-    r &= initializeUartChannel(CHANNEL_TELEMETRY_MCU, UART_4, 115200, CPU_SPEED, UART_FLAGS_SEND);
+    r &= initializeUartChannel(CHANNEL_TELEMETRY_MCU, UART_3, 115200, CPU_SPEED, UART_FLAGS_SEND);
 #ifdef DEBUG
     r &= initializeUartChannel(CHANNEL_DEBUG, UART_0, 115200, CPU_SPEED, UART_FLAGS_SEND);
 #endif
@@ -38,12 +38,14 @@ int main()
 
     uint32_t startTime = getSecondsSinceStart();
 
-    struct GpsData venusGpsData;
-    struct GpsData copernicusGpsData;
+    struct GpsData venusGpsData = { 0 };
+    struct GpsData copernicusGpsData = { 0 };
 
-    struct Message venusGpsMessage;
-    struct Message copernicusGpsMessage;
+    struct Message venusGpsMessage = { 0 };
+    struct Message copernicusGpsMessage = { 0 };
 
+    bool shouldSendVenusDataToAprs = true;
+    
     while (true)
     {
         if (readMessage(CHANNEL_VENUS_GPS, &venusGpsMessage) && venusGpsMessage.size > 6)
@@ -86,9 +88,19 @@ int main()
 
         uint32_t currentTime = getSecondsSinceStart();
 
-        if (currentTime - startTime >= RADIO_MCU_MESSAGE_SENDING_INTERVAL_SECONDS)
+        if (currentTime - startTime >= 5 /* RADIO_MCU_MESSAGE_SENDING_INTERVAL_SECONDS */)
         {
-            writeMessage(CHANNEL_RADIO_MCU, &venusGpsMessage);
+            if (shouldSendVenusDataToAprs && venusGpsData.isValid)
+            {
+                sendAprsMessage(&venusGpsData);
+            }
+            else
+            {
+                // higher chance that copernicus will work more reliably
+                // so we will use it as a default fallback
+                sendAprsMessage(&copernicusGpsData);
+            }
+            shouldSendVenusDataToAprs = !shouldSendVenusDataToAprs;
             startTime = currentTime;
         }
 

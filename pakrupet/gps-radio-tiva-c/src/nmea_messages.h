@@ -4,6 +4,7 @@
 
 struct GpsData
 {
+    bool isValid;
     uint8_t szUtcTime[10 + 1];
     uint8_t szLatitude[9 + 1];
     uint8_t szLongitude[10 + 1];

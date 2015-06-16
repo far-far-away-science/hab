@@ -1,6 +1,6 @@
 #pragma once
 
-#include "uart.h"
 #include "nmea_messages.h"
 
-void createAprsMessage(const struct GpsData* pGpsData, struct Message* pResult);
+void initializeAprs(void);
+void sendAprsMessage(const struct GpsData* pGpsData);

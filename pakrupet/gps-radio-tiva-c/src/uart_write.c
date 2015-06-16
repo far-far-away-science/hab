@@ -39,7 +39,10 @@ uint16_t getBufferCapacity(const struct WriteBuffer* pWriteBuffer, uint16_t maxL
 
 void uartTransmit(struct UartChannelData* pChannelData)
 {
-    while(MAP_UARTSpaceAvail(pChannelData->base) && !pChannelData->writeBuffer.isEmpty)
+    MAP_UARTIntDisable(pChannelData->base, UART_INT_TX);
+    
+    while(MAP_UARTSpaceAvail(pChannelData->base) && 
+          (pChannelData->writeBuffer.endIdx != pChannelData->writeBuffer.startIdx || !pChannelData->writeBuffer.isEmpty))
     {
         MAP_UARTCharPutNonBlocking(pChannelData->base, pChannelData->writeBuffer.buffer[pChannelData->writeBuffer.startIdx]);
         pChannelData->writeBuffer.startIdx = advanceUint16Index(pChannelData->writeBuffer.startIdx, UART_WRITE_BUFFER_MAX_CHARS_LEN);
@@ -48,6 +51,27 @@ void uartTransmit(struct UartChannelData* pChannelData)
             pChannelData->writeBuffer.isEmpty = true;
         }
     }
+
+    MAP_UARTIntEnable(pChannelData->base, UART_INT_TX);
+}
+
+bool write(uint8_t channel, uint8_t character)
+{
+    struct UartChannelData* const pChannelData = &uartChannelData[channel];
+
+    // interrupt can only make buffer emptier so we are fine no matter where interrupt kicks in
+    if ((!pChannelData->writeBuffer.isEmpty && pChannelData->writeBuffer.startIdx == pChannelData->writeBuffer.endIdx) ||
+		getBufferCapacity(&pChannelData->writeBuffer, UART_WRITE_BUFFER_MAX_CHARS_LEN) < 1)
+    {
+        return false;
+    }
+
+    pChannelData->writeBuffer.buffer[pChannelData->writeBuffer.endIdx] = character;
+    pChannelData->writeBuffer.endIdx = advanceUint16Index(pChannelData->writeBuffer.endIdx, UART_WRITE_BUFFER_MAX_CHARS_LEN);
+		
+    uartTransmit(pChannelData);
+		
+    return true;
 }
 
 bool writeMessage(uint8_t channel, const struct Message* pMessage)
@@ -56,7 +80,7 @@ bool writeMessage(uint8_t channel, const struct Message* pMessage)
 
     // interrupt can only make buffer emptier so we are fine no matter where interrupt kicks in
     if ((!pChannelData->writeBuffer.isEmpty && pChannelData->writeBuffer.startIdx == pChannelData->writeBuffer.endIdx) ||
-		    getBufferCapacity(&pChannelData->writeBuffer, UART_WRITE_BUFFER_MAX_CHARS_LEN) < pMessage->size)
+		getBufferCapacity(&pChannelData->writeBuffer, UART_WRITE_BUFFER_MAX_CHARS_LEN) < pMessage->size)
     {
         return false;
     }
@@ -68,7 +92,6 @@ bool writeMessage(uint8_t channel, const struct Message* pMessage)
     }
 		
     uartTransmit(pChannelData);
-    MAP_UARTIntEnable(pChannelData->base, UART_INT_TX);
 		
     return true;
 }

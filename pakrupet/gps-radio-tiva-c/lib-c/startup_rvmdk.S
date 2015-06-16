@@ -85,6 +85,7 @@ __heap_limit
         EXTERN  Uart3IntHandler
         EXTERN  Uart4IntHandler
         EXTERN  Timer0IntHandler
+        EXTERN  Pwm10Handler
 
 ;******************************************************************************
 ;
@@ -120,7 +121,7 @@ __Vectors
         DCD     IntDefaultHandler           ; SSI0 Rx and Tx
         DCD     IntDefaultHandler           ; I2C0 Master and Slave
         DCD     IntDefaultHandler           ; PWM Fault
-        DCD     IntDefaultHandler           ; PWM Generator 0
+        DCD     Pwm10Handler                ; PWM Generator 0
         DCD     IntDefaultHandler           ; PWM Generator 1
         DCD     IntDefaultHandler           ; PWM Generator 2
         DCD     IntDefaultHandler           ; Quadrature Encoder 0

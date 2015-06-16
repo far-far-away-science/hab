@@ -4,9 +4,9 @@
 #include <stdbool.h>
 
 #ifdef DEBUG
-    #define UART_NUMBER_OF_CHANNELS 5
-#else
     #define UART_NUMBER_OF_CHANNELS 4
+#else
+    #define UART_NUMBER_OF_CHANNELS 3
 #endif
 
 #define UART_READ_BUFFER_MAX_MESSAGES_LEN 3
@@ -41,4 +41,5 @@ bool initializeUartChannel(uint8_t channel,
 // if you use them from other interrupts (higher priority than UART ones
 // behaviour is undefined).
 bool readMessage(uint8_t channel, struct Message* pResultBuffer);
+bool write(uint8_t channel, uint8_t character);
 bool writeMessage(uint8_t channel, const struct Message* pMessage);

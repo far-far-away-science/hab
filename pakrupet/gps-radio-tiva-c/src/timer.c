@@ -11,6 +11,8 @@
 
 uint32_t timerSeconds;
 
+const uint8_t callsign[] = "12345";
+
 void initializeTimer(void)
 {
     timerSeconds = 0;
