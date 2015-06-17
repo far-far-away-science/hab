@@ -262,6 +262,9 @@
   <ItemGroup>
     <Text Include="install-driver.txt" />
   </ItemGroup>
+  <ItemGroup>
+    <None Include="utils\tracing.bat" />
+  </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">
   </ImportGroup>

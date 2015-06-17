@@ -9,6 +9,9 @@
       <UniqueIdentifier>{8E41214B-6785-4CFE-B992-037D68949A14}</UniqueIdentifier>
       <Extensions>inf;inv;inx;mof;mc;</Extensions>
     </Filter>
+    <Filter Include="utils">
+      <UniqueIdentifier>{55831c9d-9986-4ce6-877e-b21dbe822181}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Inf Include="uart-driver.inf">
@@ -31,5 +34,10 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="install-driver.txt" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="utils\tracing.bat">
+      <Filter>utils</Filter>
+    </None>
   </ItemGroup>
 </Project>

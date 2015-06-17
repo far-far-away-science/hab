@@ -8,7 +8,7 @@
 #include <usbdlib.h>
 #include <wdfusb.h>
 
-#include "trace.h"
+#include "..\Trace.h"
 
 EXTERN_C_START
 
