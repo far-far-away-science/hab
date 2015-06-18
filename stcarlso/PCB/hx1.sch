@@ -818,9 +818,9 @@ Standard 4-pin 0.1" header. Use with straight break away headers (SKU : PRT-0011
 <description>&lt;b&gt;HX1&lt;/b&gt;&lt;br/&gt;
 &lt;br/&gt;
 Radiometrix HX1</description>
-<wire x1="-6.35" y1="1.27" x2="-6.35" y2="-5.08" width="0.2032" layer="21"/>
-<wire x1="38.1" y1="1.27" x2="38.1" y2="-5.08" width="0.2032" layer="21"/>
-<wire x1="38.1" y1="-5.08" x2="-6.35" y2="-5.08" width="0.2032" layer="21"/>
+<wire x1="-5.08" y1="1.27" x2="-5.08" y2="-4.064" width="0.2032" layer="21"/>
+<wire x1="38.1" y1="1.27" x2="38.1" y2="-4.064" width="0.2032" layer="21"/>
+<wire x1="38.1" y1="-4.064" x2="-5.08" y2="-4.064" width="0.2032" layer="21"/>
 <pad name="1" x="0" y="0" drill="1.016" diameter="1.8796" rot="R90"/>
 <pad name="2" x="2.54" y="0" drill="1.016" diameter="1.8796" rot="R90"/>
 <pad name="3" x="5.08" y="0" drill="1.016" diameter="1.8796" rot="R90"/>
@@ -828,8 +828,8 @@ Radiometrix HX1</description>
 <pad name="5" x="22.86" y="0" drill="1.016" diameter="1.8796" rot="R90"/>
 <pad name="6" x="25.4" y="0" drill="1.016" diameter="1.8796" rot="R90"/>
 <pad name="7" x="27.94" y="0" drill="1.016" diameter="1.8796" rot="R90"/>
-<text x="-6.4262" y="1.8288" size="1.27" layer="25" ratio="10">&gt;NAME</text>
-<text x="-6.35" y="-6.985" size="1.27" layer="27">&gt;VALUE</text>
+<text x="-5.1562" y="1.8288" size="1.27" layer="25" ratio="10">&gt;NAME</text>
+<text x="-5.08" y="-5.715" size="1.27" layer="27">&gt;VALUE</text>
 <rectangle x1="4.826" y1="-0.254" x2="5.334" y2="0.254" layer="51"/>
 <rectangle x1="2.286" y1="-0.254" x2="2.794" y2="0.254" layer="51"/>
 <rectangle x1="-0.254" y1="-0.254" x2="0.254" y2="0.254" layer="51"/>
@@ -838,7 +838,7 @@ Radiometrix HX1</description>
 <rectangle x1="25.146" y1="-0.254" x2="25.654" y2="0.254" layer="51"/>
 <rectangle x1="27.686" y1="-0.254" x2="28.194" y2="0.254" layer="51"/>
 <dimension x1="5.08" y1="0" x2="20.32" y2="0" x3="12.7" y3="2.54" textsize="1.27" layer="47"/>
-<wire x1="38.1" y1="1.27" x2="-6.35" y2="1.27" width="0.2032" layer="21"/>
+<wire x1="38.1" y1="1.27" x2="-5.08" y2="1.27" width="0.2032" layer="21"/>
 </package>
 </packages>
 <symbols>
