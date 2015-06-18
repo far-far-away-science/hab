@@ -1,5 +1,8 @@
-#include "driver.h"
-#include "driver.tmh"
+#include "Driver.h"
+
+#include "Device.h"
+
+#include "Driver.tmh"
 
 #ifdef ALLOC_PRAGMA
     #pragma alloc_text (INIT, DriverEntry)
@@ -15,6 +18,7 @@ NTSTATUS DriverEntry(_In_ PDRIVER_OBJECT driverObject, _In_ PUNICODE_STRING regi
 
     WDF_OBJECT_ATTRIBUTES attributes;
     WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
+    // cleanup will stop tracing
     attributes.EvtCleanupCallback = UartDriverEvtDriverContextCleanup;
 
     WDF_DRIVER_CONFIG config;
@@ -36,9 +40,17 @@ NTSTATUS DriverEntry(_In_ PDRIVER_OBJECT driverObject, _In_ PUNICODE_STRING regi
 
 NTSTATUS UartDriverEvtDeviceAdd(_In_ WDFDRIVER driver, _Inout_ PWDFDEVICE_INIT deviceInit)
 {
+    PAGED_CODE();
+
     UNREFERENCED_PARAMETER(driver);
-    UNREFERENCED_PARAMETER(deviceInit);
-    return STATUS_SUCCESS;
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DRIVER, "%!FUNC! Entry");
+
+    NTSTATUS status = UartDeviceCreate(deviceInit);
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DRIVER, "%!FUNC! Exit");
+
+    return status;
 }
 
 void UartDriverEvtDriverContextCleanup(_In_ WDFOBJECT driverObject)

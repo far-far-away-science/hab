@@ -1,65 +1,65 @@
 from enum import Enum
 
 zero = [
-    354,
-    392,
-    429,
-    465,
-    501,
-    534,
-    566,
-    595,
-    621,
-    644,
-    664,
-    680,
-    693,
-    701,
-    706,
-    707,
-    703,
-    696,
-    685,
-    670,
-    651,
-    629,
-    604,
-    575,
-    545,
-    512,
-    477,
-    441,
-    404,
-    367,
-    329,
-    291,
-    255,
-    219,
-    185,
-    153,
-    123,
-    96,
-    71,
-    50,
-    33,
-    19,
-    9,
-    3,
-    1,
-    3,
-    9,
-    19,
-    33,
-    50,
-    71,
-    96,
-    123,
-    153,
-    185,
-    219,
-    255,
-    291,
-    329
+    353,
+    375,
+    396,
+    417,
+    437,
+    457,
+    475,
+    491,
+    506,
+    520,
+    531,
+    541,
+    548,
+    553,
+    555,
+    556,
+    554,
+    550,
+    543,
+    535,
+    524,
+    511,
+    497,
+    480,
+    463,
+    444,
+    424,
+    403,
+    382,
+    360,
+    339,
+    317,
+    296,
+    275,
+    256,
+    237,
+    220,
+    204,
+    190,
+    178,
+    168,
+    160,
+    155,
+    151,
+    150,
+    151,
+    155,
+    160,
+    168,
+    178,
+    190,
+    204,
+    220,
+    237,
+    256,
+    275,
+    296,
+    317,
+    339
 ]
 
 one = [
@@ -143,6 +143,20 @@ def calculateTransition(arrayFrom, arrayTo):
                 if newDistance < distance:
                     index = j
                     distance = newDistance
+        if index == -1:
+            # for up have to find closest peak or down
+            for j in range(len(arrayTo)):
+                toType = getType(arrayTo, j)
+                if fromType == ItemType.UP and (toType == ItemType.DOWN or toType == ItemType.PEAK):
+                    newDistance = abs(arrayTo[j] - arrayFrom[i])
+                    if arrayTo[j] - arrayFrom[i] <= 0 and newDistance < distance:
+                        index = j
+                        distance = newDistance
+                elif fromType == ItemType.DOWN and (toType == ItemType.UP or toType == ItemType.VALLEY):
+                    newDistance = abs(arrayTo[j] - arrayFrom[i])
+                    if arrayTo[j] - arrayFrom[i] >= 0 and newDistance < distance:
+                        index = j
+                        distance = newDistance
         if index == -1:
             assert(False)
         result[i] = index

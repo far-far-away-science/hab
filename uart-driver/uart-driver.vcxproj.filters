@@ -22,6 +22,9 @@
     <ClCompile Include="src\Driver.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\Device.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\Driver.h">
@@ -31,6 +34,9 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="Trace.h" />
+    <ClInclude Include="src\Device.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <Text Include="install-driver.txt" />
