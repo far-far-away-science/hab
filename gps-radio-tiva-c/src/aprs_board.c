@@ -12,6 +12,7 @@
 #include <driverlib/pin_map.h>
 
 #include "uart.h"
+#include "timer.h"
 #include "common.h"
 
 #define F1200_COUNT 59
@@ -19,190 +20,48 @@
 
 #define MAX_SYMBOL_PULSES_COUNT 64
 
-#define APRS_BUFFER_MAX_LEN 256
-
-/*
-const uint16_t F1200_DATA[] =
-{
-    354,
-    392,
-    429,
-    465,
-    501,
-    534,
-    566,
-    595,
-    621,
-    644,
-    664,
-    680,
-    693,
-    701,
-    706,
-    707,
-    703,
-    696,
-    685,
-    670,
-    651,
-    629,
-    604,
-    575,
-    545,
-    512,
-    477,
-    441,
-    404,
-    367,
-    329,
-    291,
-    255,
-    219,
-    185,
-    153,
-    123,
-    96,
-    71,
-    50,
-    33,
-    19,
-    9,
-    3,
-    1,
-    3,
-    9,
-    19,
-    33,
-    50,
-    71,
-    96,
-    123,
-    153,
-    185,
-    219,
-    255,
-    291,
-    329
-};
-*/
+#define APRS_MESSAGE_MAX_LEN   256
+#define APRS_BITSTREAM_MAX_LEN 384 // bitstream will have extra bits in it so it must be larger than message buffer
+                                   // in worst case we will insert extra 0 for every 5 bits
 
 const uint16_t F1200_DATA[] =
 {
-    353,
-    375,
-    396,
-    417,
-    437,
-    457,
-    475,
-    491,
-    506,
-    520,
-    531,
-    541,
-    548,
-    553,
-    555,
-    556,
-    554,
-    550,
-    543,
-    535,
-    524,
-    511,
-    497,
-    480,
-    463,
-    444,
-    424,
-    403,
-    382,
-    360,
-    339,
-    317,
-    296,
-    275,
-    256,
-    237,
-    220,
-    204,
-    190,
-    178,
-    168,
-    160,
-    155,
-    151,
-    150,
-    151,
-    155,
-    160,
-    168,
-    178,
-    190,
-    204,
-    220,
-    237,
-    256,
-    275,
-    296,
-    317,
-    339
+    354, 386, 418, 450, 480, 509, 536, 560, 583, 603, 620, 634, 645, 652, 656, 657, 654, 648, 638, 625, 609, 590, 568, 544, 518, 490, 460, 429, 397, 365, 332, 300, 269, 238, 209, 181, 156, 132, 111, 93, 78, 67, 58, 53, 51, 53, 58, 67, 78, 93, 111, 132, 156, 181, 209, 238, 269, 300, 332
 };
 
 const uint8_t F1200_2_F2200[] =
 {
-//  0, 1, 2, 2, 3, 3, 4, 4, 5, 5, 6, 6, 7, 8, 8, 8, 9, 10, 10, 11, 11, 12, 12, 13, 14, 14, 15, 15, 16, 16, 17, 17, 18, 18, 19, 20, 20, 21, 21, 22, 22, 23, 23, 24, 24, 25, 26, 26, 27, 27, 28, 28, 29, 29, 30, 30, 31, 0, 0
-    0, 1, 1, 1, 2, 2, 2, 3, 3, 3, 3, 3, 3, 4, 4, 8, 13, 13, 14, 14, 14, 14, 14, 15, 15, 15, 15, 16, 16, 16, 17, 17, 17, 18, 18, 18, 18, 19, 19, 19, 19, 19, 20, 20, 24, 29, 29, 30, 30, 30, 30, 30, 31, 31, 31, 31, 0, 0, 0
+    0, 1, 1, 2, 2, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 8, 11, 11, 12, 12, 12, 13, 13, 14, 14, 14, 15, 15, 16, 16, 17, 17, 18, 18, 19, 19, 20, 20, 20, 21, 21, 21, 22, 22, 24, 27, 27, 28, 28, 28, 29, 29, 29, 30, 30, 31, 31, 0, 0
 };
 
 const uint16_t F2200_DATA[] =
 {
-    354,
-    423,
-    489,
-    550,
-    604,
-    648,
-    680,
-    700,
-    707,
-    700,
-    680,
-    648,
-    604,
-    550,
-    489,
-    423,
-    354,
-    285,
-    219,
-    158,
-    104,
-    60,
-    28,
-    8,
-    1,
-    8,
-    28,
-    60,
-    104,
-    158,
-    219,
-    285
+    354, 423, 489, 550, 604, 648, 680, 700, 707, 700, 680, 648, 604, 550, 489, 423, 354, 285, 219, 158, 104, 60, 28, 8, 1, 8, 28, 60, 104, 158, 219, 285
 };
 
-const uint8_t F2200_2_F1200[] = {
-//  0, 2, 4, 6, 8, 10, 11, 13, 15, 17, 19, 21, 22, 24, 26, 28, 30, 32, 33, 35, 37, 39, 41, 43, 44, 46, 48, 50, 52, 54, 55, 57
-    1, 4, 7, 13, 15, 15, 15, 15, 15, 16, 16, 16, 16, 17, 23, 27, 30, 33, 37, 42, 44, 44, 44, 44, 44, 45, 45, 45, 45, 47, 52, 56
+const uint8_t F2200_2_F1200[] =
+{
+    0, 3, 5, 7, 10, 13, 15, 15, 15, 16, 16, 17, 21, 23, 26, 28, 30, 32, 34, 36, 39, 42, 44, 44, 44, 45, 45, 47, 50, 53, 55, 57
+};
+
+const struct Callsign CALLSIGN_SOURCE = 
+{
+    {"HABHAB"},
+    0x61
+};
+
+const struct Callsign CALLSIGN_DESTINATION = 
+{
+    {"APRS  "},
+    0xE0
 };
 
 bool g_sendingMessage = false;
 
-uint16_t g_currentMessageSize = 0;
-uint16_t g_currentMessageWordIdx = 0;
-
-uint8_t g_currentMessageCharBitIdx = 0;
-uint8_t g_currentMessage[APRS_BUFFER_MAX_LEN];
+uint16_t g_currentBitstreamSize = 0;
+uint16_t g_currentBitstreamCharIdx = 0;
+uint8_t  g_currentBitstreamCharBitIdx = 0;
+uint8_t  g_currentBitstream[APRS_BITSTREAM_MAX_LEN] = { 0 };
 
 bool g_currentFrequencyIsF1200 = true;
 
@@ -222,28 +81,64 @@ void initializeAprs(void)
     PWMPulseWidthSet(PWM0_BASE, PWM_OUT_0, 710 / 2);
 }
 
+void generateFcs(uint8_t* pMessage, uint16_t messageSize, uint8_t* pFcs)
+{
+    uint16_t fcs = 0xFFFF;
+    for (uint16_t i = 0; i < messageSize; ++i)
+    {
+        for (uint8_t j = 0; j < 8; ++j)
+        {
+            const uint16_t shiftBit = fcs & 0x0001;
+            fcs = fcs >> 1;
+            if (shiftBit != (pMessage[i] & (1 << j)))
+            {
+                fcs ^= 0x8408;
+            }
+        }
+    }
+    fcs ^= 0xffff;
+    pFcs[0] = (fcs >> 8) & 0x00FF;
+    pFcs[1] = fcs & 0x00FF;
+}
+
+uint16_t generateMessage(const struct Callsign* pCallsignDestination,
+                         const struct Callsign* pCallsignSource,
+                         uint8_t* messageBuffer,
+                         uint16_t maxMessageLen)
+{
+    // TODO
+    return 0;
+}
+
+uint16_t encodeMessage2BitStream(const uint8_t* pMessage, uint16_t messageSize, uint8_t* pBistream, uint16_t bitstreamMaxLen)
+{
+    // TODO
+    return 0;
+}
+
 void createAprsMessage(const struct GpsData* pGpsData)
 {
-    g_sendingMessage = true;
+    g_currentBitstreamSize = 0;
+    g_currentBitstreamCharIdx = 0;
+    g_currentBitstreamCharBitIdx = 0;
 
     g_currentF1200Frame = 0;
     g_currentF2200Frame = 0;
     g_currentFrequencyIsF1200 = true;
     g_currentSymbolPulsesCount = MAX_SYMBOL_PULSES_COUNT;
 
-    g_currentMessageWordIdx = 0;
-    g_currentMessageCharBitIdx = 0;
-    
-    // TODO implement APRS message creation
-    // const uint8_t TEST_MSG[] = "\xAA\xAA\xAA\xAA\xAA\xAA\xAA\xAA\xAA\xAA\xAA\xAA\xAA\xAA\xAA\xAA\xAA\xAA\xAA\xAA\xAA\xAA\xAA\xAA\xAA";
-    // const uint8_t TEST_MSG[] = "\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC\xCC";
-    const uint8_t TEST_MSG[] = "\xEE\xEE\xEE\xEE\xEE\xEE\xEE\xEE\xEE\xEE\xEE\xEE\xEE\xEE\xEE\xEE\xEE\xEE\xEE\xEE\xEE\xEE\xEE\xEE\xEE";
-    // const uint8_t TEST_MSG[] = "\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF\xFF";
-    // const uint8_t TEST_MSG[] = "\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00\x00";
-    g_currentMessageSize = sizeof(TEST_MSG);
-    // check APRS_BUFFER_MAX_LEN
-    memcpy(g_currentMessage, TEST_MSG, g_currentMessageSize);
-    // TODO end
+    uint8_t message[APRS_MESSAGE_MAX_LEN];
+
+    uint16_t messageSize = generateMessage(&CALLSIGN_DESTINATION,
+                                           &CALLSIGN_SOURCE,
+                                           message,
+                                           APRS_MESSAGE_MAX_LEN);
+    g_currentBitstreamSize = encodeMessage2BitStream(message, 
+                                                     messageSize,
+                                                     g_currentBitstream,
+                                                     APRS_BITSTREAM_MAX_LEN);
+
+    g_sendingMessage = true;
 }
 
 void enablePwm(void)
@@ -293,13 +188,13 @@ void Pwm10Handler(void)
     {
         g_currentSymbolPulsesCount = 0;
 
-        if (g_currentMessageCharBitIdx > 7)
+        if (g_currentBitstreamCharBitIdx > 7)
         {
-            ++g_currentMessageWordIdx;
-            g_currentMessageCharBitIdx = 0;
+            ++g_currentBitstreamCharIdx;
+            g_currentBitstreamCharBitIdx = 0;
         }
 
-        if (!g_sendingMessage || g_currentMessageWordIdx >= g_currentMessageSize)
+        if (!g_sendingMessage || g_currentBitstreamCharIdx >= g_currentBitstreamSize)
         {
             disablePwm();
             disableHx1();
@@ -307,27 +202,20 @@ void Pwm10Handler(void)
             return;
         }
 
-        if (g_currentMessage[g_currentMessageWordIdx] & (1 << g_currentMessageCharBitIdx))
+        const bool isOne = g_currentBitstream[g_currentBitstreamCharIdx] & (1 << g_currentBitstreamCharBitIdx);
+        
+        if (isOne && !g_currentFrequencyIsF1200)
         {
-            // one doesn't change current frequency
+            g_currentF1200Frame = F2200_2_F1200[g_currentF2200Frame];
+            g_currentFrequencyIsF1200 = true;
         }
-        else
+        else if (!isOne && g_currentFrequencyIsF1200)
         {
-            if (g_currentFrequencyIsF1200)
-            {
-                // make sure once we change to 2200Hz frequency it looks smooth
-                g_currentF2200Frame = F1200_2_F2200[g_currentF1200Frame];
-            }
-            else
-            {
-                // make sure one we change to 1200Hz frequency it looks smooth
-                g_currentF1200Frame = F2200_2_F1200[g_currentF2200Frame];
-            }
-            // zero changes current freuqncy to opposite one
-            g_currentFrequencyIsF1200 = !g_currentFrequencyIsF1200;
+            g_currentF2200Frame = F1200_2_F2200[g_currentF1200Frame];
+            g_currentFrequencyIsF1200 = false;
         }
         
-        ++g_currentMessageCharBitIdx;
+        ++g_currentBitstreamCharBitIdx;
     }
     
     if (g_currentFrequencyIsF1200)

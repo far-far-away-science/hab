@@ -2,8 +2,6 @@
 
 #include <stdint.h>
 
-extern const uint8_t callsign[];
-
 #define CPU_SPEED 16000000
 
 #define CHANNEL_VENUS_GPS      0
