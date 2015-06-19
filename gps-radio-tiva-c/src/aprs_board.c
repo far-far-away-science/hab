@@ -24,6 +24,19 @@
 #define APRS_BITSTREAM_MAX_LEN 384 // bitstream will have extra bits in it so it must be larger than message buffer
                                    // in worst case we will insert extra 0 for every 5 bits
 
+struct BitstreamSize
+{
+    uint16_t bitstreamCharIdx;
+    uint8_t bitstreamCharBitIdx;
+};
+
+struct EncodingData
+{
+    uint8_t lastBit;
+    uint8_t numberOfOnes;
+    struct BitstreamSize bitstreamSize;
+};
+
 const uint16_t F1200_DATA[] =
 {
     354, 386, 418, 450, 480, 509, 536, 560, 583, 603, 620, 634, 645, 652, 656, 657, 654, 648, 638, 625, 609, 590, 568, 544, 518, 490, 460, 429, 397, 365, 332, 300, 269, 238, 209, 181, 156, 132, 111, 93, 78, 67, 58, 53, 51, 53, 58, 67, 78, 93, 111, 132, 156, 181, 209, 238, 269, 300, 332
@@ -58,9 +71,9 @@ const struct Callsign CALLSIGN_DESTINATION =
 
 bool g_sendingMessage = false;
 
-uint16_t g_currentBitstreamSize = 0;
 uint16_t g_currentBitstreamCharIdx = 0;
 uint8_t  g_currentBitstreamCharBitIdx = 0;
+struct BitstreamSize g_currentBitstreamSize = { 0 };
 uint8_t  g_currentBitstream[APRS_BITSTREAM_MAX_LEN] = { 0 };
 
 bool g_currentFrequencyIsF1200 = true;
@@ -97,8 +110,8 @@ void generateFcs(uint8_t* pMessage, uint16_t messageSize, uint8_t* pFcs)
         }
     }
     fcs ^= 0xffff;
-    pFcs[0] = (fcs >> 8) & 0x00FF;
-    pFcs[1] = fcs & 0x00FF;
+    pFcs[0] = fcs & 0x00FF;
+    pFcs[1] = (fcs >> 8) & 0x00FF;
 }
 
 uint16_t generateMessage(const struct Callsign* pCallsignDestination,
@@ -106,21 +119,178 @@ uint16_t generateMessage(const struct Callsign* pCallsignDestination,
                          uint8_t* messageBuffer,
                          uint16_t maxMessageLen)
 {
-    // TODO
-    return 0;
+    if (maxMessageLen < 20)
+    {
+        return 0;
+    }
+    
+    uint16_t messageSize = 0;
+    
+    messageBuffer[messageSize++] = '\x7E';
+
+    for (uint8_t i = 0; i < 6; ++i)
+    {
+        messageBuffer[messageSize++] = pCallsignDestination->callsign[i] << 1;
+    }
+    messageBuffer[messageSize++] = pCallsignDestination->ssid;
+    for (uint8_t i = 0; i < 6; ++i)
+    {
+        messageBuffer[messageSize++] = pCallsignSource->callsign[i] << 1;
+    }
+    messageBuffer[messageSize++] = pCallsignSource->ssid;
+
+    messageBuffer[messageSize++] = '\x3E';
+    messageBuffer[messageSize++] = '\xF0';
+
+    // bits 17, 18 are FCS
+    generateFcs(&messageBuffer[1], 16, &messageBuffer[17]);
+    messageSize += 2;
+
+    messageBuffer[messageSize++] = '\x7E';
+
+    return messageSize;
 }
 
-uint16_t encodeMessage2BitStream(const uint8_t* pMessage, uint16_t messageSize, uint8_t* pBistream, uint16_t bitstreamMaxLen)
+void advanceBitstreamBit(struct BitstreamSize* pResultBitstreamSize)
 {
-    // TODO
-    return 0;
+    if (pResultBitstreamSize->bitstreamCharBitIdx == 7)
+    {
+        ++pResultBitstreamSize->bitstreamCharIdx;
+        pResultBitstreamSize->bitstreamCharBitIdx = 0;
+    }
+    else
+    {
+        ++pResultBitstreamSize->bitstreamCharBitIdx;
+    }
+}
+
+bool copyByte(struct EncodingData* pData,
+              const uint8_t* pMessage,
+              uint16_t messageIdx,
+              uint8_t* pBistream,
+              uint16_t bitStreamMaxLen,
+              bool handleOnes)
+{
+    for (uint8_t i = 0; i < 8; ++i)
+    {
+        const uint8_t currentBit = pMessage[messageIdx] & (1 << i);
+
+        if (currentBit)
+        {
+            if (pData->bitstreamSize.bitstreamCharIdx >= bitStreamMaxLen)
+            {
+                return false;
+            }
+
+            if (pData->lastBit)
+            {
+                pBistream[pData->bitstreamSize.bitstreamCharIdx] |= 1 << (7 - pData->bitstreamSize.bitstreamCharBitIdx);
+            }
+            else
+            {
+                pBistream[pData->bitstreamSize.bitstreamCharIdx] &= ~(1 << (7 - pData->bitstreamSize.bitstreamCharBitIdx));
+            }
+
+            advanceBitstreamBit(&pData->bitstreamSize);
+
+            if (handleOnes)
+            {
+                ++pData->numberOfOnes;
+                
+                if (pData->numberOfOnes == 5)
+                {
+                    if (pData->bitstreamSize.bitstreamCharIdx >= bitStreamMaxLen)
+                    {
+                        return false;
+                    }
+                    if (pData->lastBit)
+                    {
+                        pBistream[pData->bitstreamSize.bitstreamCharIdx] &= ~(1 << (7 - pData->bitstreamSize.bitstreamCharBitIdx));
+                        pData->lastBit = 0;
+                    }
+                    else
+                    {
+                        pBistream[pData->bitstreamSize.bitstreamCharIdx] |= 1 << (7 - pData->bitstreamSize.bitstreamCharBitIdx);
+                        pData->lastBit = 1;
+                    }
+                    pData->numberOfOnes = 0;
+                    advanceBitstreamBit(&pData->bitstreamSize); // insert zero as we had 5 ones
+                }
+            }
+        }
+        else
+        {
+            if (pData->bitstreamSize.bitstreamCharIdx >= bitStreamMaxLen)
+            {
+                return false;
+            }
+            if (pData->lastBit)
+            {
+                pBistream[pData->bitstreamSize.bitstreamCharIdx] &= ~(1 << (7 - pData->bitstreamSize.bitstreamCharBitIdx));
+                pData->lastBit = 0;
+            }
+            else
+            {
+                pBistream[pData->bitstreamSize.bitstreamCharIdx] |= 1 << (7 - pData->bitstreamSize.bitstreamCharBitIdx);
+                pData->lastBit = 1;
+            }
+
+            advanceBitstreamBit(&pData->bitstreamSize);
+
+            if (handleOnes)
+            {
+                pData->numberOfOnes = 0;
+            }
+        }
+    }
+    return true;
+}
+
+bool encodeMessage2BitStream(const uint8_t* pMessage, 
+                             uint16_t messageSize,
+                             uint8_t* pBistream,
+                             uint16_t bitstreamMaxLen,
+                             struct BitstreamSize* pResultBitstreamSize)
+{
+    if (bitstreamMaxLen < messageSize || messageSize < 20)
+    {
+        return false;
+    }
+
+    struct EncodingData encodingData;
+
+    encodingData.lastBit = 1;
+    encodingData.numberOfOnes = 0;
+    encodingData.bitstreamSize.bitstreamCharIdx = 0;
+    encodingData.bitstreamSize.bitstreamCharBitIdx = 0;
+
+    if (!copyByte(&encodingData, pMessage, 0, pBistream, bitstreamMaxLen, false))
+    {
+        return false;
+    }
+    for (uint8_t i = 1; i < messageSize - 1; ++i)
+    {
+        if (!copyByte(&encodingData, pMessage, i, pBistream, bitstreamMaxLen, true))
+        {
+            return false;
+        }
+    }
+    if (!copyByte(&encodingData, pMessage, messageSize - 1, pBistream, bitstreamMaxLen, false))
+    {
+        return false;
+    }
+
+    *pResultBitstreamSize = encodingData.bitstreamSize;
+
+    return true;
 }
 
 void createAprsMessage(const struct GpsData* pGpsData)
 {
-    g_currentBitstreamSize = 0;
     g_currentBitstreamCharIdx = 0;
     g_currentBitstreamCharBitIdx = 0;
+    g_currentBitstreamSize.bitstreamCharIdx = 0;
+    g_currentBitstreamSize.bitstreamCharBitIdx = 0;
 
     g_currentF1200Frame = 0;
     g_currentF2200Frame = 0;
@@ -133,12 +303,14 @@ void createAprsMessage(const struct GpsData* pGpsData)
                                            &CALLSIGN_SOURCE,
                                            message,
                                            APRS_MESSAGE_MAX_LEN);
-    g_currentBitstreamSize = encodeMessage2BitStream(message, 
-                                                     messageSize,
-                                                     g_currentBitstream,
-                                                     APRS_BITSTREAM_MAX_LEN);
-
-    g_sendingMessage = true;
+    if (encodeMessage2BitStream(message, 
+                                messageSize,
+                                g_currentBitstream,
+                                APRS_BITSTREAM_MAX_LEN,
+                                &g_currentBitstreamSize))
+    {
+        g_sendingMessage = true;
+    }
 }
 
 void enablePwm(void)
@@ -194,7 +366,8 @@ void Pwm10Handler(void)
             g_currentBitstreamCharBitIdx = 0;
         }
 
-        if (!g_sendingMessage || g_currentBitstreamCharIdx >= g_currentBitstreamSize)
+        if (!g_sendingMessage || (g_currentBitstreamCharIdx >= g_currentBitstreamSize.bitstreamCharIdx &&
+                                  g_currentBitstreamCharBitIdx >= g_currentBitstreamSize.bitstreamCharBitIdx))
         {
             disablePwm();
             disableHx1();
