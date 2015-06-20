@@ -18,6 +18,9 @@
 #define F1200_COUNT 59
 #define F2200_COUNT 32
 
+#define PREFIX_FLAGS_COUNT 3
+#define SUFFIX_FLAGS_COUNT 3
+
 #define MAX_SYMBOL_PULSES_COUNT 64
 
 #define APRS_MESSAGE_MAX_LEN   256
@@ -94,7 +97,7 @@ void initializeAprs(void)
     PWMPulseWidthSet(PWM0_BASE, PWM_OUT_0, 710 / 2);
 }
 
-void generateFcs(uint8_t* pMessage, uint16_t messageSize, uint8_t* pFcs)
+void generateFcs(const uint8_t* pMessage, uint16_t messageSize, uint8_t* pFcs)
 {
     uint16_t fcs = 0xFFFF;
     for (uint16_t i = 0; i < messageSize; ++i)
@@ -103,13 +106,13 @@ void generateFcs(uint8_t* pMessage, uint16_t messageSize, uint8_t* pFcs)
         {
             const uint16_t shiftBit = fcs & 0x0001;
             fcs = fcs >> 1;
-            if (shiftBit != (pMessage[i] & (1 << j)))
+            if (shiftBit != ((pMessage[i] >> j) & 0x01))
             {
                 fcs ^= 0x8408;
             }
         }
     }
-    fcs ^= 0xffff;
+    fcs ^= 0xFFFF;
     pFcs[0] = fcs & 0x00FF;
     pFcs[1] = (fcs >> 8) & 0x00FF;
 }
@@ -126,7 +129,10 @@ uint16_t generateMessage(const struct Callsign* pCallsignDestination,
     
     uint16_t messageSize = 0;
     
-    messageBuffer[messageSize++] = '\x7E';
+    for (uint8_t i = 0; i < PREFIX_FLAGS_COUNT; ++i)
+    {
+        messageBuffer[messageSize++] = '\x7E';
+    }
 
     for (uint8_t i = 0; i < 6; ++i)
     {
@@ -139,14 +145,21 @@ uint16_t generateMessage(const struct Callsign* pCallsignDestination,
     }
     messageBuffer[messageSize++] = pCallsignSource->ssid;
 
-    messageBuffer[messageSize++] = '\x3E';
+    // TODO I do not encode digipeaters path (no idea if we need it at all)
+
+    messageBuffer[messageSize++] = '\x03';
     messageBuffer[messageSize++] = '\xF0';
 
-    // bits 17, 18 are FCS
-    generateFcs(&messageBuffer[1], 16, &messageBuffer[17]);
+    // TODO I do not encode GPS for now
+
+    // 2 bytes are dedicated to FCS
+    generateFcs(&messageBuffer[PREFIX_FLAGS_COUNT], messageSize - PREFIX_FLAGS_COUNT, &messageBuffer[messageSize - PREFIX_FLAGS_COUNT + 1]);
     messageSize += 2;
 
-    messageBuffer[messageSize++] = '\x7E';
+    for (uint8_t i = 0; i < SUFFIX_FLAGS_COUNT; ++i)
+    {
+        messageBuffer[messageSize++] = '\x7E';
+    }
 
     return messageSize;
 }
@@ -264,20 +277,26 @@ bool encodeMessage2BitStream(const uint8_t* pMessage,
     encodingData.bitstreamSize.bitstreamCharIdx = 0;
     encodingData.bitstreamSize.bitstreamCharBitIdx = 0;
 
-    if (!copyByte(&encodingData, pMessage, 0, pBistream, bitstreamMaxLen, false))
+    for (uint8_t i = 0; i < PREFIX_FLAGS_COUNT; ++i)
     {
-        return false;
+        if (!copyByte(&encodingData, pMessage, i, pBistream, bitstreamMaxLen, false))
+        {
+            return false;
+        }
     }
-    for (uint8_t i = 1; i < messageSize - 1; ++i)
+    for (uint8_t i = PREFIX_FLAGS_COUNT; i < messageSize - SUFFIX_FLAGS_COUNT; ++i)
     {
         if (!copyByte(&encodingData, pMessage, i, pBistream, bitstreamMaxLen, true))
         {
             return false;
         }
     }
-    if (!copyByte(&encodingData, pMessage, messageSize - 1, pBistream, bitstreamMaxLen, false))
+    for (uint8_t i = messageSize - SUFFIX_FLAGS_COUNT; i < messageSize; ++i)
     {
-        return false;
+        if (!copyByte(&encodingData, pMessage, i, pBistream, bitstreamMaxLen, false))
+        {
+            return false;
+        }
     }
 
     *pResultBitstreamSize = encodingData.bitstreamSize;
@@ -287,6 +306,19 @@ bool encodeMessage2BitStream(const uint8_t* pMessage,
 
 void createAprsMessage(const struct GpsData* pGpsData)
 {
+{
+    uint8_t fcs[2];
+    uint8_t message1[43] = { '\x82', '\xA0', '\xA4', '\xA6', '\x40', '\x40', '\xE0',
+                             '\x96', '\x94', '\x6C', '\x96', '\xA6', '\xA8', '\xE2',
+                             '\xAE', '\x92', '\x88', '\x8A', '\x62', '\x40', '\x63',
+                             '\x03',
+                             '\xF0',
+                             '\x21', '\x30', '\x30', '\x30', '\x30', '\x2E', '\x30', '\x30', '\x4E', '\x2F', '\x30', '\x30', '\x30', '\x30', '\x30', '\x2E', '\x30', '\x30', '\x57', '\x3E'
+    };
+    uint8_t message[13] = "123456789";
+    generateFcs(message, 9, fcs);
+}
+
     g_currentBitstreamCharIdx = 0;
     g_currentBitstreamCharBitIdx = 0;
     g_currentBitstreamSize.bitstreamCharIdx = 0;
@@ -303,6 +335,7 @@ void createAprsMessage(const struct GpsData* pGpsData)
                                            &CALLSIGN_SOURCE,
                                            message,
                                            APRS_MESSAGE_MAX_LEN);
+
     if (encodeMessage2BitStream(message, 
                                 messageSize,
                                 g_currentBitstream,
