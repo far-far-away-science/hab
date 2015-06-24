@@ -15,16 +15,14 @@
 #include "timer.h"
 #include "common.h"
 
-#define F1200_COUNT 59
-#define F2200_COUNT 32
-
+// both counts below must be uneven
 #define PREFIX_FLAGS_COUNT 3
-#define SUFFIX_FLAGS_COUNT 3
+#define SUFFIX_FLAGS_COUNT 1
 
 #define MAX_SYMBOL_PULSES_COUNT 64
 
-#define APRS_MESSAGE_MAX_LEN   256
-#define APRS_BITSTREAM_MAX_LEN 384 // bitstream will have extra bits in it so it must be larger than message buffer
+#define APRS_MESSAGE_MAX_LEN   384
+#define APRS_BITSTREAM_MAX_LEN 512 // bitstream will have extra bits in it so it must be larger than message buffer
                                    // in worst case we will insert extra 0 for every 5 bits
 
 struct BitstreamSize
@@ -40,24 +38,32 @@ struct EncodingData
     struct BitstreamSize bitstreamSize;
 };
 
-const uint16_t F1200_DATA[] =
+#define F1200_COUNT 59
+
+const uint16_t F1200_DATA[F1200_COUNT] =
 {
-    354, 386, 418, 450, 480, 509, 536, 560, 583, 603, 620, 634, 645, 652, 656, 657, 654, 648, 638, 625, 609, 590, 568, 544, 518, 490, 460, 429, 397, 365, 332, 300, 269, 238, 209, 181, 156, 132, 111, 93, 78, 67, 58, 53, 51, 53, 58, 67, 78, 93, 111, 132, 156, 181, 209, 238, 269, 300, 332
+    354, 392, 429, 465, 501, 534, 566, 595, 621, 644, 664, 680, 693, 701, 706, 707, 703, 696, 685, 670, 651, 629, 604, 575, 545, 512, 477, 441, 404, 367, 329, 291, 255, 219, 185, 153, 123, 96, 71, 50, 33, 19, 9, 3, 1, 3, 9, 19, 33, 50, 71, 96, 123, 153, 185, 219, 255, 291, 329
 };
 
-const uint8_t F1200_2_F2200[] =
-{
-    0, 1, 1, 2, 2, 3, 3, 4, 4, 4, 5, 5, 5, 6, 6, 8, 11, 11, 12, 12, 12, 13, 13, 14, 14, 14, 15, 15, 16, 16, 17, 17, 18, 18, 19, 19, 20, 20, 20, 21, 21, 21, 22, 22, 24, 27, 27, 28, 28, 28, 29, 29, 29, 30, 30, 31, 31, 0, 0
+const uint8_t F1200_2_F2200[F1200_COUNT] =
+{                                                                                           
+//                                          1   1   1   1   1   1   1   1   1   1   2   2   2   2   2   2   2   2   2   2   3   3   3   3   3   3   3   3   3   3   4   4   4   4   4   4   4   4   4   4   5   5   5   5   5   5   5   5   5
+//  0   1   2   3   4   5   6   7   8   9   0   1   2   3   4   5   6   7   8   9   0   1   2   3   4   5   6   7   8   9   0   1   2   3   4   5   6   7   8   9   0   1   2   3   4   5   6   7   8   9   0   1   2   3   4   5   6   7   8
+    0,  1,  2,  2,  3,  3,  4,  4,  5,  5,  6,  6,  7,  7,  8,  9,  9, 10, 10, 11, 12, 12, 13, 13, 14, 14, 15, 15, 16, 16, 17, 18, 18, 19, 19, 20, 20, 21, 21, 22, 22, 23, 23, 24, 25, 25, 25, 26, 27, 27, 28, 28, 29, 30, 30, 31, 31,  0,  0  
 };
 
-const uint16_t F2200_DATA[] =
+#define F2200_COUNT 32
+
+const uint16_t F2200_DATA[F2200_COUNT] =
 {
     354, 423, 489, 550, 604, 648, 680, 700, 707, 700, 680, 648, 604, 550, 489, 423, 354, 285, 219, 158, 104, 60, 28, 8, 1, 8, 28, 60, 104, 158, 219, 285
 };
 
-const uint8_t F2200_2_F1200[] =
-{
-    0, 3, 5, 7, 10, 13, 15, 15, 15, 16, 16, 17, 21, 23, 26, 28, 30, 32, 34, 36, 39, 42, 44, 44, 44, 45, 45, 47, 50, 53, 55, 57
+const uint8_t F2200_2_F1200[F2200_COUNT] =
+{                                                                                                                     
+//                                          1   1   1   1   1   1   1   1   1   1   2   2   2   2   2   2   2   2   2   2   3   3
+//  0   1   2   3   4   5   6   7   8   9   0   1   2   3   4   5   6   7   8   9   0   1   2   3   4   5   6   7   8   9   0   1
+    0,  1,  3,  5,  7,  9, 11, 12, 14, 15, 18, 20, 22, 23, 25, 27, 29, 31, 32, 34, 36, 38, 40, 42, 43, 44, 47, 49, 51, 53, 55, 56
 };
 
 const struct Callsign CALLSIGN_SOURCE = 
@@ -85,6 +91,10 @@ uint8_t g_currentF1200Frame = 0;
 uint8_t g_currentF2200Frame = 0;
 uint8_t g_currentSymbolPulsesCount = 0;
 
+void enableHx1(void);
+void enablePwm(void);
+void createAprsMessage(const struct GpsData* pGpsData);
+
 void initializeAprs(void)
 {
     SysCtlPWMClockSet(SYSCTL_PWMDIV_1);
@@ -95,6 +105,17 @@ void initializeAprs(void)
     PWMGenConfigure(PWM0_BASE, PWM_GEN_0, PWM_GEN_MODE_UP_DOWN | PWM_GEN_MODE_NO_SYNC);
     PWMGenPeriodSet(PWM0_BASE, PWM_GEN_0, 710);
     PWMPulseWidthSet(PWM0_BASE, PWM_OUT_0, 710 / 2);
+}
+
+void sendAprsMessage(const struct GpsData* pGpsData)
+{
+    if (g_sendingMessage)
+    {
+        return;
+    }
+    createAprsMessage(pGpsData);
+    enableHx1();
+    enablePwm();
 }
 
 void generateFcs(const uint8_t* pMessage, uint16_t messageSize, uint8_t* pFcs)
@@ -144,7 +165,7 @@ uint16_t generateMessage(const struct Callsign* pCallsignDestination,
         messageBuffer[messageSize++] = pCallsignSource->callsign[i] << 1;
     }
     messageBuffer[messageSize++] = pCallsignSource->ssid;
-
+    
     // TODO I do not encode digipeaters path (no idea if we need it at all)
 
     messageBuffer[messageSize++] = '\x03';
@@ -306,19 +327,6 @@ bool encodeMessage2BitStream(const uint8_t* pMessage,
 
 void createAprsMessage(const struct GpsData* pGpsData)
 {
-{
-    uint8_t fcs[2];
-    uint8_t message1[43] = { '\x82', '\xA0', '\xA4', '\xA6', '\x40', '\x40', '\xE0',
-                             '\x96', '\x94', '\x6C', '\x96', '\xA6', '\xA8', '\xE2',
-                             '\xAE', '\x92', '\x88', '\x8A', '\x62', '\x40', '\x63',
-                             '\x03',
-                             '\xF0',
-                             '\x21', '\x30', '\x30', '\x30', '\x30', '\x2E', '\x30', '\x30', '\x4E', '\x2F', '\x30', '\x30', '\x30', '\x30', '\x30', '\x2E', '\x30', '\x30', '\x57', '\x3E'
-    };
-    uint8_t message[13] = "123456789";
-    generateFcs(message, 9, fcs);
-}
-
     g_currentBitstreamCharIdx = 0;
     g_currentBitstreamCharBitIdx = 0;
     g_currentBitstreamSize.bitstreamCharIdx = 0;
@@ -374,17 +382,6 @@ void disableHx1(void)
     // TODO
 }
 
-void sendAprsMessage(const struct GpsData* pGpsData)
-{
-    if (g_sendingMessage)
-    {
-        return;
-    }
-    createAprsMessage(pGpsData);
-    enableHx1();
-    enablePwm();
-}
-
 void Pwm10Handler(void)
 {
     PWMGenIntClear(PWM0_BASE, PWM_GEN_0, PWM_INT_CNT_ZERO);
@@ -393,6 +390,7 @@ void Pwm10Handler(void)
     {
         g_currentSymbolPulsesCount = 0;
 
+/*        
         if (g_currentBitstreamCharBitIdx > 7)
         {
             ++g_currentBitstreamCharIdx;
@@ -409,7 +407,7 @@ void Pwm10Handler(void)
         }
 
         const bool isOne = g_currentBitstream[g_currentBitstreamCharIdx] & (1 << g_currentBitstreamCharBitIdx);
-        
+
         if (isOne && !g_currentFrequencyIsF1200)
         {
             g_currentF1200Frame = F2200_2_F1200[g_currentF2200Frame];
@@ -420,10 +418,22 @@ void Pwm10Handler(void)
             g_currentF2200Frame = F1200_2_F2200[g_currentF1200Frame];
             g_currentFrequencyIsF1200 = false;
         }
-        
         ++g_currentBitstreamCharBitIdx;
+*/
+
+// TODO remove
+        if (g_currentFrequencyIsF1200)
+        {
+            g_currentF2200Frame = F1200_2_F2200[g_currentF1200Frame];
+        }
+        else
+        {
+            g_currentF1200Frame = F2200_2_F1200[g_currentF2200Frame];
+        }
+        g_currentFrequencyIsF1200 = !g_currentFrequencyIsF1200;
+// TODO end: remove
     }
-    
+
     if (g_currentFrequencyIsF1200)
     {
         PWMPulseWidthSet(PWM0_BASE, PWM_OUT_0, F1200_DATA[g_currentF1200Frame]);
