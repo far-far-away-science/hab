@@ -30,6 +30,6 @@ uint32_t getSecondsSinceStart(void)
 
 void Timer0IntHandler(void)
 {
-    ROM_TimerIntClear(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
     ++timerSeconds;
+    ROM_TimerIntClear(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
 }

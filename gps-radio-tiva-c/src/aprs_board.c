@@ -1,6 +1,8 @@
 #include "aprs_board.h"
 
+#include <cmath>
 #include <string.h>
+#include <cstdio>
 
 #include <inc/hw_ints.h>
 #include <inc/hw_memmap.h>
@@ -19,13 +21,53 @@
 #define PREFIX_FLAGS_COUNT 3
 #define SUFFIX_FLAGS_COUNT 1
 
-#define MAX_SYMBOL_PULSES_COUNT 64
-
 #define APRS_MESSAGE_MAX_LEN   384
-#define APRS_BITSTREAM_MAX_LEN 512 // bitstream will have extra bits in it so it must be larger than message buffer
+#define APRS_BITSTREAM_MAX_LEN 480 // bitstream will have extra bits in it so it must be larger than message buffer
                                    // in worst case we will insert extra 0 for every 5 bits
 
-struct BitstreamSize
+/*
+ * PWM
+ */
+
+/*
+ * those values are calculated in advance depending on MCU/etc
+ */
+
+#define PWM_STEP_SIZE 1.0f
+
+#define PWM_PERIOD 710
+#define PWM_MIN_PULSE_WIDTH 1
+#define PWM_MAX_PULSE_WIDTH 707
+
+#define F1200_COUNT 64.0f
+
+// 2 * pi / 64
+#define ANGULAR_FREQUENCY_F1200 0.09817477042f
+// 2200 / 1200 * 2 * pi / 64
+#define ANGULAR_FREQUENCY_F2200 0.1799870791f
+
+/*
+ * those values are calculated from prevous ones
+ */
+
+#define F2200_COUNT (1200.0f * F1200_COUNT / 2200.0f)
+
+#define AMPLITUDE_SCALER ((float) (PWM_MAX_PULSE_WIDTH - PWM_MIN_PULSE_WIDTH) / 2.0f)
+
+#define AMPLITUDE_SHIFT ((float) (AMPLITUDE_SCALER + 1.0f))
+#define AMPLITUDE_SHIFT_UINT (AMPLITUDE_SHIFT + 0.5f)
+
+#define PULSES_PER_SYMBOL_COUNT F1200_COUNT
+
+#define HALF_PERIOD_F1200 (F1200_COUNT / 2.0f)
+#define HALF_PERIOD_F2200 (F2200_COUNT / 2.0f)
+
+#define RECIPROCAL_ANGULAR_FREQUENCY_F1200 (1.0f / ANGULAR_FREQUENCY_F1200) 
+#define RECIPROCAL_ANGULAR_FREQUENCY_F2200 (1.0f / ANGULAR_FREQUENCY_F2200) 
+
+#define RECIPROCAL_AMPLITUDE_SCALER (1.0f / AMPLITUDE_SCALER)
+
+struct BitstreamPos
 {
     uint16_t bitstreamCharIdx;
     uint8_t bitstreamCharBitIdx;
@@ -35,35 +77,7 @@ struct EncodingData
 {
     uint8_t lastBit;
     uint8_t numberOfOnes;
-    struct BitstreamSize bitstreamSize;
-};
-
-#define F1200_COUNT 59
-
-const uint16_t F1200_DATA[F1200_COUNT] =
-{
-    354, 392, 429, 465, 501, 534, 566, 595, 621, 644, 664, 680, 693, 701, 706, 707, 703, 696, 685, 670, 651, 629, 604, 575, 545, 512, 477, 441, 404, 367, 329, 291, 255, 219, 185, 153, 123, 96, 71, 50, 33, 19, 9, 3, 1, 3, 9, 19, 33, 50, 71, 96, 123, 153, 185, 219, 255, 291, 329
-};
-
-const uint8_t F1200_2_F2200[F1200_COUNT] =
-{                                                                                           
-//                                          1   1   1   1   1   1   1   1   1   1   2   2   2   2   2   2   2   2   2   2   3   3   3   3   3   3   3   3   3   3   4   4   4   4   4   4   4   4   4   4   5   5   5   5   5   5   5   5   5
-//  0   1   2   3   4   5   6   7   8   9   0   1   2   3   4   5   6   7   8   9   0   1   2   3   4   5   6   7   8   9   0   1   2   3   4   5   6   7   8   9   0   1   2   3   4   5   6   7   8   9   0   1   2   3   4   5   6   7   8
-    0,  1,  2,  2,  3,  3,  4,  4,  5,  5,  6,  6,  7,  7,  8,  9,  9, 10, 10, 11, 12, 12, 13, 13, 14, 14, 15, 15, 16, 16, 17, 18, 18, 19, 19, 20, 20, 21, 21, 22, 22, 23, 23, 24, 25, 25, 25, 26, 27, 27, 28, 28, 29, 30, 30, 31, 31,  0,  0  
-};
-
-#define F2200_COUNT 32
-
-const uint16_t F2200_DATA[F2200_COUNT] =
-{
-    354, 423, 489, 550, 604, 648, 680, 700, 707, 700, 680, 648, 604, 550, 489, 423, 354, 285, 219, 158, 104, 60, 28, 8, 1, 8, 28, 60, 104, 158, 219, 285
-};
-
-const uint8_t F2200_2_F1200[F2200_COUNT] =
-{                                                                                                                     
-//                                          1   1   1   1   1   1   1   1   1   1   2   2   2   2   2   2   2   2   2   2   3   3
-//  0   1   2   3   4   5   6   7   8   9   0   1   2   3   4   5   6   7   8   9   0   1   2   3   4   5   6   7   8   9   0   1
-    0,  1,  3,  5,  7,  9, 11, 12, 14, 15, 18, 20, 22, 23, 25, 27, 29, 31, 32, 34, 36, 38, 40, 42, 43, 44, 47, 49, 51, 53, 55, 56
+    struct BitstreamPos bitstreamSize;
 };
 
 const struct Callsign CALLSIGN_SOURCE = 
@@ -80,15 +94,14 @@ const struct Callsign CALLSIGN_DESTINATION =
 
 bool g_sendingMessage = false;
 
-uint16_t g_currentBitstreamCharIdx = 0;
-uint8_t  g_currentBitstreamCharBitIdx = 0;
-struct BitstreamSize g_currentBitstreamSize = { 0 };
-uint8_t  g_currentBitstream[APRS_BITSTREAM_MAX_LEN] = { 0 };
+struct BitstreamPos g_currentBitstreamPos = { 0 };
+struct BitstreamPos g_currentBitstreamSize = { 0 };
+uint8_t g_currentBitstream[APRS_BITSTREAM_MAX_LEN] = { 0 };
 
 bool g_currentFrequencyIsF1200 = true;
 
-uint8_t g_currentF1200Frame = 0;
-uint8_t g_currentF2200Frame = 0;
+float g_currentF1200Frame = 0;
+float g_currentF2200Frame = 0;
 uint8_t g_currentSymbolPulsesCount = 0;
 
 void enableHx1(void);
@@ -103,8 +116,8 @@ void initializeAprs(void)
     GPIOPinConfigure(GPIO_PB6_M0PWM0);
     GPIOPinTypePWM(GPIO_PORTB_BASE, GPIO_PIN_6);
     PWMGenConfigure(PWM0_BASE, PWM_GEN_0, PWM_GEN_MODE_UP_DOWN | PWM_GEN_MODE_NO_SYNC);
-    PWMGenPeriodSet(PWM0_BASE, PWM_GEN_0, 710);
-    PWMPulseWidthSet(PWM0_BASE, PWM_OUT_0, 710 / 2);
+    PWMGenPeriodSet(PWM0_BASE, PWM_GEN_0, PWM_PERIOD);
+    PWMPulseWidthSet(PWM0_BASE, PWM_OUT_0, PWM_MIN_PULSE_WIDTH);
 }
 
 void sendAprsMessage(const struct GpsData* pGpsData)
@@ -185,7 +198,7 @@ uint16_t generateMessage(const struct Callsign* pCallsignDestination,
     return messageSize;
 }
 
-void advanceBitstreamBit(struct BitstreamSize* pResultBitstreamSize)
+void advanceBitstreamBit(struct BitstreamPos* pResultBitstreamSize)
 {
     if (pResultBitstreamSize->bitstreamCharBitIdx == 7)
     {
@@ -284,7 +297,7 @@ bool encodeMessage2BitStream(const uint8_t* pMessage,
                              uint16_t messageSize,
                              uint8_t* pBistream,
                              uint16_t bitstreamMaxLen,
-                             struct BitstreamSize* pResultBitstreamSize)
+                             struct BitstreamPos* pResultBitstreamSize)
 {
     if (bitstreamMaxLen < messageSize || messageSize < 20)
     {
@@ -327,15 +340,16 @@ bool encodeMessage2BitStream(const uint8_t* pMessage,
 
 void createAprsMessage(const struct GpsData* pGpsData)
 {
-    g_currentBitstreamCharIdx = 0;
-    g_currentBitstreamCharBitIdx = 0;
     g_currentBitstreamSize.bitstreamCharIdx = 0;
     g_currentBitstreamSize.bitstreamCharBitIdx = 0;
+
+    g_currentBitstreamPos.bitstreamCharIdx = 0;
+    g_currentBitstreamPos.bitstreamCharBitIdx = 0;
 
     g_currentF1200Frame = 0;
     g_currentF2200Frame = 0;
     g_currentFrequencyIsF1200 = true;
-    g_currentSymbolPulsesCount = MAX_SYMBOL_PULSES_COUNT;
+    g_currentSymbolPulsesCount = PULSES_PER_SYMBOL_COUNT;
 
     uint8_t message[APRS_MESSAGE_MAX_LEN];
 
@@ -382,76 +396,121 @@ void disableHx1(void)
     // TODO
 }
 
+float normalizePulseWidth(float width)
+{
+    if (width < PWM_MIN_PULSE_WIDTH)
+    {
+        return PWM_MIN_PULSE_WIDTH;
+    }
+    else if (width > PWM_MAX_PULSE_WIDTH)
+    {
+        return PWM_MAX_PULSE_WIDTH;
+    }
+    return width;
+}
+
+uint32_t ones = 0;
+
 void Pwm10Handler(void)
 {
-    PWMGenIntClear(PWM0_BASE, PWM_GEN_0, PWM_INT_CNT_ZERO);
+    // TODO need to test different combinations of links between 1200Hz <-> 2200Hz to figure out
+    //      where discontinuities are coming from
+    
+    // TODO adding 1 to g_currentF2200Frame calculation from pulseWidth1200
+    
+    // TODO I have reasons to believe that this code is too slow!!!
 
-    if (g_currentSymbolPulsesCount >= MAX_SYMBOL_PULSES_COUNT)
+    // TODO I have reasons to believe that this code modulates signal with slightly different frequency when expected!!!
+    
+    // TODO it seems that it's better to disable UART (and other interrupts) while doing PWM
+
+    if (g_currentSymbolPulsesCount >= 64)
     {
         g_currentSymbolPulsesCount = 0;
 
-/*        
-        if (g_currentBitstreamCharBitIdx > 7)
+        if (!g_sendingMessage || (g_currentBitstreamPos.bitstreamCharIdx >= g_currentBitstreamSize.bitstreamCharIdx && 
+                                  g_currentBitstreamPos.bitstreamCharBitIdx >= g_currentBitstreamSize.bitstreamCharBitIdx))
         {
-            ++g_currentBitstreamCharIdx;
-            g_currentBitstreamCharBitIdx = 0;
-        }
-
-        if (!g_sendingMessage || (g_currentBitstreamCharIdx >= g_currentBitstreamSize.bitstreamCharIdx &&
-                                  g_currentBitstreamCharBitIdx >= g_currentBitstreamSize.bitstreamCharBitIdx))
-        {
+            /*
             disablePwm();
             disableHx1();
             g_sendingMessage = false;
+            */
+            
+g_currentBitstreamPos.bitstreamCharIdx = 0;
+g_currentBitstreamPos.bitstreamCharBitIdx = 0;
+
+g_currentF1200Frame = 0;
+g_currentF2200Frame = 0;
+g_currentFrequencyIsF1200 = false;
+g_currentSymbolPulsesCount = PULSES_PER_SYMBOL_COUNT;
+            
             return;
         }
-
-        const bool isOne = g_currentBitstream[g_currentBitstreamCharIdx] & (1 << g_currentBitstreamCharBitIdx);
-
-        if (isOne && !g_currentFrequencyIsF1200)
+        
+        // TODO
+        const bool isOne = true; // g_currentBitstream[g_currentBitstreamPos.bitstreamCharIdx] & (1 << g_currentBitstreamPos.bitstreamCharBitIdx);
+        
+        if (!isOne && g_currentFrequencyIsF1200)
         {
-            g_currentF1200Frame = F2200_2_F1200[g_currentF2200Frame];
-            g_currentFrequencyIsF1200 = true;
-        }
-        else if (!isOne && g_currentFrequencyIsF1200)
-        {
-            g_currentF2200Frame = F1200_2_F2200[g_currentF1200Frame];
+            const float trigaArg = ANGULAR_FREQUENCY_F1200 * g_currentF1200Frame;
+            const float pulseWidth1200 = normalizePulseWidth(AMPLITUDE_SHIFT + AMPLITUDE_SCALER * sinf(trigaArg));
+            const float pulseDirection1200 = cosf(trigaArg);
+
+            if (pulseDirection1200 >= 0)
+            {
+                g_currentF2200Frame = RECIPROCAL_ANGULAR_FREQUENCY_F2200 * asinf(RECIPROCAL_AMPLITUDE_SCALER * (pulseWidth1200 - AMPLITUDE_SHIFT));
+            }
+            else
+            {
+                g_currentF2200Frame = HALF_PERIOD_F2200 - RECIPROCAL_ANGULAR_FREQUENCY_F2200 * asinf(RECIPROCAL_AMPLITUDE_SCALER * (pulseWidth1200 - AMPLITUDE_SHIFT));
+            }
+            
             g_currentFrequencyIsF1200 = false;
         }
-        ++g_currentBitstreamCharBitIdx;
-*/
+        else if (!isOne && !g_currentFrequencyIsF1200)
+        {
+            const float trigArg = ANGULAR_FREQUENCY_F2200 * g_currentF2200Frame;
+            const float pulseWidth2200 = normalizePulseWidth(AMPLITUDE_SHIFT + AMPLITUDE_SCALER * sinf(trigArg));
+            const float pulseDirection2200 = cosf(trigArg);
 
-// TODO remove
-        if (g_currentFrequencyIsF1200)
-        {
-            g_currentF2200Frame = F1200_2_F2200[g_currentF1200Frame];
+            if (pulseDirection2200 >= 0)
+            {
+                g_currentF1200Frame = RECIPROCAL_ANGULAR_FREQUENCY_F1200 * asinf(RECIPROCAL_AMPLITUDE_SCALER * (pulseWidth2200 - AMPLITUDE_SHIFT));
+            }
+            else
+            {
+                g_currentF1200Frame = HALF_PERIOD_F1200 - RECIPROCAL_ANGULAR_FREQUENCY_F1200 * asinf(RECIPROCAL_AMPLITUDE_SCALER * (pulseWidth2200 - AMPLITUDE_SHIFT));
+            }
+
+            g_currentFrequencyIsF1200 = true;
         }
-        else
-        {
-            g_currentF1200Frame = F2200_2_F1200[g_currentF2200Frame];
-        }
-        g_currentFrequencyIsF1200 = !g_currentFrequencyIsF1200;
-// TODO end: remove
+        advanceBitstreamBit(&g_currentBitstreamPos);
     }
 
     if (g_currentFrequencyIsF1200)
     {
-        PWMPulseWidthSet(PWM0_BASE, PWM_OUT_0, F1200_DATA[g_currentF1200Frame]);
-        ++g_currentF1200Frame;
+        const uint32_t pulseWidth = (uint32_t) (AMPLITUDE_SHIFT_UINT + AMPLITUDE_SCALER * sinf(ANGULAR_FREQUENCY_F1200 * g_currentF1200Frame));
+        PWMPulseWidthSet(PWM0_BASE, PWM_OUT_0, pulseWidth);
+        g_currentF1200Frame += PWM_STEP_SIZE;
+        
         if (g_currentF1200Frame >= F1200_COUNT)
         {
-            g_currentF1200Frame = 0;
+            g_currentF1200Frame -= F1200_COUNT;
         }
     }
     else
     {
-        PWMPulseWidthSet(PWM0_BASE, PWM_OUT_0, F2200_DATA[g_currentF2200Frame]);
-        ++g_currentF2200Frame;
+        const uint32_t pulseWidth = (uint32_t) (AMPLITUDE_SHIFT_UINT + AMPLITUDE_SCALER * sinf(ANGULAR_FREQUENCY_F2200 * g_currentF2200Frame));
+        PWMPulseWidthSet(PWM0_BASE, PWM_OUT_0, pulseWidth);
+        g_currentF2200Frame += PWM_STEP_SIZE;
         if (g_currentF2200Frame >= F2200_COUNT)
         {
-            g_currentF2200Frame = 0;
+            g_currentF2200Frame -= F2200_COUNT;
         }
     }
     
     ++g_currentSymbolPulsesCount;
+    
+    PWMGenIntClear(PWM0_BASE, PWM_GEN_0, PWM_INT_CNT_ZERO);
 }
