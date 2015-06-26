@@ -18,7 +18,7 @@
 #include "common.h"
 
 // both counts below must be uneven
-#define PREFIX_FLAGS_COUNT 3
+#define PREFIX_FLAGS_COUNT 1
 #define SUFFIX_FLAGS_COUNT 1
 
 #define APRS_MESSAGE_MAX_LEN   384
@@ -33,39 +33,38 @@
  * those values are calculated in advance depending on MCU/etc
  */
 
+#define PI 3.141592654f
+
 #define PWM_STEP_SIZE 1.0f
 
-#define PWM_PERIOD 710
+#define PWM_PERIOD 650
 #define PWM_MIN_PULSE_WIDTH 1
-#define PWM_MAX_PULSE_WIDTH 707
+#define PWM_MAX_PULSE_WIDTH 647
 
 #define F1200_COUNT 64.0f
-
-// 2 * pi / 64
-#define ANGULAR_FREQUENCY_F1200 0.09817477042f
-// 2200 / 1200 * 2 * pi / 64
-#define ANGULAR_FREQUENCY_F2200 0.1799870791f
 
 /*
  * those values are calculated from prevous ones
  */
 
+#define PULSES_PER_SYMBOL_COUNT F1200_COUNT
+
 #define F2200_COUNT (1200.0f * F1200_COUNT / 2200.0f)
 
 #define AMPLITUDE_SCALER ((float) (PWM_MAX_PULSE_WIDTH - PWM_MIN_PULSE_WIDTH) / 2.0f)
+#define RECIPROCAL_AMPLITUDE_SCALER (1.0f / AMPLITUDE_SCALER)
 
 #define AMPLITUDE_SHIFT ((float) (AMPLITUDE_SCALER + 1.0f))
 #define AMPLITUDE_SHIFT_UINT (AMPLITUDE_SHIFT + 0.5f)
 
-#define PULSES_PER_SYMBOL_COUNT F1200_COUNT
-
 #define HALF_PERIOD_F1200 (F1200_COUNT / 2.0f)
 #define HALF_PERIOD_F2200 (F2200_COUNT / 2.0f)
 
+#define ANGULAR_FREQUENCY_F1200 (2.0f * PI / F1200_COUNT)
+#define ANGULAR_FREQUENCY_F2200 (2200.0f * ANGULAR_FREQUENCY_F1200 / 1200.0f)
+
 #define RECIPROCAL_ANGULAR_FREQUENCY_F1200 (1.0f / ANGULAR_FREQUENCY_F1200) 
 #define RECIPROCAL_ANGULAR_FREQUENCY_F2200 (1.0f / ANGULAR_FREQUENCY_F2200) 
-
-#define RECIPROCAL_AMPLITUDE_SCALER (1.0f / AMPLITUDE_SCALER)
 
 struct BitstreamPos
 {
@@ -147,8 +146,17 @@ void generateFcs(const uint8_t* pMessage, uint16_t messageSize, uint8_t* pFcs)
         }
     }
     fcs ^= 0xFFFF;
-    pFcs[0] = fcs & 0x00FF;
-    pFcs[1] = (fcs >> 8) & 0x00FF;
+    
+    uint16_t fcsInverted = 0;
+    for (int8_t i = 15; i >= 0; --i)
+    {
+        if (fcs & (1 << i))
+        {
+            fcsInverted |= 1 << (15 - i);
+        }
+    }
+    pFcs[0] = fcsInverted & 0x00FF;
+    pFcs[1] = (fcsInverted >> 8) & 0x00FF;
 }
 
 uint16_t generateMessage(const struct Callsign* pCallsignDestination,
@@ -181,7 +189,7 @@ uint16_t generateMessage(const struct Callsign* pCallsignDestination,
     
     // TODO I do not encode digipeaters path (no idea if we need it at all)
 
-    messageBuffer[messageSize++] = '\x03';
+    messageBuffer[messageSize++] = '\x3E'; /// 03
     messageBuffer[messageSize++] = '\xF0';
 
     // TODO I do not encode GPS for now
@@ -229,13 +237,14 @@ bool copyByte(struct EncodingData* pData,
                 return false;
             }
 
+            // as we are encoding one keep current bit as is
             if (pData->lastBit)
             {
-                pBistream[pData->bitstreamSize.bitstreamCharIdx] |= 1 << (7 - pData->bitstreamSize.bitstreamCharBitIdx);
+                pBistream[pData->bitstreamSize.bitstreamCharIdx] |= 1 << (pData->bitstreamSize.bitstreamCharBitIdx);
             }
             else
             {
-                pBistream[pData->bitstreamSize.bitstreamCharIdx] &= ~(1 << (7 - pData->bitstreamSize.bitstreamCharBitIdx));
+                pBistream[pData->bitstreamSize.bitstreamCharIdx] &= ~(1 << (pData->bitstreamSize.bitstreamCharBitIdx));
             }
 
             advanceBitstreamBit(&pData->bitstreamSize);
@@ -250,14 +259,15 @@ bool copyByte(struct EncodingData* pData,
                     {
                         return false;
                     }
+                    // we need to insert 0
                     if (pData->lastBit)
                     {
-                        pBistream[pData->bitstreamSize.bitstreamCharIdx] &= ~(1 << (7 - pData->bitstreamSize.bitstreamCharBitIdx));
+                        pBistream[pData->bitstreamSize.bitstreamCharIdx] &= ~(1 << (pData->bitstreamSize.bitstreamCharBitIdx));
                         pData->lastBit = 0;
                     }
                     else
                     {
-                        pBistream[pData->bitstreamSize.bitstreamCharIdx] |= 1 << (7 - pData->bitstreamSize.bitstreamCharBitIdx);
+                        pBistream[pData->bitstreamSize.bitstreamCharIdx] |= 1 << (pData->bitstreamSize.bitstreamCharBitIdx);
                         pData->lastBit = 1;
                     }
                     pData->numberOfOnes = 0;
@@ -271,14 +281,15 @@ bool copyByte(struct EncodingData* pData,
             {
                 return false;
             }
+            // as we are encoding 0 we need to flip bit
             if (pData->lastBit)
             {
-                pBistream[pData->bitstreamSize.bitstreamCharIdx] &= ~(1 << (7 - pData->bitstreamSize.bitstreamCharBitIdx));
+                pBistream[pData->bitstreamSize.bitstreamCharIdx] &= ~(1 << (pData->bitstreamSize.bitstreamCharBitIdx));
                 pData->lastBit = 0;
             }
             else
             {
-                pBistream[pData->bitstreamSize.bitstreamCharIdx] |= 1 << (7 - pData->bitstreamSize.bitstreamCharBitIdx);
+                pBistream[pData->bitstreamSize.bitstreamCharIdx] |= 1 << (pData->bitstreamSize.bitstreamCharBitIdx);
                 pData->lastBit = 1;
             }
 
@@ -409,8 +420,6 @@ float normalizePulseWidth(float width)
     return width;
 }
 
-uint32_t ones = 0;
-
 void Pwm10Handler(void)
 {
     // TODO need to test different combinations of links between 1200Hz <-> 2200Hz to figure out
@@ -424,33 +433,27 @@ void Pwm10Handler(void)
     
     // TODO it seems that it's better to disable UART (and other interrupts) while doing PWM
 
-    if (g_currentSymbolPulsesCount >= 64)
+    // TODO plain modem doesn't require AFSK (1 is sent as 1 and zero as zero, also FCS should not be bit-inverted)
+    
+    // TODO to abort message send at least 15 ones no stuffing
+    
+    // TODO during IDLE time flag should be sent continously
+    
+    if (g_currentSymbolPulsesCount >= F1200_COUNT)
     {
         g_currentSymbolPulsesCount = 0;
 
         if (!g_sendingMessage || (g_currentBitstreamPos.bitstreamCharIdx >= g_currentBitstreamSize.bitstreamCharIdx && 
                                   g_currentBitstreamPos.bitstreamCharBitIdx >= g_currentBitstreamSize.bitstreamCharBitIdx))
         {
-            /*
             disablePwm();
             disableHx1();
             g_sendingMessage = false;
-            */
-            
-g_currentBitstreamPos.bitstreamCharIdx = 0;
-g_currentBitstreamPos.bitstreamCharBitIdx = 0;
-
-g_currentF1200Frame = 0;
-g_currentF2200Frame = 0;
-g_currentFrequencyIsF1200 = false;
-g_currentSymbolPulsesCount = PULSES_PER_SYMBOL_COUNT;
-            
             return;
         }
         
-        // TODO
-        const bool isOne = true; // g_currentBitstream[g_currentBitstreamPos.bitstreamCharIdx] & (1 << g_currentBitstreamPos.bitstreamCharBitIdx);
-        
+        const bool isOne = g_currentBitstream[g_currentBitstreamPos.bitstreamCharIdx] & (1 << g_currentBitstreamPos.bitstreamCharBitIdx);
+    
         if (!isOne && g_currentFrequencyIsF1200)
         {
             const float trigaArg = ANGULAR_FREQUENCY_F1200 * g_currentF1200Frame;
@@ -485,6 +488,7 @@ g_currentSymbolPulsesCount = PULSES_PER_SYMBOL_COUNT;
 
             g_currentFrequencyIsF1200 = true;
         }
+        
         advanceBitstreamBit(&g_currentBitstreamPos);
     }
 
