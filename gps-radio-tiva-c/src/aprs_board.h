@@ -2,14 +2,14 @@
 
 #include "nmea_messages.h"
 
-struct Callsign
+typedef struct Callsign_t
 {
     uint8_t callsign[7];
     uint8_t ssid;
-};
+} Callsign;
 
-extern const struct Callsign CALLSIGN_SOURCE;
-extern const struct Callsign CALLSIGN_DESTINATION;
+extern const Callsign CALLSIGN_SOURCE;
+extern const Callsign CALLSIGN_DESTINATION;
 
 void initializeAprs(void);
-void sendAprsMessage(const struct GpsData* pGpsData);
+bool sendAprsMessage(const GpsData* pGpsData);

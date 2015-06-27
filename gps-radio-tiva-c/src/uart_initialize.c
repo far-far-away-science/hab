@@ -13,8 +13,8 @@
 #include <driverlib/pin_map.h>
 #include <driverlib/rom_map.h>
 
-struct UartChannelData uartChannelData[UART_NUMBER_OF_CHANNELS];
-struct UartChannelData* uart2UartChannelData[UART_COUNT];
+UartChannelData uartChannelData[UART_NUMBER_OF_CHANNELS];
+UartChannelData* uart2UartChannelData[UART_COUNT];
 
 void initializeUart(void)
 {
@@ -156,7 +156,7 @@ bool initializeUartChannel(uint8_t channel,
 
 void Uart0IntHandler(void)
 {
-    struct UartChannelData* const pChannelData = uart2UartChannelData[UART_0];
+    UartChannelData* const pChannelData = uart2UartChannelData[UART_0];
     const uint32_t status = MAP_UARTIntStatus(pChannelData->base, true);
 
     if (status & (UART_INT_RX | UART_INT_RT))
@@ -173,7 +173,7 @@ void Uart0IntHandler(void)
 
 void Uart1IntHandler(void)
 {
-    struct UartChannelData* const pChannelData = uart2UartChannelData[UART_1];
+    UartChannelData* const pChannelData = uart2UartChannelData[UART_1];
     const uint32_t status = MAP_UARTIntStatus(pChannelData->base, true);
 
     if (status & (UART_INT_RX | UART_INT_RT))
@@ -190,7 +190,7 @@ void Uart1IntHandler(void)
 
 void Uart2IntHandler(void)
 {
-    struct UartChannelData* const pChannelData = uart2UartChannelData[UART_2];
+    UartChannelData* const pChannelData = uart2UartChannelData[UART_2];
     const uint32_t status = MAP_UARTIntStatus(pChannelData->base, true);
 
     if (status & (UART_INT_RX | UART_INT_RT))
@@ -207,7 +207,7 @@ void Uart2IntHandler(void)
 
 void Uart3IntHandler(void)
 {
-    struct UartChannelData* const pChannelData = uart2UartChannelData[UART_3];
+    UartChannelData* const pChannelData = uart2UartChannelData[UART_3];
     const uint32_t status = MAP_UARTIntStatus(pChannelData->base, true);
 
     if (status & (UART_INT_RX | UART_INT_RT))
@@ -224,7 +224,7 @@ void Uart3IntHandler(void)
 
 void Uart4IntHandler(void)
 {
-    struct UartChannelData* const pChannelData = uart2UartChannelData[UART_4];
+    UartChannelData* const pChannelData = uart2UartChannelData[UART_4];
     const uint32_t status = MAP_UARTIntStatus(pChannelData->base, true);
 
     if (status & (UART_INT_RX | UART_INT_RT))

@@ -38,11 +38,11 @@ int main()
 
     uint32_t startTime = getSecondsSinceStart();
 
-    struct GpsData venusGpsData = { 0 };
-    struct GpsData copernicusGpsData = { 0 };
+    GpsData venusGpsData = { 0 };
+    GpsData copernicusGpsData = { 0 };
 
-    struct Message venusGpsMessage = { 0 };
-    struct Message copernicusGpsMessage = { 0 };
+    Message venusGpsMessage = { 0 };
+    Message copernicusGpsMessage = { 0 };
 
     bool shouldSendVenusDataToAprs = true;
     

@@ -17,7 +17,7 @@ uint16_t advanceUint16Index(uint16_t currentValue, uint16_t maxLen)
     return currentValue;
 }
 
-uint16_t getBufferCapacity(const struct WriteBuffer* pWriteBuffer, uint16_t maxLen)
+uint16_t getBufferCapacity(const WriteBuffer* pWriteBuffer, uint16_t maxLen)
 {
     const bool isEmpty = pWriteBuffer->isEmpty;
     const uint16_t start = pWriteBuffer->startIdx;
@@ -37,7 +37,7 @@ uint16_t getBufferCapacity(const struct WriteBuffer* pWriteBuffer, uint16_t maxL
     }
 }
 
-void uartTransmit(struct UartChannelData* pChannelData)
+void uartTransmit(UartChannelData* pChannelData)
 {
     MAP_UARTIntDisable(pChannelData->base, UART_INT_TX);
     
@@ -57,7 +57,7 @@ void uartTransmit(struct UartChannelData* pChannelData)
 
 bool write(uint8_t channel, uint8_t character)
 {
-    struct UartChannelData* const pChannelData = &uartChannelData[channel];
+    UartChannelData* const pChannelData = &uartChannelData[channel];
 
     // interrupt can only make buffer emptier so we are fine no matter where interrupt kicks in
     if ((!pChannelData->writeBuffer.isEmpty && pChannelData->writeBuffer.startIdx == pChannelData->writeBuffer.endIdx) ||
@@ -74,9 +74,9 @@ bool write(uint8_t channel, uint8_t character)
     return true;
 }
 
-bool writeMessage(uint8_t channel, const struct Message* pMessage)
+bool writeMessage(uint8_t channel, const Message* pMessage)
 {
-    struct UartChannelData* const pChannelData = &uartChannelData[channel];
+    UartChannelData* const pChannelData = &uartChannelData[channel];
 
     // interrupt can only make buffer emptier so we are fine no matter where interrupt kicks in
     if ((!pChannelData->writeBuffer.isEmpty && pChannelData->writeBuffer.startIdx == pChannelData->writeBuffer.endIdx) ||
@@ -96,7 +96,7 @@ bool writeMessage(uint8_t channel, const struct Message* pMessage)
     return true;
 }
 
-void uartWriteIntHandler(struct UartChannelData* pChannelData)
+void uartWriteIntHandler(UartChannelData* pChannelData)
 {
     bool disableInterrupt = false;
 

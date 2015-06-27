@@ -13,8 +13,8 @@
 
 #define RADIO_MCU_MESSAGE_SENDING_INTERVAL_SECONDS 30
 
-enum GpsDataSource
+typedef enum GpsDataSource_t
 {
     VENUS_GPS_ID      = '1',
     COPERNICUS_GPS_ID = '2',
-};
+} GpsDataSource;

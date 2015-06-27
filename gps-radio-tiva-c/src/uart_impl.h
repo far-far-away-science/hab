@@ -3,33 +3,33 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-struct ReadBuffer
+typedef struct ReadBuffer_t
 {
     bool isFull;
     bool waitUntilNextCRLF;
     bool previousCharWasCR;
     uint8_t startIdx;
     uint8_t endIdx;
-    struct Message buffer[UART_READ_BUFFER_MAX_MESSAGES_LEN];
-};
+    Message buffer[UART_READ_BUFFER_MAX_MESSAGES_LEN];
+} ReadBuffer;
 
-struct WriteBuffer
+typedef struct WriteBuffer_t
 {
     bool isEmpty;
     uint16_t startIdx;
     uint16_t endIdx;
     uint8_t buffer[UART_WRITE_BUFFER_MAX_CHARS_LEN];
-};
+} WriteBuffer;
 
-struct UartChannelData
+typedef struct UartChannelData_t
 {
     uint32_t base;
     uint32_t interruptId;
-    struct ReadBuffer readBuffer;
-    struct WriteBuffer writeBuffer;
-};
+    ReadBuffer readBuffer;
+    WriteBuffer writeBuffer;
+} UartChannelData;
 
-void uartReadIntHandler(struct UartChannelData* pChannelData);
-void uartWriteIntHandler(struct UartChannelData* pChannelData);
+void uartReadIntHandler(UartChannelData* pChannelData);
+void uartWriteIntHandler(UartChannelData* pChannelData);
 
-extern struct UartChannelData uartChannelData[UART_NUMBER_OF_CHANNELS];
+extern UartChannelData uartChannelData[UART_NUMBER_OF_CHANNELS];

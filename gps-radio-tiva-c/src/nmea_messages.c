@@ -1,11 +1,11 @@
 #include "nmea_messages.h"
 
-void parseGpggaMessageIfValid(const struct Message* pGpggaMessage, struct GpsData* pResult)
+void parseGpggaMessageIfValid(const Message* pGpggaMessage, GpsData* pResult)
 {
     // TODO
 }
 
-void parseGpvtgMessageIfValid(const struct Message* pGpvtgMessage, struct GpsData* pResult)
+void parseGpvtgMessageIfValid(const Message* pGpvtgMessage, GpsData* pResult)
 {
     // TODO
 }

@@ -2,7 +2,7 @@
 
 #include "uart.h"
 
-struct GpsData
+typedef struct GpsData_t
 {
     bool isValid;
     uint8_t szUtcTime[10 + 1];
@@ -14,8 +14,8 @@ struct GpsData
     uint8_t szTrueCourseDegrees[5 + 1];
     uint8_t szSpeedKnots[5 + 1];
     uint8_t mode;
-};
+} GpsData;
 
-void parseGpggaMessageIfValid(const struct Message* pGpggaMessage, struct GpsData* pResult);
+void parseGpggaMessageIfValid(const Message* pGpggaMessage, GpsData* pResult);
 
-void parseGpvtgMessageIfValid(const struct Message* pGpvtgMessage, struct GpsData* pResult);
+void parseGpvtgMessageIfValid(const Message* pGpvtgMessage, GpsData* pResult);

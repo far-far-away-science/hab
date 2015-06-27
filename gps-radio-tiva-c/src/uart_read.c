@@ -16,9 +16,9 @@ uint8_t advanceUint8Index(uint8_t currentValue, uint8_t maxLen)
     return currentValue;
 }
 
-bool readMessage(uint8_t channel, struct Message* pResultBuffer)
+bool readMessage(uint8_t channel, Message* pResultBuffer)
 {
-    struct UartChannelData* const pChannelData = &uartChannelData[channel];
+    UartChannelData* const pChannelData = &uartChannelData[channel];
 
     // if buffer is empty and interrupt kicks in after we check '!pChannelData->readBuffer.isFull' we are still fine
     // as buffer can only get fuller by interrupt
@@ -29,14 +29,14 @@ bool readMessage(uint8_t channel, struct Message* pResultBuffer)
 
     // start index can only be changed by 'thread' other than UART interrupt handler
     // so we fine here as well
-    memcpy(pResultBuffer, &pChannelData->readBuffer.buffer[pChannelData->readBuffer.startIdx], sizeof(struct Message));
+    memcpy(pResultBuffer, &pChannelData->readBuffer.buffer[pChannelData->readBuffer.startIdx], sizeof(Message));
     pChannelData->readBuffer.buffer[pChannelData->readBuffer.startIdx].size = 0;
     pChannelData->readBuffer.startIdx = advanceUint8Index(pChannelData->readBuffer.startIdx, UART_READ_BUFFER_MAX_MESSAGES_LEN);
 
     return true;
 }
 
-void uartReadIntHandler(struct UartChannelData* pChannelData)
+void uartReadIntHandler(UartChannelData* pChannelData)
 {
     int32_t encodedChar;
     uint8_t decodedChar;
