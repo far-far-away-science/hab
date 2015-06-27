@@ -88,7 +88,7 @@ int main()
 
         uint32_t currentTime = getSecondsSinceStart();
 
-        if (currentTime - startTime >= 5 /* RADIO_MCU_MESSAGE_SENDING_INTERVAL_SECONDS */)
+        if (currentTime - startTime >= RADIO_MCU_MESSAGE_SENDING_INTERVAL_SECONDS)
         {
             if (shouldSendVenusDataToAprs && venusGpsData.isValid)
             {

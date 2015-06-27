@@ -149,6 +149,8 @@ void initializeAprs(void)
 
 bool sendAprsMessage(const GpsData* pGpsData)
 {
+    // TODO disable all UARTS
+    // TODO disable all timers
     if (g_sendingMessage)
     {
         return false;
@@ -453,10 +455,12 @@ void Pwm10Handler(void)
         {
             disablePwm();
             disableHx1();
+            // TODO enable all UARTS
+            // TODO enable all timers
             g_sendingMessage = false;
             return;
         }
-        
+
         if (g_leadingMidSignalLeft > 0)
         {
             --g_leadingMidSignalLeft;
@@ -468,9 +472,9 @@ void Pwm10Handler(void)
         else
         {
             // bit stream is already AFSK encoded so we simply send ones and zeroes as is
-            
+
             const bool isOne = g_currentBitstream[g_currentBitstreamPos.bitstreamCharIdx] & (1 << g_currentBitstreamPos.bitstreamCharBitIdx);
-        
+
             // zero
             if (!isOne && g_currentFrequencyIsF1200)
             {
