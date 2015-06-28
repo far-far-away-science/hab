@@ -13,7 +13,7 @@
 
 // I2C module to use
 // NOTE If I2C_MODULE is changed, check initializeI2C to update pin mappings/clocks!
-#define I2C_MODULE I2C3_BASE
+#define I2C_MODULE I2C1_BASE
 
 // Virtual register addresses (the Pi can use these values)
 // For documentation see i2c.c header comment
@@ -43,5 +43,5 @@ void initializeI2C(void);
 // Submits parsed GPS data to the I2C subsystem
 // lat and lon are 32-bit signed decimal degrees * 1E6
 // vel TBD
-// head is 32-bit signed degrees
-void submitI2CData(uint32_t lat, uint32_t lon, uint32_t vel, uint32_t head);
+// head is 16-bit unsigned degrees (32-bit parameter will be cut down to 16-bit)
+void submitI2CData(int32_t lat, int32_t lon, uint32_t vel, uint32_t head);

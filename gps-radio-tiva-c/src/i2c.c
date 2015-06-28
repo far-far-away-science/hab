@@ -2,8 +2,8 @@
  * i2c.c - I2C backup communications of telemetry MCU with Raspberry PI 2
  *
  * Acts as an I2C slave with the address set in i2c.h. Supports 100 KHz and 400 KHz. The
- * signals appear on PD0 (I2C3SCL) and PD1 (I2C3SDA). These are pins 61 and 62 respectively
- * on the MCU, corresponding to header pins J2.07 and J2.06 on the Tiva C LaunchPad.
+ * signals appear on PA6 (I2C1SCL) and PA7 (I2C1SDA). These are pins 61 and 62 respectively
+ * on the MCU, corresponding to header pins J1.09 and J1.10 on the Tiva C LaunchPad.
  *
  * Register map:
  * [0x00] - WHO_AM_I - always returns the I2C slave address
@@ -54,7 +54,8 @@ static void i2cSlaveRequestHandler(void) {
 		break;
 	}
 	case I2C_SLAVE_ACT_RREQ:
-		// This is not allowed, all registers are currently read only
+		// This is not allowed, all registers are currently read only -- ACK but do nothing
+		ack = true;
 		break;
 	case I2C_SLAVE_ACT_TREQ:
 	{
@@ -81,7 +82,7 @@ static void i2cSlaveRequestHandler(void) {
 	MAP_I2CSlaveACKOverride(I2C_MODULE, true);
 }
 
-void submitI2CData(uint32_t lat, uint32_t lon, uint32_t vel, uint32_t head) {
+void submitI2CData(int32_t lat, int32_t lon, uint32_t vel, uint32_t head) {
 	union {
 		uint8_t bytes[4];
 		uint32_t word;
@@ -90,10 +91,10 @@ void submitI2CData(uint32_t lat, uint32_t lon, uint32_t vel, uint32_t head) {
 	MAP_I2CSlaveIntDisable(I2C_MODULE);
 	// Latitude update
 	dataLE.word = lat;
-	memcpy(&(i2cData.regs)[REG_LAT_0], dataLE.bytes, sizeof(uint32_t));
+	memcpy(&(i2cData.regs)[REG_LAT_0], dataLE.bytes, sizeof(int32_t));
 	// Longitude update
 	dataLE.word = lon;
-	memcpy(&(i2cData.regs)[REG_LON_0], dataLE.bytes, sizeof(uint32_t));
+	memcpy(&(i2cData.regs)[REG_LON_0], dataLE.bytes, sizeof(int32_t));
 	// Velocity update
 	dataLE.word = vel;
 	memcpy(&(i2cData.regs)[REG_VEL_0], dataLE.bytes, sizeof(uint32_t));
@@ -102,33 +103,30 @@ void submitI2CData(uint32_t lat, uint32_t lon, uint32_t vel, uint32_t head) {
 	memcpy(&(i2cData.regs)[REG_HDG_0], &(dataLE.bytes)[2], sizeof(uint16_t));
 	// Data is available
 	i2cData.regs[REG_DATA_AVAILABLE] = 1U;
-	MAP_I2CSlaveIntEnableEx(I2C_MODULE, I2C_SLAVE_INT_DATA | I2C_SLAVE_INT_START);
+	MAP_I2CSlaveIntEnableEx(I2C_MODULE, I2C_SLAVE_INT_DATA);
 }
 
 void initializeI2C(void) {
 	// Peripheral enable: the I/O port and the I2C module
-	ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOD);
-	ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_I2C3);
+	ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
+	ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_I2C1);
 	// Set up pins to I2C mode
-	ROM_GPIOPinConfigure(GPIO_PD0_I2C3SCL);
-	ROM_GPIOPinConfigure(GPIO_PD1_I2C3SDA);
-	ROM_GPIOPinTypeI2C(GPIO_PORTD_BASE, GPIO_PIN_1);
-	ROM_GPIOPinTypeI2CSCL(GPIO_PORTD_BASE, GPIO_PIN_0);
+	ROM_GPIOPinConfigure(GPIO_PA6_I2C1SCL);
+	ROM_GPIOPinConfigure(GPIO_PA7_I2C1SDA);
+	ROM_GPIOPinTypeI2C(GPIO_PORTA_BASE, GPIO_PIN_7);
+	ROM_GPIOPinTypeI2CSCL(GPIO_PORTA_BASE, GPIO_PIN_6);
 	// Set up in slave mode with correct address
 	// NOTE TM4C123 does not have slave functions in its ROM, do not try, you will be sad
 	MAP_I2CSlaveEnable(I2C_MODULE);
 	MAP_I2CSlaveInit(I2C_MODULE, I2C_ADDRESS);
 	// Register IRQ and clear spurious conditions
 	I2CIntRegister(I2C_MODULE, &i2cSlaveRequestHandler);
-	MAP_I2CSlaveIntEnableEx(I2C_MODULE, I2C_SLAVE_INT_DATA | I2C_SLAVE_INT_START);
 	MAP_I2CSlaveIntClear(I2C_MODULE);
+	MAP_I2CSlaveIntEnableEx(I2C_MODULE, I2C_SLAVE_INT_DATA);
 	// Init register file
 	i2cData.address = 0U;
 	memset(i2cData.regs, 0, sizeof(i2cData.regs));
 	i2cData.regs[REG_WHO_AM_I] = I2C_ADDRESS;
 	i2cData.regs[REG_SW_VERSION_MAJOR] = SW_VERSION_MAJOR;
 	i2cData.regs[REG_SW_VERSION_MINOR] = SW_VERSION_MINOR;
-	// Should we use the uDMA?
-	// XXX Delete me
-	submitI2CData(128000000, -64000000, 5, 359);
 }

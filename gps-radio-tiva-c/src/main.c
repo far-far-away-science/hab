@@ -59,6 +59,12 @@ int main()
                     parseGpggaMessageIfValid(&venusGpsMessage, &venusGpsData);
                     venusGpsMessage.message[0] = VENUS_GPS_ID;
                     writeMessage(CHANNEL_TELEMETRY_MCU, &venusGpsMessage);
+					// TODO Submit whichever I2C data is relevant
+					if (venusGpsData.isValid)
+					{
+						submitI2CData(venusGpsData.latitude, venusGpsData.longitude, 0, 0);
+						signalSuccess();
+					}
                 }
                 else if (memcmp(venusGpsMessage.message + 3, "VTG", 3) == 0)
                 {
@@ -105,6 +111,10 @@ int main()
             shouldSendVenusDataToAprs = !shouldSendVenusDataToAprs;
             startTime = currentTime;
         }
+		
+		// Shut off LED after successful start up (3 seconds)
+		if (currentTime == 3)
+			signalOff();
 
         // TODO if 60 seconds expired write stats to EPPROM
 

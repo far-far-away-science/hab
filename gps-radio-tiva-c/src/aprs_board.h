@@ -4,8 +4,8 @@
 
 typedef struct Callsign_t
 {
-    uint8_t callsign[7];
-    uint8_t ssid;
+    const uint8_t callsign[7];
+    const uint8_t ssid;
 } Callsign;
 
 extern const Callsign CALLSIGN_SOURCE;
