@@ -497,6 +497,16 @@
               <FileType>1</FileType>
               <FilePath>.\src\uart_write.c</FilePath>
             </File>
+            <File>
+              <FileName>i2c.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\i2c.c</FilePath>
+            </File>
+            <File>
+              <FileName>i2c.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\i2c.h</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

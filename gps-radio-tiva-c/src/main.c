@@ -4,6 +4,7 @@
 #include "common.h"
 #include "signals.h"
 #include "aprs_board.h"
+#include "i2c.h"
 
 #include <string.h>
 
@@ -16,6 +17,7 @@ int main()
     initializeAprs();
     initializeTimer();
     initializeUart();
+	initializeI2C();
     initializeSignals();
 
     bool r = true;
@@ -105,5 +107,7 @@ int main()
         }
 
         // TODO if 60 seconds expired write stats to EPPROM
+
+		// TODO Enter low power mode, it can save 26 mA
     }
 }

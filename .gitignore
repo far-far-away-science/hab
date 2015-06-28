@@ -210,3 +210,18 @@ FakesAssemblies/
 GeneratedArtifacts/
 _Pvt_Extensions/
 ModelManifest.xml
+
+# PDF and ZIP files
+*.pdf
+*.zip
+
+# Keil files
+*.iex
+*.axf
+*.lnp
+*.map
+*.dep
+*.crf
+*.d
+*.o
+*.uvguix.*
