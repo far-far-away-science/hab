@@ -1,4 +1,4 @@
-rem @echo off
+@echo off
 
 set TRACE_NAME=uart-driver
 set TRACE_LOG_PATH=%SystemRoot%\Tracing\%TRACE_NAME%
@@ -17,12 +17,12 @@ if /I %command% == start (
     if not exist "%TRACE_LOG_PATH%" (
         md "%TRACE_LOG_PATH%"
     )
-    tracelog -start "%TRACE_NAME%" -seq 10 -rt -guid %PROVIDER_GUID% -flags %TRACE_FLAGS% -level %TRACE_LEVEL% -f "%TRACE_LOG_PATH%\%TRACE_NAME%.etl"
+    tracelog.exe -start "%TRACE_NAME%" -seq 10 -rt -guid %PROVIDER_GUID% -flags %TRACE_FLAGS% -level %TRACE_LEVEL% -f "%TRACE_LOG_PATH%\%TRACE_NAME%.etl"
 )
 if /I %command% == stop (
     echo stopping trace
-    tracelog -flush "%TRACE_NAME%"
-    tracelog -stop "%TRACE_NAME%"
+    tracelog.exe -flush "%TRACE_NAME%"
+    tracelog.exe -stop "%TRACE_NAME%"
 )
 if /I %command% == create-tmf (
     "%WIN_KITS_PATH%\tracepdb.exe" -f ..\ARM\Release\uart-driver.pdb -p . -o "%TMFFILE%"

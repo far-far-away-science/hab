@@ -6,6 +6,11 @@
     #pragma alloc_text (PAGE, UartDeviceCreate)
 #endif
 
+NTSTATUS UartDeviceInitContext(_In_ WDFDEVICE device);
+NTSTATUS UartDeviceInitSerCx2(_In_ WDFDEVICE device);
+NTSTATUS UartDeviceInitInterrupts(_In_ WDFDEVICE device);
+NTSTATUS UartDeviceInitIdleTimeout(_In_ WDFDEVICE device);
+
 NTSTATUS UartDeviceCreate(_In_ PWDFDEVICE_INIT deviceInit)
 {
     PAGED_CODE();
@@ -48,12 +53,76 @@ NTSTATUS UartDeviceCreate(_In_ PWDFDEVICE_INIT deviceInit)
     deviceState.NotDisableable = WdfFalse;
     WdfDeviceSetDeviceState(device, &deviceState);
 
-    // TODO initialize context
-    // TODO initialize SERCX2
-    // TODO initialize interrupts
+    status = UartDeviceInitContext(device);
+
+    if (!NT_SUCCESS(status))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "UartDeviceInitContext(...) failed %!STATUS!", status);
+        return status;
+    }
+
+    status = UartDeviceInitSerCx2(device);
+
+    if (!NT_SUCCESS(status))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "UartDeviceInitSerCx2(...) failed %!STATUS!", status);
+        return status;
+    }
+
+    status = UartDeviceInitInterrupts(device);
+
+    if (!NT_SUCCESS(status))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "UartDeviceInitInterrupts(...) failed %!STATUS!", status);
+        return status;
+    }
+
+    status = UartDeviceInitIdleTimeout(device);
+
+    if (!NT_SUCCESS(status))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "UartDeviceInitInterrupts(...) failed %!STATUS!", status);
+        return status;
+    }
 
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Exit");
 
+    return STATUS_SUCCESS;
+}
+
+NTSTATUS UartDeviceInitContext(_In_ WDFDEVICE device)
+{
+    UNREFERENCED_PARAMETER(device);
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Entry");
+    // TODO
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Exit");
+    return STATUS_SUCCESS;
+}
+
+NTSTATUS UartDeviceInitSerCx2(_In_ WDFDEVICE device)
+{
+    UNREFERENCED_PARAMETER(device);
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Entry");
+    // TODO
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Exit");
+    return STATUS_SUCCESS;
+}
+
+NTSTATUS UartDeviceInitInterrupts(_In_ WDFDEVICE device)
+{
+    UNREFERENCED_PARAMETER(device);
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Entry");
+    // TODO
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Exit");
+    return STATUS_SUCCESS;
+}
+
+NTSTATUS UartDeviceInitIdleTimeout(_In_ WDFDEVICE device)
+{
+    UNREFERENCED_PARAMETER(device);
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Entry");
+    // TODO
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Exit");
     return STATUS_SUCCESS;
 }
 

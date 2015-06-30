@@ -9,9 +9,6 @@
       <UniqueIdentifier>{8E41214B-6785-4CFE-B992-037D68949A14}</UniqueIdentifier>
       <Extensions>inf;inv;inx;mof;mc;</Extensions>
     </Filter>
-    <Filter Include="utils">
-      <UniqueIdentifier>{55831c9d-9986-4ce6-877e-b21dbe822181}</UniqueIdentifier>
-    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Inf Include="uart-driver.inf">
@@ -19,31 +16,29 @@
     </Inf>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Driver.c">
+    <ClInclude Include="Trace.h" />
+    <ClInclude Include="src\Device.h">
       <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Device.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-  </ItemGroup>
-  <ItemGroup>
+    </ClInclude>
     <ClInclude Include="src\Driver.h">
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="src\Public.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="Trace.h" />
-    <ClInclude Include="src\Device.h">
+    <ClInclude Include="src\Utils.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="install-driver.txt" />
+    <ClCompile Include="src\Device.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\Driver.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <None Include="utils\tracing.bat">
-      <Filter>utils</Filter>
-    </None>
+    <Text Include="install-driver.txt" />
   </ItemGroup>
 </Project>

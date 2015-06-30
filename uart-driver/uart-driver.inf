@@ -3,110 +3,73 @@
 ;
 
 [Version]
-    Signature="$WINDOWS NT$"
-    Class=System
-    ClassGuid={88BAE032-5A81-49f0-BC3D-A4FF138216D6}
-    Provider=%ManufacturerName%
-    CatalogFile=uart-driver.cat
-    DriverVer=
+Signature="$WINDOWS NT$"
+Class=System
+ClassGuid={4d36e97d-e325-11ce-bfc1-08002be10318}
+Provider=%ManufacturerName%
+CatalogFile=uart-driver.cat
+DriverVer= ; TODO: set DriverVer in stampinf property pages
 
 [DestinationDirs]
-    DefaultDestDir = 12
+DefaultDestDir = 12
+uart-driver_Device_CoInstaller_CopyFiles = 11
+
+; ================= Class section =====================
 
 [SourceDisksNames]
-    1 = %DiskName%,,,""
+1 = %DiskName%,,,""
 
 [SourceDisksFiles]
-    uart-driver.sys  = 1,,
+uart-driver.sys  = 1,,
+WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll=1 ; make sure the number matches with SourceDisksNames
 
-;
+;*****************************************
 ; Install Section
-;
-
-[ControlFlags]
-    ExcludeFromSelect=*
+;*****************************************
 
 [Manufacturer]
-    %ManufacturerName%=Standard,NT$ARCH$
+%ManufacturerName%=Standard,NT$ARCH$
 
 [Standard.NT$ARCH$]
-    %uart-driver.DeviceDesc%=uart-driver_Device, ACPI\VEN_BCM&DEV_2836
+%uart-driver.DeviceDesc%=uart-driver_Device, ACPI\VEN_BCM&DEV_2836
 
 [uart-driver_Device.NT]
-    CopyFiles=Drivers_Dir
+CopyFiles=Drivers_Dir
 
 [Drivers_Dir]
-    uart-driver.sys,,,0x0100
+uart-driver.sys
 
-[uart-driver_Device.NT.HW]
-    AddReg=uart-driver_AddReg
-
-[uart-driver_AddReg]
-    HKLM,System\CurrentControlSet\Services\SerCx2\Parameters,Flags,0x00010001,1
-
+;[uart-driver_Device.NT.HW] 
+;AddReg=uart-driver_AddReg 
 ;
-;-------------- Class definition
-;
+;[uart-driver_AddReg] 
+;HKLM,System\CurrentControlSet\Services\SerCx2\Parameters,Flags,0x00010001,1 
 
-[ClassInstall32]
-    AddReg = ClassInstall_AddReg
-
-[ClassInstall_AddReg]
-    HKR,,,,%ClassName%
-    HKR,,NoInstallClass,,1
-    HKR,,IconPath,%REG_MULTI_SZ%,"%%systemroot%%\system32\setupapi.dll,-20"
-    HKR,,LowerLogoVersion,,5.2
-
-;
 ;-------------- Service installation
-;
-
 [uart-driver_Device.NT.Services]
-    AddService = uart-driver,%SPSVCINST_ASSOCSERVICE%, uart-driver_Service_Inst
+AddService = uart-driver,%SPSVCINST_ASSOCSERVICE%, uart-driver_Service_Inst
 
-;
-;-------------- uart-driver driver install sections
-;
-
+; -------------- uart-driver driver install sections
 [uart-driver_Service_Inst]
-    DisplayName    = %uart-driver.SVCDESC%
-    ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
-    StartType      = 3               ; SERVICE_DEMAND_START
-    ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
-    ServiceBinary  = %12%\uart-driver.sys
-    Dependencies   = SerCx2
+DisplayName    = %uart-driver.SVCDESC%
+ServiceType    = 1               ; SERVICE_KERNEL_DRIVER
+StartType      = 3               ; SERVICE_DEMAND_START
+ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
+ServiceBinary  = %12%\uart-driver.sys
+Dependencies   = SerCx2 
 
 ;
 ;--- uart-driver_Device Coinstaller installation ------
 ;
 
-[DestinationDirs]
-    uart-driver_Device_CoInstaller_CopyFiles = 11
-
-[uart-driver_Device.NT.CoInstallers]
-    AddReg=uart-driver_Device_CoInstaller_AddReg
-    CopyFiles=uart-driver_Device_CoInstaller_CopyFiles
-
-[uart-driver_Device_CoInstaller_AddReg]
-    HKR,,CoInstallers32,0x00010000, "WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll,WdfCoInstaller"
-
-[uart-driver_Device_CoInstaller_CopyFiles]
-    WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll
-
-[SourceDisksFiles]
-    WdfCoInstaller$KMDFCOINSTALLERVERSION$.dll=1 ; make sure the number matches with SourceDisksNames
-
 [uart-driver_Device.NT.Wdf]
-    KmdfService =  uart-driver, uart-driver_wdfsect
-
+KmdfService =  uart-driver, uart-driver_wdfsect
 [uart-driver_wdfsect]
-    KmdfLibraryVersion = $KMDFVERSION$
+KmdfLibraryVersion = $KMDFVERSION$
 
 [Strings]
-    SPSVCINST_ASSOCSERVICE= 0x00000002
-    ManufacturerName="PAKRUPET" ;TODO: Replace with your manufacturer name
-    ClassName="Universal Serial Bus devices"
-    DiskName = "uart-driver Installation Disk"
-    uart-driver.DeviceDesc = "uart-driver Device"
-    uart-driver.SVCDESC = "uart-driver Service"
-    REG_MULTI_SZ = 0x00010000
+SPSVCINST_ASSOCSERVICE= 0x00000002
+ManufacturerName="PAKRUPET"
+DiskName = "uart-driver Installation Disk"
+uart-driver.DeviceDesc = "uart-driver Device"
+uart-driver.SVCDESC = "uart-driver Service"
