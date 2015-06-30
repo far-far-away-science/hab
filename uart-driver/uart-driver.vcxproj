@@ -37,8 +37,12 @@
   <ItemGroup>
     <ClInclude Include="src\Device.h" />
     <ClInclude Include="src\Driver.h" />
+    <ClInclude Include="src\Interrupt.h" />
+    <ClInclude Include="src\Power.h" />
     <ClInclude Include="src\Public.h" />
-    <ClInclude Include="src\Utils.h" />
+    <ClInclude Include="src\Receive.h" />
+    <ClInclude Include="src\Transmit.h" />
+    <ClInclude Include="src\Uart.h" />
     <ClInclude Include="Trace.h" />
   </ItemGroup>
   <ItemGroup>
@@ -244,6 +248,11 @@
   <ItemGroup>
     <ClCompile Include="src\Device.c" />
     <ClCompile Include="src\Driver.c" />
+    <ClCompile Include="src\Interrupt.c" />
+    <ClCompile Include="src\Power.c" />
+    <ClCompile Include="src\Receive.c" />
+    <ClCompile Include="src\Transmit.c" />
+    <ClCompile Include="src\Uart.c" />
   </ItemGroup>
   <ItemGroup>
     <Text Include="install-driver.txt" />

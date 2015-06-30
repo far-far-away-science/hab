@@ -18,7 +18,6 @@ NTSTATUS DriverEntry(_In_ PDRIVER_OBJECT driverObject, _In_ PUNICODE_STRING regi
 
     WDF_OBJECT_ATTRIBUTES attributes;
     WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
-    // cleanup will stop tracing
     attributes.EvtCleanupCallback = UartDriverEvtDriverContextCleanup;
 
     WDF_DRIVER_CONFIG config;
