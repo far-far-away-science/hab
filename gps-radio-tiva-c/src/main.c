@@ -17,7 +17,7 @@ int main()
     initializeAprs();
     initializeTimer();
     initializeUart();
-	initializeI2C();
+    initializeI2C();
     initializeSignals();
 
     bool r = true;
@@ -54,21 +54,21 @@ int main()
         {
             if (memcmp(venusGpsMessage.message, "$GP", 3) == 0)
             {
+                bool update = false;
                 if (memcmp(venusGpsMessage.message + 3, "GGA", 3) == 0)
                 {
                     parseGpggaMessageIfValid(&venusGpsMessage, &venusGpsData);
-                    venusGpsMessage.message[0] = VENUS_GPS_ID;
-                    writeMessage(CHANNEL_TELEMETRY_MCU, &venusGpsMessage);
-					// TODO Submit whichever I2C data is relevant
-					if (venusGpsData.isValid)
-					{
-						submitI2CData(venusGpsData.latitude, venusGpsData.longitude, 0, 0);
-						signalSuccess();
-					}
+                    update = true;
                 }
                 else if (memcmp(venusGpsMessage.message + 3, "VTG", 3) == 0)
                 {
                     parseGpvtgMessageIfValid(&venusGpsMessage, &venusGpsData);
+                    update = true;
+                }
+                if (update)
+                {
+                    // The Venus can be set up to disable all the other messages in theory
+                    submitI2CData(0, &venusGpsData);
                     venusGpsMessage.message[0] = VENUS_GPS_ID;
                     writeMessage(CHANNEL_TELEMETRY_MCU, &venusGpsMessage);
                 }
@@ -79,15 +79,20 @@ int main()
         {
             if (memcmp(copernicusGpsMessage.message, "$GP", 3) == 0)
             {
+                bool update = false;
                 if (memcmp(copernicusGpsMessage.message + 3, "GGA", 3) == 0)
                 {
                     parseGpggaMessageIfValid(&copernicusGpsMessage, &copernicusGpsData);
-                    copernicusGpsMessage.message[0] = COPERNICUS_GPS_ID;
-                    writeMessage(CHANNEL_TELEMETRY_MCU, &copernicusGpsMessage);
+                    update = true;
                 }
                 else if (memcmp(copernicusGpsMessage.message + 3, "VTG", 3) == 0)
                 {
                     parseGpvtgMessageIfValid(&copernicusGpsMessage, &copernicusGpsData);
+                    update = true;
+                }
+                if (update)
+                {
+                    submitI2CData(1, &copernicusGpsData);
                     copernicusGpsMessage.message[0] = COPERNICUS_GPS_ID;
                     writeMessage(CHANNEL_TELEMETRY_MCU, &copernicusGpsMessage);
                 }
@@ -111,13 +116,13 @@ int main()
             shouldSendVenusDataToAprs = !shouldSendVenusDataToAprs;
             startTime = currentTime;
         }
-		
-		// Shut off LED after successful start up (3 seconds)
-		if (currentTime == 3)
-			signalOff();
+        
+        // Shut off LED after successful start up (3 seconds)
+        if (currentTime == 3)
+            signalOff();
 
         // TODO if 60 seconds expired write stats to EPPROM
 
-		// TODO Enter low power mode, it can save 26 mA
+        // TODO Enter low power mode, it can save 26 mA
     }
 }
