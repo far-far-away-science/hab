@@ -256,6 +256,7 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="install-driver.txt" />
+    <Text Include="wpp.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

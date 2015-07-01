@@ -67,5 +67,6 @@
   </ItemGroup>
   <ItemGroup>
     <Text Include="install-driver.txt" />
+    <Text Include="wpp.txt" />
   </ItemGroup>
 </Project>

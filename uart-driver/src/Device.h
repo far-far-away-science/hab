@@ -31,6 +31,20 @@ typedef struct _SERCX2_PIO_RECEIVE_CONTEXT
 
 WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(SERCX2_PIO_RECEIVE_CONTEXT, GetSerCx2PioReceiveContext);
 
+typedef struct _UART_HARDWARE_CONFIGURATION
+{
+    // memory
+    PHYSICAL_ADDRESS memoryStart;
+    PHYSICAL_ADDRESS memoryStartTranslated;
+    ULONG memoryLength;
+    // interrupt
+    ULONG vector;
+    ULONG level;
+    KAFFINITY affinity;
+    // dma
+    PCM_PARTIAL_RESOURCE_DESCRIPTOR dma[2];
+} UART_HARDWARE_CONFIGURATION, *PUART_HARDWARE_CONFIGURATION;
+
 NTSTATUS UartDeviceCreate(_In_ PWDFDEVICE_INIT deviceInit);
 
 EVT_WDF_DEVICE_PREPARE_HARDWARE UartDeviceEvtPrepareHardware;

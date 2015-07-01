@@ -276,7 +276,107 @@ NTSTATUS UartDeviceEvtPrepareHardware(_In_ WDFDEVICE device, _In_ WDFCMRESLIST r
     UNREFERENCED_PARAMETER(resources);
     UNREFERENCED_PARAMETER(resourcesTranslated);
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Entry");
-    // TODO map hardware resources
+
+    const ULONG resourceListCount = WdfCmResourceListGetCount(resources);
+    const ULONG resourceTranslatedListCount = WdfCmResourceListGetCount(resourcesTranslated);
+
+    if (resourceListCount != resourceTranslatedListCount)
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "resourceListCountRaw != resourceListCountTrans");
+        return STATUS_UNSUCCESSFUL;
+    }
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "number of resources = %lu", resourceListCount);
+
+    ULONG numberOfDmaResourcesFound = 0;
+    ULONG numberOfMemoryResourcesFound = 0;
+    ULONG numberOfInterrupResourcesFound = 0;
+    UART_HARDWARE_CONFIGURATION uartHardwareConfiguration = { 0 };
+
+    for (ULONG i = 0; i < resourceListCount; i++)
+    {
+        PCM_PARTIAL_RESOURCE_DESCRIPTOR pPartialResourceDesc = WdfCmResourceListGetDescriptor(resources, i);
+        PCM_PARTIAL_RESOURCE_DESCRIPTOR pPartialResourceTransltedDesc = WdfCmResourceListGetDescriptor(resourcesTranslated, i);
+
+        switch (pPartialResourceTransltedDesc->Type)
+        {
+            case CmResourceTypeMemory:
+            {
+                if (numberOfMemoryResourcesFound == 0)
+                {
+                    uartHardwareConfiguration.memoryStart = pPartialResourceDesc->u.Memory.Start;
+                    uartHardwareConfiguration.memoryStartTranslated = pPartialResourceTransltedDesc->u.Memory.Start;
+                    uartHardwareConfiguration.memoryLength = pPartialResourceDesc->u.Memory.Length;
+                    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "memory resource found (start=%llu,startTranslated=%llu,length=%lu)", (unsigned long long) uartHardwareConfiguration.memoryStart.QuadPart,
+                                                                                                                                             (unsigned long long) uartHardwareConfiguration.memoryStartTranslated.QuadPart,
+                                                                                                                                             uartHardwareConfiguration.memoryLength);
+                }
+                else
+                {
+                    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "found more than one memory resource, not sure what to do about them");
+                }
+                ++numberOfMemoryResourcesFound;
+                break;
+            }
+            case CmResourceTypeInterrupt:
+            {
+                if (numberOfInterrupResourcesFound == 0)
+                {
+                    uartHardwareConfiguration.vector = pPartialResourceTransltedDesc->u.Interrupt.Vector;
+                    uartHardwareConfiguration.level = pPartialResourceTransltedDesc->u.Interrupt.Level;
+                    uartHardwareConfiguration.affinity = pPartialResourceTransltedDesc->u.Interrupt.Affinity;
+                    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "interrupt resource found (vector=%lu,level=%lu,affinity=%lu)", uartHardwareConfiguration.vector,
+                                                                                                                                       uartHardwareConfiguration.level,
+                                                                                                                                       (ULONG) uartHardwareConfiguration.affinity);
+                }
+                else
+                {
+                    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "found more than one interrupt resource, not sure what to do about them");
+                }
+                ++numberOfInterrupResourcesFound;
+                break;
+            }
+            case CmResourceTypeDma:
+            {
+                if (numberOfDmaResourcesFound < 2)
+                {
+                    uartHardwareConfiguration.dma[numberOfDmaResourcesFound] = pPartialResourceTransltedDesc;
+                }
+                else
+                {
+                    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "found more than two dma resources, not sure what to do about them");
+                }
+                ++numberOfDmaResourcesFound;
+                break;
+            }
+            default:
+            {
+                TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "found unsupported resource with type = %hu", (unsigned short int) pPartialResourceTransltedDesc->Type);
+            }
+        }
+    }
+
+    if (numberOfInterrupResourcesFound == 0)
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "didn't find any interrupt resources");
+        return STATUS_INSUFFICIENT_RESOURCES;
+    }
+
+    if (numberOfMemoryResourcesFound != 0)
+    {
+        // TODO init memory resource
+    }
+    else
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "didn't find any memory resources");
+        return STATUS_INSUFFICIENT_RESOURCES;
+    }
+
+    if (numberOfDmaResourcesFound != 0)
+    {
+        // TODO init DMA resource to be used by SerCx2
+    }
+
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Exit");
     return STATUS_SUCCESS;
 }
