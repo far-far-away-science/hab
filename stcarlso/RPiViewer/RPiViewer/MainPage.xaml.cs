@@ -77,8 +77,9 @@ namespace RPiViewer {
 		/// <param name="display">An array containing 4 text boxes - lat, lon, alt, vel</param>
 		private void GPSFetch(I2cDevice device, int index, params TextBlock[] display) {
 			byte[] data = new byte[17];
-			// Receive 17 bytes starting from lat register (0x10)
-			device.WriteRead(new byte[] { 0x10 }, data);
+			// Receive 17 bytes starting from lat register (0x10), where 0x30 is the second GPS
+			byte address = (byte)(((index == 0) ? 0x00 : 0x20) + 0x10);
+			device.WriteRead(new byte[] { address }, data);
 			// Convert all to correct types
 			double lat = BitConverter.ToInt32(data, 0) * 1E-6;
 			double lon = BitConverter.ToInt32(data, 4) * 1E-6;
