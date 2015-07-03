@@ -22,7 +22,7 @@ uint16_t getBufferCapacity(const WriteBuffer* pWriteBuffer, uint16_t maxLen)
     const bool isEmpty = pWriteBuffer->isEmpty;
     const uint16_t start = pWriteBuffer->startIdx;
     const uint16_t end = pWriteBuffer->endIdx;
-	
+    
     if (isEmpty && start == end)
     {
         return maxLen;
@@ -61,16 +61,16 @@ bool write(uint8_t channel, uint8_t character)
 
     // interrupt can only make buffer emptier so we are fine no matter where interrupt kicks in
     if ((!pChannelData->writeBuffer.isEmpty && pChannelData->writeBuffer.startIdx == pChannelData->writeBuffer.endIdx) ||
-		getBufferCapacity(&pChannelData->writeBuffer, UART_WRITE_BUFFER_MAX_CHARS_LEN) < 1)
+        getBufferCapacity(&pChannelData->writeBuffer, UART_WRITE_BUFFER_MAX_CHARS_LEN) < 1)
     {
         return false;
     }
 
     pChannelData->writeBuffer.buffer[pChannelData->writeBuffer.endIdx] = character;
     pChannelData->writeBuffer.endIdx = advanceUint16Index(pChannelData->writeBuffer.endIdx, UART_WRITE_BUFFER_MAX_CHARS_LEN);
-		
+        
     uartTransmit(pChannelData);
-		
+        
     return true;
 }
 
@@ -80,7 +80,7 @@ bool writeMessage(uint8_t channel, const Message* pMessage)
 
     // interrupt can only make buffer emptier so we are fine no matter where interrupt kicks in
     if ((!pChannelData->writeBuffer.isEmpty && pChannelData->writeBuffer.startIdx == pChannelData->writeBuffer.endIdx) ||
-		getBufferCapacity(&pChannelData->writeBuffer, UART_WRITE_BUFFER_MAX_CHARS_LEN) < pMessage->size)
+        getBufferCapacity(&pChannelData->writeBuffer, UART_WRITE_BUFFER_MAX_CHARS_LEN) < pMessage->size)
     {
         return false;
     }
@@ -90,9 +90,9 @@ bool writeMessage(uint8_t channel, const Message* pMessage)
         pChannelData->writeBuffer.buffer[pChannelData->writeBuffer.endIdx] = pMessage->message[i];
         pChannelData->writeBuffer.endIdx = advanceUint16Index(pChannelData->writeBuffer.endIdx, UART_WRITE_BUFFER_MAX_CHARS_LEN);
     }
-		
+        
     uartTransmit(pChannelData);
-		
+        
     return true;
 }
 

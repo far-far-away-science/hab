@@ -10,7 +10,7 @@ typedef struct GpsData_t
     int32_t longitude;
     uint32_t altitudeMeters;
     uint32_t trueCourseDegrees;
-    uint32_t speedKnots;
+    uint32_t speedKmh;
     uint8_t numberOfSatellites;
     uint8_t mode;
     uint8_t gpsQualityIndicator;

@@ -7,11 +7,29 @@
     xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
     mc:Ignorable="d" Loaded="GPSStartup">
 
-    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}">
-        <TextBlock HorizontalAlignment="Left" Margin="10,10,0,0" TextWrapping="Wrap" Text="Latitude" VerticalAlignment="Top" FontSize="32"/>
-        <TextBlock HorizontalAlignment="Left" Margin="280,10,0,0" TextWrapping="Wrap" Text="Longitude" VerticalAlignment="Top" FontSize="32"/>
-        <TextBlock x:Name="txtLat" HorizontalAlignment="Left" Margin="10,58,0,0" TextWrapping="Wrap" Text="0.000000" VerticalAlignment="Top" FontSize="24"/>
-        <TextBlock x:Name="txtLon" HorizontalAlignment="Left" Margin="280,58,0,0" TextWrapping="Wrap" Text="0.000000" VerticalAlignment="Top" FontSize="24"/>
-
+    <Grid Background="{ThemeResource ApplicationPageBackgroundThemeBrush}" Padding="10">
+        <Grid.ColumnDefinitions>
+            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="200"/>
+            <ColumnDefinition Width="*"/>
+        </Grid.ColumnDefinitions>
+        <Grid.RowDefinitions>
+            <RowDefinition Height="60"/>
+            <RowDefinition Height="100"/>
+            <RowDefinition Height="*"/>
+        </Grid.RowDefinitions>
+        <TextBlock Grid.Row="0" Grid.Column="0" Text="Latitude" FontSize="32"/>
+        <TextBlock Grid.Row="0" Grid.Column="1" Text="Longitude" FontSize="32"/>
+        <TextBlock Grid.Row="0" Grid.Column="2" Text="Altitude" FontSize="32"/>
+        <TextBlock Grid.Row="0" Grid.Column="3" Text="Speed" FontSize="32"/>
+        <TextBlock x:Name="txtLat1" Grid.Row="1" Grid.Column="0" Text="0.000000" FontSize="24"/>
+        <TextBlock x:Name="txtLon1" Grid.Row="1" Grid.Column="1" Text="0.000000" FontSize="24"/>
+        <TextBlock x:Name="txtAlt1" Grid.Row="1" Grid.Column="2" Text="0.0" FontSize="24"/>
+        <TextBlock x:Name="txtVel1" Grid.Row="1" Grid.Column="3" Text="0.0" FontSize="24"/>
+        <TextBlock Foreground="Red" x:Name="txtLat2" Grid.Row="2" Grid.Column="0" Text="0.000000" FontSize="24"/>
+        <TextBlock Foreground="Red" x:Name="txtLon2" Grid.Row="2" Grid.Column="1" Text="0.000000" FontSize="24"/>
+        <TextBlock Foreground="Red" x:Name="txtAlt2" Grid.Row="2" Grid.Column="2" Text="0.0" FontSize="24"/>
+        <TextBlock Foreground="Red" x:Name="txtVel2" Grid.Row="2" Grid.Column="3" Text="0.0" FontSize="24"/>
     </Grid>
 </Page>
