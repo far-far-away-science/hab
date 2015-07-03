@@ -6,6 +6,8 @@
 #include "Transmit.h"
 #include "Interrupt.h"
 
+#include "bcm2836\Controller.h"
+
 #include "Device.tmh"
 
 #ifdef ALLOC_PRAGMA
@@ -130,7 +132,6 @@ NTSTATUS UartDeviceInitSerCx2(_In_ WDFDEVICE device)
 
 NTSTATUS UartDeviceInitInterrupts(_In_ WDFDEVICE device)
 {
-    UNREFERENCED_PARAMETER(device);
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Entry");
 
     PUART_DEVICE_EXTENSION pDeviceExtension = GetUartDeviceExtension(device);
@@ -161,7 +162,7 @@ NTSTATUS UartDeviceInitInterrupts(_In_ WDFDEVICE device)
         return status;
     }
 
-    // setip interrupt
+    // setup interrupt
     WDF_INTERRUPT_CONFIG interruptConfig;
     WDF_INTERRUPT_CONFIG_INIT(&interruptConfig, UartInterruptISR, UartInterruptTxRxDPCForISR);
     interruptConfig.SpinLock = interruptLock;
@@ -187,7 +188,6 @@ NTSTATUS UartDeviceInitInterrupts(_In_ WDFDEVICE device)
 
 NTSTATUS UartDeviceInitIdleTimeout(_In_ WDFDEVICE device)
 {
-    UNREFERENCED_PARAMETER(device);
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Entry");
 
     WDF_POWER_FRAMEWORK_SETTINGS powerFrameworkSettings;
@@ -270,11 +270,8 @@ NTSTATUS UartDeviceInitPio(_In_ WDFDEVICE device)
     return STATUS_SUCCESS;
 }
 
-NTSTATUS UartDeviceEvtPrepareHardware(_In_ WDFDEVICE device, _In_ WDFCMRESLIST resources, _In_ WDFCMRESLIST resourcesTranslated)
+NTSTATUS PrepareUartHardware(_In_ WDFDEVICE device, _In_ WDFCMRESLIST resources, _In_ WDFCMRESLIST resourcesTranslated, _In_ UART_HARDWARE_CONFIGURATION* pUartHardwareConfiguration)
 {
-    UNREFERENCED_PARAMETER(device);
-    UNREFERENCED_PARAMETER(resources);
-    UNREFERENCED_PARAMETER(resourcesTranslated);
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Entry");
 
     const ULONG resourceListCount = WdfCmResourceListGetCount(resources);
@@ -288,10 +285,8 @@ NTSTATUS UartDeviceEvtPrepareHardware(_In_ WDFDEVICE device, _In_ WDFCMRESLIST r
 
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "number of resources = %lu", resourceListCount);
 
-    ULONG numberOfDmaResourcesFound = 0;
     ULONG numberOfMemoryResourcesFound = 0;
     ULONG numberOfInterrupResourcesFound = 0;
-    UART_HARDWARE_CONFIGURATION uartHardwareConfiguration = { 0 };
 
     for (ULONG i = 0; i < resourceListCount; i++)
     {
@@ -304,12 +299,15 @@ NTSTATUS UartDeviceEvtPrepareHardware(_In_ WDFDEVICE device, _In_ WDFCMRESLIST r
             {
                 if (numberOfMemoryResourcesFound == 0)
                 {
-                    uartHardwareConfiguration.memoryStart = pPartialResourceDesc->u.Memory.Start;
-                    uartHardwareConfiguration.memoryStartTranslated = pPartialResourceTransltedDesc->u.Memory.Start;
-                    uartHardwareConfiguration.memoryLength = pPartialResourceDesc->u.Memory.Length;
-                    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "memory resource found (start=%llu,startTranslated=%llu,length=%lu)", (unsigned long long) uartHardwareConfiguration.memoryStart.QuadPart,
-                                                                                                                                             (unsigned long long) uartHardwareConfiguration.memoryStartTranslated.QuadPart,
-                                                                                                                                             uartHardwareConfiguration.memoryLength);
+                    pUartHardwareConfiguration->MemoryStart = pPartialResourceDesc->u.Memory.Start;
+                    pUartHardwareConfiguration->MemoryStartTranslated = pPartialResourceTransltedDesc->u.Memory.Start;
+                    pUartHardwareConfiguration->MemoryLength = pPartialResourceDesc->u.Memory.Length;
+                    pUartHardwareConfiguration->AddressSpace = CM_RESOURCE_PORT_MEMORY;
+                    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE,
+                                "memory resource found (start=%llu,startTranslated=%llu,length=%lu)",
+                                (unsigned long long) pUartHardwareConfiguration->MemoryStart.QuadPart,
+                                (unsigned long long) pUartHardwareConfiguration->MemoryStartTranslated.QuadPart,
+                                (unsigned long) pUartHardwareConfiguration->MemoryLength);
                 }
                 else
                 {
@@ -322,31 +320,20 @@ NTSTATUS UartDeviceEvtPrepareHardware(_In_ WDFDEVICE device, _In_ WDFCMRESLIST r
             {
                 if (numberOfInterrupResourcesFound == 0)
                 {
-                    uartHardwareConfiguration.vector = pPartialResourceTransltedDesc->u.Interrupt.Vector;
-                    uartHardwareConfiguration.level = pPartialResourceTransltedDesc->u.Interrupt.Level;
-                    uartHardwareConfiguration.affinity = pPartialResourceTransltedDesc->u.Interrupt.Affinity;
-                    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "interrupt resource found (vector=%lu,level=%lu,affinity=%lu)", uartHardwareConfiguration.vector,
-                                                                                                                                       uartHardwareConfiguration.level,
-                                                                                                                                       (ULONG) uartHardwareConfiguration.affinity);
+                    pUartHardwareConfiguration->InterruptVector = pPartialResourceTransltedDesc->u.Interrupt.Vector;
+                    pUartHardwareConfiguration->InterruptLevel = pPartialResourceTransltedDesc->u.Interrupt.Level;
+                    pUartHardwareConfiguration->InterruptAffinity = pPartialResourceTransltedDesc->u.Interrupt.Affinity;
+                    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE,
+                                "interrupt resource found (vector=%lu,level=%lu,affinity=%lu)",
+                                (unsigned long) pUartHardwareConfiguration->InterruptVector,
+                                (unsigned long) pUartHardwareConfiguration->InterruptLevel,
+                                (unsigned long) pUartHardwareConfiguration->InterruptAffinity);
                 }
                 else
                 {
                     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "found more than one interrupt resource, not sure what to do about them");
                 }
                 ++numberOfInterrupResourcesFound;
-                break;
-            }
-            case CmResourceTypeDma:
-            {
-                if (numberOfDmaResourcesFound < 2)
-                {
-                    uartHardwareConfiguration.dma[numberOfDmaResourcesFound] = pPartialResourceTransltedDesc;
-                }
-                else
-                {
-                    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "found more than two dma resources, not sure what to do about them");
-                }
-                ++numberOfDmaResourcesFound;
                 break;
             }
             default:
@@ -364,7 +351,9 @@ NTSTATUS UartDeviceEvtPrepareHardware(_In_ WDFDEVICE device, _In_ WDFCMRESLIST r
 
     if (numberOfMemoryResourcesFound != 0)
     {
-        // TODO init memory resource
+        PUART_DEVICE_EXTENSION pDeviceExtension = GetUartDeviceExtension(device);
+        pDeviceExtension->UartReadDeviceUChar = UartReadRegisterUChar;
+        pDeviceExtension->UartWriteDeviceUChar = UartWriteRegisterUChar;
     }
     else
     {
@@ -372,9 +361,29 @@ NTSTATUS UartDeviceEvtPrepareHardware(_In_ WDFDEVICE device, _In_ WDFCMRESLIST r
         return STATUS_INSUFFICIENT_RESOURCES;
     }
 
-    if (numberOfDmaResourcesFound != 0)
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Exit");
+    return STATUS_SUCCESS;
+}
+
+NTSTATUS UartDeviceEvtPrepareHardware(_In_ WDFDEVICE device, _In_ WDFCMRESLIST resources, _In_ WDFCMRESLIST resourcesTranslated)
+{
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Entry");
+
+    UART_HARDWARE_CONFIGURATION uartHardwareConfiguration = { 0 };
+    NTSTATUS status = PrepareUartHardware(device, resources, resourcesTranslated, &uartHardwareConfiguration);
+
+    if (!NT_SUCCESS(status))
     {
-        // TODO init DMA resource to be used by SerCx2
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "PrepareUartHardware(...) failed %!STATUS!", status);
+        return status;
+    }
+
+    status = InitializeUartController(device, &uartHardwareConfiguration);
+
+    if (!NT_SUCCESS(status))
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "InitializeUartController(...) failed %!STATUS!", status);
+        return status;
     }
 
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Exit");
@@ -386,7 +395,18 @@ NTSTATUS UartDeviceEvtReleaseHardware(_In_ WDFDEVICE device, _In_ WDFCMRESLIST r
     UNREFERENCED_PARAMETER(device);
     UNREFERENCED_PARAMETER(resourcesTranslated);
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Entry");
-    // TODO unmap memory mapped registers
+
+    PUART_DEVICE_EXTENSION pDeviceExtension = GetUartDeviceExtension(device);
+
+    if (pDeviceExtension->RegistersMapped)
+    {
+        MmUnmapIoSpace(pDeviceExtension->ControllerAddress, pDeviceExtension->ControllerMemorySpan);
+
+        pDeviceExtension->ControllerAddress = NULL;
+        pDeviceExtension->ControllerMemorySpan = 0;
+        pDeviceExtension->RegistersMapped = FALSE;
+    }
+
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Exit");
     return STATUS_SUCCESS;
 }

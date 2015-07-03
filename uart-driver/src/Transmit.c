@@ -28,3 +28,13 @@ BOOLEAN EvtSerCx2PioTransmitCancelReadyNotification(_In_ SERCX2PIOTRANSMIT pioTr
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_TRANSMIT, "%!FUNC! Exit");
     return TRUE;
 }
+
+VOID UartWriteRegisterUChar(_In_reads_(_Inexpressible_(offset)) REGBASE baseAddress, _In_ ULONG offset, _In_ UCHAR value)
+{
+    UNREFERENCED_PARAMETER(baseAddress);
+    UNREFERENCED_PARAMETER(offset);
+    UNREFERENCED_PARAMETER(value);
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_TRANSMIT, "%!FUNC! Entry");
+    // TODO
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_TRANSMIT, "%!FUNC! Exit");
+}

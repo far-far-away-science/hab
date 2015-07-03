@@ -11,6 +11,7 @@
         WPP_DEFINE_BIT(TRACE_INTERRUPT)                              \
         WPP_DEFINE_BIT(TRACE_TRANSMIT)                               \
         WPP_DEFINE_BIT(TRACE_RECEIVE)                                \
+        WPP_DEFINE_BIT(TRACE_BCM_2836_CONTROLLER)                    \
         )
 
 #define WPP_FLAG_LEVEL_LOGGER(flag, level) \

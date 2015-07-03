@@ -35,6 +35,10 @@
     </ProjectConfiguration>
   </ItemGroup>
   <ItemGroup>
+    <ClInclude Include="src\bcm2836\bcm2836Definitions.h" />
+    <ClInclude Include="src\bcm2836\Controller.h" />
+    <ClInclude Include="src\bcm2836\Registers.h" />
+    <ClInclude Include="src\CommonDefinitions.h" />
     <ClInclude Include="src\Device.h" />
     <ClInclude Include="src\Driver.h" />
     <ClInclude Include="src\Interrupt.h" />
@@ -246,6 +250,7 @@
     <FilesToPackage Include="$(TargetPath)" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\bcm2836\Controller.c" />
     <ClCompile Include="src\Device.c" />
     <ClCompile Include="src\Driver.c" />
     <ClCompile Include="src\Interrupt.c" />

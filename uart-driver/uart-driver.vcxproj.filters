@@ -9,6 +9,9 @@
       <UniqueIdentifier>{8E41214B-6785-4CFE-B992-037D68949A14}</UniqueIdentifier>
       <Extensions>inf;inv;inx;mof;mc;</Extensions>
     </Filter>
+    <Filter Include="Source Files\bcm2836">
+      <UniqueIdentifier>{e9120120-add0-44c8-a277-5a7151ec33f9}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Inf Include="uart-driver.inf">
@@ -41,6 +44,18 @@
     <ClInclude Include="src\Receive.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="src\bcm2836\Controller.h">
+      <Filter>Source Files\bcm2836</Filter>
+    </ClInclude>
+    <ClInclude Include="src\CommonDefinitions.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\bcm2836\bcm2836Definitions.h">
+      <Filter>Source Files\bcm2836</Filter>
+    </ClInclude>
+    <ClInclude Include="src\bcm2836\Registers.h">
+      <Filter>Source Files\bcm2836</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Device.c">
@@ -63,6 +78,9 @@
     </ClCompile>
     <ClCompile Include="src\Receive.c">
       <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\bcm2836\Controller.c">
+      <Filter>Source Files\bcm2836</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

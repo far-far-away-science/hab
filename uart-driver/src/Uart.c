@@ -1,6 +1,6 @@
 #include "Uart.h"
 
-#include "Device.h"
+#include "CommonDefinitions.h"
 
 #include "Uart.tmh"
 
@@ -9,7 +9,7 @@ NTSTATUS UartInitContext(_In_ WDFDEVICE device)
     UNREFERENCED_PARAMETER(device);
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART, "%!FUNC! Entry");
 
-    PUART_DEVICE_EXTENSION  deviceExtension;
+    PUART_DEVICE_EXTENSION deviceExtension;
     deviceExtension = GetUartDeviceExtension(device);
     deviceExtension->WdfDevice = device;
 
