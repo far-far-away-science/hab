@@ -43,10 +43,12 @@ namespace HABService {
 		/// </summary>
 		/// <param name="device">A device instance opened to the address specified by this
 		/// class</param>
+		/// <param name="gsl">The Global Sensor Lock which must be taken during I2C
+		/// communications</param>
 		/// <returns>The data read from this sensor, to be inserted into the log
 		/// file as a record</returns>
 		/// <exception cref="IOException">If an error occurs when connecting to the
 		/// sensor</exception>
-		public abstract Task<string> Sample(I2cDevice device);
+		public abstract Task<string> Sample(I2cDevice device, object gsl);
 	}
 }

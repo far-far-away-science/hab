@@ -84,16 +84,20 @@ namespace HABService {
 			// Column guide
 			return "FIX_1,LAT_1,LON_1,ALT_1,VEL_1,HDG_1,FIX_2,LAT_2,LON_2,ALT_2,VEL_2,HDG_2";
 		}
-		public override async Task<String> Sample(I2cDevice device) {
+		public override async Task<String> Sample(I2cDevice device, object gsl) {
 			// NOTE This routine reads and reports both GPSes in the log. It should be trivial
 			// to select which one you really want in post processing. Even at 2 Hz with 256
 			// characters per line and a 20 hour flight, the total file size will be a very
-			// manageable 20 KB.
-			GPSData venus = GPSFetch(device, 0);
+			// manageable 20 MB.
+			string result;
+			lock (gsl) {
+				GPSData venus = GPSFetch(device, 0);
+				GPSData copernicus = GPSFetch(device, 1);
+				result = venus.ToString() + "," + copernicus.ToString();
+            }
 			// Give up VS!
 			await Task.Delay(0);
-			GPSData copernicus = GPSFetch(device, 1);
-			return venus.ToString() + "," + copernicus.ToString();
+			return result;
 		}
 	}
 

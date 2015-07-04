@@ -62,17 +62,22 @@ namespace HABService {
 		/// </summary>
 		/// <param name="device">The I2C device</param>
 		/// <param name="command">MEASURE_TEMP or MEASURE_HUMIDITY</param>
+		/// <param param name="gsl">The global sensor lock</param>
 		/// <returns>The measured value in quids FS</returns>
-		private async Task<int> Measure(I2cDevice device, int command) {
+		private async Task<int> Measure(I2cDevice device, int command, object gsl) {
 			byte[] data = new byte[3];
 			// No Hold Master mode
-			device.Write(new byte[] { (byte)command });
+			lock (gsl) {
+				device.Write(new byte[] { (byte)command });
+			}
 			await Task.Delay(30);
 			// Max measurement time is 50 ms for temperature and 16 ms for humidity
 			for (int i = 0; i < 3; i++) {
 				await Task.Delay(15);
 				try {
-					device.Read(data);
+					lock (gsl) {
+						device.Read(data);
+					}
 					// Data is MSB-first in the first 2 bytes
 					int value = data[1] & 0xFC;
 					return value | ((data[0] & 0xFF) << 8);
@@ -82,10 +87,11 @@ namespace HABService {
 			}
 			throw new IOException("Still measuring, increase delay!");
 		}
-		public override async Task<string> Sample(I2cDevice device) {
+		public override async Task<string> Sample(I2cDevice device, object gsl) {
 			// Measure the data we need
-			double temp = (await Measure(device, MEASURE_TEMP)) * TEMP_FACTOR + TEMP_OFFSET;
-			double humid = (await Measure(device, MEASURE_HUMID)) * HUMID_FACTOR +
+			double temp = (await Measure(device, MEASURE_TEMP, gsl)) * TEMP_FACTOR +
+				TEMP_OFFSET;
+			double humid = (await Measure(device, MEASURE_HUMID, gsl)) * HUMID_FACTOR +
 				HUMID_OFFSET;
 			return String.Format("{0:F2},{1:F2}", temp, humid);
 		}

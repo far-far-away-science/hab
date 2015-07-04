@@ -20,11 +20,16 @@ namespace HABService {
 		private const string I2C_CONTROLLER = "I2C1";
 
 		/// <summary>
+		/// The global sensor lock to prevent multiple (async) sensors using the bus at once.
+		/// </summary>
+		private object gsl;
+		/// <summary>
 		/// The ID of the ACPI device matching I2C_CONTROLLER.
 		/// </summary>
 		private string i2cID;
 
 		public StartupTask() {
+			gsl = new object();
 			i2cID = null;
 		}
 		/// <summary>
@@ -132,7 +137,7 @@ namespace HABService {
 		private async void SampleOneSensor(I2CSensor sensor, StreamWriter log) {
 			try {
 				using (I2cDevice device = await OpenI2CConnection(sensor.Address)) {
-					await log.Log(sensor.Prefix, await sensor.Sample(device));
+					await log.Log(sensor.Prefix, await sensor.Sample(device, gsl));
 				}
 			} catch (Exception e) {
 				// Error!
