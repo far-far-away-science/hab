@@ -260,8 +260,15 @@
     <ClCompile Include="src\Uart.c" />
   </ItemGroup>
   <ItemGroup>
-    <Text Include="install-driver.txt" />
-    <Text Include="wpp.txt" />
+    <None Include="utils\connect-home.ps1" />
+    <None Include="utils\connect-work.ps1" />
+    <None Include="utils\install.bat" />
+    <None Include="utils\remove.ps1" />
+    <None Include="utils\tracing.bat" />
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="docs\install-driver.txt" />
+    <Text Include="docs\wpp.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

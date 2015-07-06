@@ -12,6 +12,12 @@
     <Filter Include="Source Files\bcm2836">
       <UniqueIdentifier>{e9120120-add0-44c8-a277-5a7151ec33f9}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Utils">
+      <UniqueIdentifier>{8e8e665a-7dcb-45aa-9117-2019ad313901}</UniqueIdentifier>
+    </Filter>
+    <Filter Include="Docs">
+      <UniqueIdentifier>{ae5e41bb-dd1d-4716-b133-0f4d7d50eec7}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <Inf Include="uart-driver.inf">
@@ -84,7 +90,28 @@
     </ClCompile>
   </ItemGroup>
   <ItemGroup>
-    <Text Include="install-driver.txt" />
-    <Text Include="wpp.txt" />
+    <None Include="utils\connect-home.ps1">
+      <Filter>Utils</Filter>
+    </None>
+    <None Include="utils\connect-work.ps1">
+      <Filter>Utils</Filter>
+    </None>
+    <None Include="utils\install.bat">
+      <Filter>Utils</Filter>
+    </None>
+    <None Include="utils\remove.ps1">
+      <Filter>Utils</Filter>
+    </None>
+    <None Include="utils\tracing.bat">
+      <Filter>Utils</Filter>
+    </None>
+  </ItemGroup>
+  <ItemGroup>
+    <Text Include="docs\install-driver.txt">
+      <Filter>Docs</Filter>
+    </Text>
+    <Text Include="docs\wpp.txt">
+      <Filter>Docs</Filter>
+    </Text>
   </ItemGroup>
 </Project>

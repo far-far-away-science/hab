@@ -6,26 +6,26 @@ ULONG EvtSerCx2PioTransmitWriteBuffer(_In_ SERCX2PIOTRANSMIT pioTransmit, _In_ P
     UNREFERENCED_PARAMETER(pioTransmit);
     UNREFERENCED_PARAMETER(buffer);
     UNREFERENCED_PARAMETER(length);
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_TRANSMIT, "%!FUNC! Entry");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_TRANSMIT, "--- %!FUNC! Entry");
     // TODO
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_TRANSMIT, "%!FUNC! Exit");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_TRANSMIT, "--- %!FUNC! Exit");
     return 0;
 }
 
 VOID EvtSerCx2PioTransmitEnableReadyNotification(_In_ SERCX2PIOTRANSMIT pioTransmit)
 {
     UNREFERENCED_PARAMETER(pioTransmit);
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_TRANSMIT, "%!FUNC! Entry");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_TRANSMIT, "--- %!FUNC! Entry");
     // TODO
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_TRANSMIT, "%!FUNC! Exit");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_TRANSMIT, "--- %!FUNC! Exit");
 }
 
 BOOLEAN EvtSerCx2PioTransmitCancelReadyNotification(_In_ SERCX2PIOTRANSMIT pioTransmit)
 {
     UNREFERENCED_PARAMETER(pioTransmit);
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_TRANSMIT, "%!FUNC! Entry");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_TRANSMIT, "--- %!FUNC! Entry");
     // TODO
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_TRANSMIT, "%!FUNC! Exit");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_TRANSMIT, "--- %!FUNC! Exit");
     return TRUE;
 }
 

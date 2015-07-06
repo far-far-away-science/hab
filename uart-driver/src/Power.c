@@ -5,9 +5,9 @@ NTSTATUS PowerEvtD0Entry(_In_ WDFDEVICE device, _In_ WDF_POWER_DEVICE_STATE prev
 {
     UNREFERENCED_PARAMETER(device);
     UNREFERENCED_PARAMETER(previousState);
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Entry");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "--- %!FUNC! Entry");
     // TODO
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Exit");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "--- %!FUNC! Exit");
     return STATUS_SUCCESS;
 }
 
@@ -15,9 +15,9 @@ NTSTATUS PowerEvtD0EntryPostInterruptsEnabled(_In_ WDFDEVICE device, _In_ WDF_PO
 {
     UNREFERENCED_PARAMETER(device);
     UNREFERENCED_PARAMETER(previousState);
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Entry");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "--- %!FUNC! Entry");
     // TODO
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Exit");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "--- %!FUNC! Exit");
     return STATUS_SUCCESS;
 }
 
@@ -25,9 +25,9 @@ NTSTATUS PowerEvtD0Exit(_In_ WDFDEVICE device, _In_ WDF_POWER_DEVICE_STATE targe
 {
     UNREFERENCED_PARAMETER(device);
     UNREFERENCED_PARAMETER(targetState);
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Entry");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "--- %!FUNC! Entry");
     // TODO
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Exit");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "--- %!FUNC! Exit");
     return STATUS_SUCCESS;
 }
 
@@ -35,9 +35,9 @@ NTSTATUS PowerEvtD0ExitPreInterruptsDisabled(_In_ WDFDEVICE device, _In_ WDF_POW
 {
     UNREFERENCED_PARAMETER(device);
     UNREFERENCED_PARAMETER(targetState);
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Entry");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "--- %!FUNC! Entry");
     // TODO
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Exit");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "--- %!FUNC! Exit");
     return STATUS_SUCCESS;
 }
 
@@ -45,9 +45,9 @@ NTSTATUS PowerEvtDeviceWdmPostPoFxRegisterDevice(_In_ WDFDEVICE device, _In_ POH
 {
     UNREFERENCED_PARAMETER(device);
     UNREFERENCED_PARAMETER(poHandle);
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Entry");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "--- %!FUNC! Entry");
     // TODO
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Exit");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "--- %!FUNC! Exit");
     return STATUS_SUCCESS;
 }
 
@@ -55,7 +55,7 @@ void PowerEvtDeviceWdmPrePoFxUnregisterDevice(_In_ WDFDEVICE device, _In_ POHAND
 {
     UNREFERENCED_PARAMETER(device);
     UNREFERENCED_PARAMETER(poHandle);
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Entry");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "--- %!FUNC! Entry");
     // TODO
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Exit");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "--- %!FUNC! Exit");
 }

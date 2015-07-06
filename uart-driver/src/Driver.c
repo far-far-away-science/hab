@@ -56,7 +56,7 @@ void UartDriverEvtDriverContextCleanup(_In_ WDFOBJECT driverObject)
 {
     PAGED_CODE();
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DRIVER, "%!FUNC! Entry");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DRIVER, "(trace shuts down after this message and this is a last entry) %!FUNC! Entry");
 
     // Stop WPP Tracing
     WPP_CLEANUP(WdfDriverWdmGetDriverObject((WDFDRIVER) driverObject));

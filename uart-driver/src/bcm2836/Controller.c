@@ -35,7 +35,7 @@ NTSTATUS InitializeUartController(_In_ WDFDEVICE device, _In_ const UART_HARDWAR
     pDeviceExtension->InterruptLevel = (KIRQL) pUartHardwareConfiguration->InterruptLevel;
     pDeviceExtension->InterruptAffinity = pUartHardwareConfiguration->InterruptAffinity;
 
-    // FIFO is always enabled on BCM2836
+    // FIFO is always enabled on BCM2836 so we only need to reset it
 
     UCHAR fifoControlRegister = (UCHAR)
     (
