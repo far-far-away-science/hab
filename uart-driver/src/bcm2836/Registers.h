@@ -21,7 +21,12 @@
     #define AUX_MU_LCR_REGISTER_RW_DLAB (1 << 7)
 
 #define AUX_MU_MCR_REGISTER 0x50 // modem control register
+    #define AUX_MU_MCR_REGISTER_RW_RTS (1 << 2) // request to send
+
 #define AUX_MU_LSR_REGISTER 0x54 // line status register
+    #define AUX_MU_LSR_REGISTER_R_THRE (1 << 5) // THR (transmitter holding register) is empty
+    #define AUX_MU_LSR_REGISTER_R_TEMT (1 << 6) // THR (transmitter holding register) is empty and line is idle
+
 #define AUX_MU_MSR_REGISTER 0x58 // modem status register
 
 // only works if DLAB is 1
@@ -73,4 +78,9 @@ FORCEINLINE VOID WRITE_DIVISOR_LATCH(_In_ PUART_DEVICE_EXTENSION pDeviceExtensio
     pDeviceExtension->UartWriteDeviceUChar(baseAddress, AUX_MU_BAUD_RATE_LSB_REGISTER, (divisorValue & 0xff));
     pDeviceExtension->UartWriteDeviceUChar(baseAddress, AUX_MU_BAUD_RATE_MSB_REGISTER, ((divisorValue & 0xff00) >> 8));
     pDeviceExtension->UartWriteDeviceUChar(baseAddress, AUX_MU_LCR_REGISTER, lineControl);
+}
+
+FORCEINLINE VOID DISABLE_ALL_INTERRUPTS(_In_ PUART_DEVICE_EXTENSION pDeviceExtension)
+{
+    WRITE_INTERRUPT_ENABLE(pDeviceExtension, 0);
 }

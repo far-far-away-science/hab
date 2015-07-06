@@ -11,5 +11,8 @@
 NTSTATUS InitializeUartController(_In_ WDFDEVICE device, _In_ const UART_HARDWARE_CONFIGURATION* pUartHardwareConfiguration);
 
 EVT_WDF_DEVICE_D0_ENTRY PowerEvtD0Entry;
+EVT_WDF_DEVICE_D0_EXIT PowerEvtD0Exit;
 
 EVT_WDF_INTERRUPT_ENABLE UartInterruptEvtInterruptEnable;
+
+EVT_WDF_DEVICE_D0_EXIT_PRE_INTERRUPTS_DISABLED PowerEvtD0ExitPreInterruptsDisabled;

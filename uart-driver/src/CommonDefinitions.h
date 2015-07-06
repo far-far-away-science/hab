@@ -6,8 +6,20 @@
 
 DECLARE_HANDLE(REGBASE);
 
+// size of the buffer where we store received but unread bytes
+#define SERIAL_RECIVE_BUFFER_SIZE 100
+
 typedef UCHAR(*PREAD_DEVICE_UCHAR)(_In_reads_(_Inexpressible_(offset)) REGBASE baseAddress, _In_ ULONG offset);
 typedef VOID(*PWRITE_DEVICE_UCHAR)(_In_reads_(_Inexpressible_(offset)) REGBASE baseAddress, _In_ ULONG offset, _In_ UCHAR value);
+
+typedef struct _UART_ERROR_COUNT
+{
+    LONG FifoOverrunError;
+    LONG FramingError;
+    LONG ParityError;
+    LONG BreakCondition;
+    LONG TxFifoDataLossOnD0Exit;
+} UART_ERROR_COUNT;
 
 typedef struct _UART_DEVICE_EXTENSION
 {
@@ -43,6 +55,10 @@ typedef struct _UART_DEVICE_EXTENSION
 
     USHORT TxFifoSize;
     USHORT RxFifoSize;
+
+    POHANDLE PoHandle;
+
+    UART_ERROR_COUNT ErrorCount;
 } UART_DEVICE_EXTENSION, *PUART_DEVICE_EXTENSION;
 
 WDF_DECLARE_CONTEXT_TYPE_WITH_NAME(UART_DEVICE_EXTENSION, GetUartDeviceExtension);

@@ -113,5 +113,8 @@
     <Text Include="docs\wpp.txt">
       <Filter>Docs</Filter>
     </Text>
+    <Text Include="docs\uart.txt">
+      <Filter>Docs</Filter>
+    </Text>
   </ItemGroup>
 </Project>

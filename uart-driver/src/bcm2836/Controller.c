@@ -106,3 +106,54 @@ NTSTATUS UartInterruptEvtInterruptEnable(_In_ WDFINTERRUPT interrupt, _In_ WDFDE
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_BCM_2836_CONTROLLER, "%!FUNC! Exit");
     return STATUS_SUCCESS;
 }
+
+NTSTATUS PowerEvtD0ExitPreInterruptsDisabled(_In_ WDFDEVICE device, _In_ WDF_POWER_DEVICE_STATE targetState)
+{
+    UNREFERENCED_PARAMETER(targetState);
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Entry");
+
+    PUART_DEVICE_EXTENSION pDeviceExtension = GetUartDeviceExtension(device);
+    pDeviceExtension->DeviceActive = FALSE;
+
+    WdfSpinLockAcquire(pDeviceExtension->WdfDeviceSpinLock);
+
+    WRITE_MODEM_CONTROL(pDeviceExtension, pDeviceExtension->ModemControl & ~AUX_MU_MCR_REGISTER_RW_RTS);
+
+    WdfSpinLockRelease(pDeviceExtension->WdfDeviceSpinLock);
+    SerCx2SaveReceiveFifoOnD0Exit(pDeviceExtension->WdfPioReceive, SERIAL_RECIVE_BUFFER_SIZE);
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Exit");
+    return STATUS_SUCCESS;
+}
+
+VOID LogLineStatusEvents(_In_ PUART_DEVICE_EXTENSION pDeviceExtension, UCHAR lineStatusRegister)
+{
+    UNREFERENCED_PARAMETER(pDeviceExtension);
+    UNREFERENCED_PARAMETER(lineStatusRegister);
+    // TODO
+}
+
+NTSTATUS PowerEvtD0Exit(_In_ WDFDEVICE device, _In_ WDF_POWER_DEVICE_STATE targetState)
+{
+    UNREFERENCED_PARAMETER(targetState);
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Entry");
+
+    PUART_DEVICE_EXTENSION pDeviceExtension = GetUartDeviceExtension(device);
+
+    WdfSpinLockAcquire(pDeviceExtension->WdfDeviceSpinLock);
+
+    const UCHAR lineStatusRegister = READ_LINE_STATUS(pDeviceExtension);
+    LogLineStatusEvents(pDeviceExtension, lineStatusRegister);
+
+    if (((lineStatusRegister & AUX_MU_LSR_REGISTER_R_THRE) == 0) || ((lineStatusRegister & AUX_MU_LSR_REGISTER_R_TEMT) == 0))
+    {
+        // some data is still available in transmitter
+        InterlockedIncrement(&pDeviceExtension->ErrorCount.TxFifoDataLossOnD0Exit);
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_BCM_2836_CONTROLLER, "data loss on EvtD0Exit (count = %li)", (long) pDeviceExtension->ErrorCount.TxFifoDataLossOnD0Exit);
+    }
+
+    WdfSpinLockRelease(pDeviceExtension->WdfDeviceSpinLock);
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Exit");
+    return STATUS_SUCCESS;
+}
