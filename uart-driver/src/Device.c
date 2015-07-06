@@ -298,7 +298,7 @@ NTSTATUS PrepareUartHardware(_In_ WDFDEVICE device, _In_ WDFCMRESLIST resources,
         return STATUS_UNSUCCESSFUL;
     }
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "number of resources = %lu", resourceListCount);
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "number of resources = %lu", (unsigned long) resourceListCount);
 
     ULONG numberOfMemoryResourcesFound = 0;
     ULONG numberOfInterrupResourcesFound = 0;

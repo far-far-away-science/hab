@@ -15,9 +15,6 @@ typedef VOID(*PWRITE_DEVICE_UCHAR)(_In_reads_(_Inexpressible_(offset)) REGBASE b
 typedef struct _UART_ERROR_COUNT
 {
     LONG FifoOverrunError;
-    LONG FramingError;
-    LONG ParityError;
-    LONG BreakCondition;
     LONG TxFifoDataLossOnD0Exit;
 } UART_ERROR_COUNT;
 

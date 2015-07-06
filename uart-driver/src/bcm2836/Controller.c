@@ -138,11 +138,18 @@ NTSTATUS PowerEvtD0ExitPreInterruptsDisabled(_In_ WDFDEVICE device, _In_ WDF_POW
 
 VOID LogLineStatusEvents(_In_ PUART_DEVICE_EXTENSION pDeviceExtension, UCHAR lineStatusRegister)
 {
-    UNREFERENCED_PARAMETER(pDeviceExtension);
-    UNREFERENCED_PARAMETER(lineStatusRegister);
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "--- %!FUNC! Entry");
-    // TODO
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "--- %!FUNC! Exit");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Entry");
+
+    // only this error flag is supported by this UART chip
+
+    if (lineStatusRegister & AUX_MU_LSR_REGISTER_R_OE)
+    {
+        const long int newValue = InterlockedIncrement(&pDeviceExtension->ErrorCount.FifoOverrunError);
+        // TODO LOG in ETW
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_BCM_2836_CONTROLLER, "fifo overrun error (count = %li)", (long int) newValue);
+    }
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Exit");
 }
 
 NTSTATUS PowerEvtD0Exit(_In_ WDFDEVICE device, _In_ WDF_POWER_DEVICE_STATE targetState)
@@ -160,9 +167,9 @@ NTSTATUS PowerEvtD0Exit(_In_ WDFDEVICE device, _In_ WDF_POWER_DEVICE_STATE targe
     if (((lineStatusRegister & AUX_MU_LSR_REGISTER_R_THRE) == 0) || ((lineStatusRegister & AUX_MU_LSR_REGISTER_R_TEMT) == 0))
     {
         // some data is still available in transmitter
-        InterlockedIncrement(&pDeviceExtension->ErrorCount.TxFifoDataLossOnD0Exit);
+        const long int newValue = InterlockedIncrement(&pDeviceExtension->ErrorCount.TxFifoDataLossOnD0Exit);
         // TODO LOG in ETW
-        TraceEvents(TRACE_LEVEL_ERROR, TRACE_BCM_2836_CONTROLLER, "data loss on EvtD0Exit (count = %li)", (long) pDeviceExtension->ErrorCount.TxFifoDataLossOnD0Exit);
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_BCM_2836_CONTROLLER, "data loss on EvtD0Exit (count = %li)", (long int) newValue);
     }
 
     WdfSpinLockRelease(pDeviceExtension->WdfDeviceSpinLock);

@@ -35,7 +35,7 @@ UCHAR UartReadRegisterUChar(_In_reads_(_Inexpressible_(offset)) REGBASE baseAddr
     TraceEvents(TRACE_LEVEL_INFORMATION,
                 TRACE_RECEIVE,
                 "read register UCHAR (0x%p + 0x%lx) = 0x%x",
-                baseAddress,
+                (void*) baseAddress,
                 (long int) offset,
                 (unsigned int) readChar);
     return readChar;

@@ -27,6 +27,9 @@
     #define AUX_MU_MCR_REGISTER_RW_RTS (1 << 2) // request to send
 
 #define AUX_MU_LSR_REGISTER 0x54 // line status register
+    #define AUX_MU_LSR_REGISTER_R_OE   (1 << 1) // Overrun error
+    #define AUX_MU_LSR_REGISTER_R_PE   (1 << 2) // Parity error
+
     #define AUX_MU_LSR_REGISTER_R_THRE (1 << 5) // THR (transmitter holding register) is empty
     #define AUX_MU_LSR_REGISTER_R_TEMT (1 << 6) // THR (transmitter holding register) is empty and line is idle
 
