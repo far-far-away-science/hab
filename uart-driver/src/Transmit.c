@@ -31,10 +31,11 @@ BOOLEAN EvtSerCx2PioTransmitCancelReadyNotification(_In_ SERCX2PIOTRANSMIT pioTr
 
 VOID UartWriteRegisterUChar(_In_reads_(_Inexpressible_(offset)) REGBASE baseAddress, _In_ ULONG offset, _In_ UCHAR value)
 {
-    UNREFERENCED_PARAMETER(baseAddress);
-    UNREFERENCED_PARAMETER(offset);
-    UNREFERENCED_PARAMETER(value);
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_TRANSMIT, "%!FUNC! Entry");
-    // TODO
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_TRANSMIT, "%!FUNC! Exit");
+    WRITE_REGISTER_UCHAR(((PUCHAR) baseAddress) + offset, value);
+    TraceEvents(TRACE_LEVEL_INFORMATION,
+                TRACE_RECEIVE,
+                "wrote register UCHAR (0x%p + 0x%lx) = 0x%x",
+                baseAddress,
+                (long int) offset,
+                (unsigned int) value);
 }

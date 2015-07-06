@@ -303,7 +303,8 @@ NTSTATUS PrepareUartHardware(_In_ WDFDEVICE device, _In_ WDFCMRESLIST resources,
                     pUartHardwareConfiguration->MemoryStartTranslated = pPartialResourceTransltedDesc->u.Memory.Start;
                     pUartHardwareConfiguration->MemoryLength = pPartialResourceDesc->u.Memory.Length;
                     pUartHardwareConfiguration->AddressSpace = CM_RESOURCE_PORT_MEMORY;
-                    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE,
+                    TraceEvents(TRACE_LEVEL_INFORMATION,
+                                TRACE_DEVICE,
                                 "memory resource found (start=%llu,startTranslated=%llu,length=%lu)",
                                 (unsigned long long) pUartHardwareConfiguration->MemoryStart.QuadPart,
                                 (unsigned long long) pUartHardwareConfiguration->MemoryStartTranslated.QuadPart,
@@ -323,7 +324,8 @@ NTSTATUS PrepareUartHardware(_In_ WDFDEVICE device, _In_ WDFCMRESLIST resources,
                     pUartHardwareConfiguration->InterruptVector = pPartialResourceTransltedDesc->u.Interrupt.Vector;
                     pUartHardwareConfiguration->InterruptLevel = pPartialResourceTransltedDesc->u.Interrupt.Level;
                     pUartHardwareConfiguration->InterruptAffinity = pPartialResourceTransltedDesc->u.Interrupt.Affinity;
-                    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE,
+                    TraceEvents(TRACE_LEVEL_INFORMATION,
+                                TRACE_DEVICE,
                                 "interrupt resource found (vector=%lu,level=%lu,affinity=%lu)",
                                 (unsigned long) pUartHardwareConfiguration->InterruptVector,
                                 (unsigned long) pUartHardwareConfiguration->InterruptLevel,

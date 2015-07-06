@@ -23,7 +23,7 @@ NTSTATUS InitializeUartController(_In_ WDFDEVICE device, _In_ const UART_HARDWAR
 
     if (!pDeviceExtension->ControllerAddress)
     {
-        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "failed to map device memory to virtual memory");
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_BCM_2836_CONTROLLER, "failed to map device memory to virtual memory");
         pDeviceExtension->RegistersMapped = FALSE;
         return STATUS_NONE_MAPPED;
     }
@@ -32,7 +32,7 @@ NTSTATUS InitializeUartController(_In_ WDFDEVICE device, _In_ const UART_HARDWAR
     pDeviceExtension->ControllerMemorySpan = pUartHardwareConfiguration->MemoryLength;
 
     pDeviceExtension->InterruptVector = pUartHardwareConfiguration->InterruptVector;
-    pDeviceExtension->InterruptLevel = (KIRQL)pUartHardwareConfiguration->InterruptLevel;
+    pDeviceExtension->InterruptLevel = (KIRQL) pUartHardwareConfiguration->InterruptLevel;
     pDeviceExtension->InterruptAffinity = pUartHardwareConfiguration->InterruptAffinity;
 
     // FIFO is always enabled on BCM2836
@@ -44,9 +44,13 @@ NTSTATUS InitializeUartController(_In_ WDFDEVICE device, _In_ const UART_HARDWAR
     );
 
     WRITE_FIFO_CONTROL(pDeviceExtension, fifoControlRegister);
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_BCM_2836_CONTROLLER, "wrote FIFO control UCHAR 0x%x", (unsigned int) fifoControlRegister);
 
     pDeviceExtension->LineStatus = READ_LINE_STATUS(pDeviceExtension);
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_BCM_2836_CONTROLLER, "read line status UCHAR 0x%x", (unsigned int) pDeviceExtension->LineStatus);
+
     pDeviceExtension->ModemStatus = READ_MODEM_STATUS(pDeviceExtension);
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_BCM_2836_CONTROLLER, "read modem status UCHAR 0x%x", (unsigned int) pDeviceExtension->ModemStatus);
 
     pDeviceExtension->ModemControl = 0;
     pDeviceExtension->LineControl = 0;

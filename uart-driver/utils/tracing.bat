@@ -25,8 +25,9 @@ if /I %command% == stop (
     tracelog.exe -stop "%TRACE_NAME%"
 )
 if /I %command% == create-tmf (
-    "%WIN_KITS_PATH%\tracepdb.exe" -f ..\ARM\Release\uart-driver.pdb -p . -o "%TMFFILE%"
+    mkdir ./!tracing-out!
+    "%WIN_KITS_PATH%\tracepdb.exe" -f ..\ARM\Release\uart-driver.pdb -p ./!tracing-out! -o ./!tracing-out!/"%TMFFILE%"
 )
 if /I %command% == format (
-    "%WIN_KITS_PATH%\tracefmt.exe" "%TRACE_NAME%.etl" -tmf "%TMFFILE%" -nosummary -o "TRACE_NAME.txt"
+    "%WIN_KITS_PATH%\tracefmt.exe" ./!tracing-out!/"%TRACE_NAME%.etl" -tmf ./!tracing-out!/"%TMFFILE%" -p ./!tracing-out! -nosummary -o ./!tracing-out!/"TRACE_NAME.txt"
 )
