@@ -6,7 +6,6 @@
 
 #include "..\Trace.h"
 
-EVT_WDF_DEVICE_D0_ENTRY PowerEvtD0Entry;
 EVT_WDF_DEVICE_D0_ENTRY_POST_INTERRUPTS_ENABLED PowerEvtD0EntryPostInterruptsEnabled;
 EVT_WDF_DEVICE_D0_EXIT PowerEvtD0Exit;
 EVT_WDF_DEVICE_D0_EXIT_PRE_INTERRUPTS_DISABLED PowerEvtD0ExitPreInterruptsDisabled;

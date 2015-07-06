@@ -1,16 +1,6 @@
 #include "Power.h"
 #include "Power.tmh"
 
-NTSTATUS PowerEvtD0Entry(_In_ WDFDEVICE device, _In_ WDF_POWER_DEVICE_STATE previousState)
-{
-    UNREFERENCED_PARAMETER(device);
-    UNREFERENCED_PARAMETER(previousState);
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "--- %!FUNC! Entry");
-    // TODO
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "--- %!FUNC! Exit");
-    return STATUS_SUCCESS;
-}
-
 NTSTATUS PowerEvtD0EntryPostInterruptsEnabled(_In_ WDFDEVICE device, _In_ WDF_POWER_DEVICE_STATE previousState)
 {
     UNREFERENCED_PARAMETER(device);

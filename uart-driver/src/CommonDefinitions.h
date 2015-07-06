@@ -13,7 +13,7 @@ typedef struct _UART_DEVICE_EXTENSION
 {
     WDFDEVICE WdfDevice;
 
-    WDFSPINLOCK WdfDpcSpinLock;
+    WDFSPINLOCK WdfDeviceSpinLock;
     WDFINTERRUPT WdfInterrupt;
 
     SERCX2PIOTRANSMIT WdfPioTransmit;

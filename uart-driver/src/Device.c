@@ -141,11 +141,11 @@ NTSTATUS UartDeviceInitInterrupts(_In_ WDFDEVICE device)
     WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
     attributes.ParentObject = device;
 
-    NTSTATUS status = WdfSpinLockCreate(&attributes, &pDeviceExtension->WdfDpcSpinLock);
+    NTSTATUS status = WdfSpinLockCreate(&attributes, &pDeviceExtension->WdfDeviceSpinLock);
 
     if (!NT_SUCCESS(status))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "WdfSpinLockCreate(...) DPC failed %!STATUS!", status);
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "WdfSpinLockCreate(...) Device failed %!STATUS!", status);
         return status;
     }
 
@@ -158,7 +158,7 @@ NTSTATUS UartDeviceInitInterrupts(_In_ WDFDEVICE device)
 
     if (!NT_SUCCESS(status))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "WdfSpinLockCreate(...) failed %!STATUS!", status);
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "WdfSpinLockCreate(...) Interrupt failed %!STATUS!", status);
         return status;
     }
 
@@ -394,8 +394,8 @@ NTSTATUS UartDeviceEvtPrepareHardware(_In_ WDFDEVICE device, _In_ WDFCMRESLIST r
 
 NTSTATUS UartDeviceEvtReleaseHardware(_In_ WDFDEVICE device, _In_ WDFCMRESLIST resourcesTranslated)
 {
-    UNREFERENCED_PARAMETER(device);
     UNREFERENCED_PARAMETER(resourcesTranslated);
+
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Entry");
 
     PUART_DEVICE_EXTENSION pDeviceExtension = GetUartDeviceExtension(device);

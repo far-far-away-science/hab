@@ -64,3 +64,31 @@ NTSTATUS InitializeUartController(_In_ WDFDEVICE device, _In_ const UART_HARDWAR
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_BCM_2836_CONTROLLER, "%!FUNC! Exit");
     return STATUS_SUCCESS;
 }
+
+NTSTATUS PowerEvtD0Entry(_In_ WDFDEVICE device, _In_ WDF_POWER_DEVICE_STATE previousState)
+{
+    UNREFERENCED_PARAMETER(previousState);
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_BCM_2836_CONTROLLER, "%!FUNC! Entry");
+
+    PUART_DEVICE_EXTENSION pDeviceExtension = GetUartDeviceExtension(device);
+
+    pDeviceExtension->DeviceActive = TRUE;
+
+    WdfSpinLockAcquire(pDeviceExtension->WdfDeviceSpinLock);
+    WRITE_LINE_CONTROL(pDeviceExtension, pDeviceExtension->LineControl);
+    WRITE_DIVISOR_LATCH(pDeviceExtension, pDeviceExtension->DivisorLatch);
+    WRITE_MODEM_CONTROL(pDeviceExtension, pDeviceExtension->ModemControl);
+
+    TraceEvents(TRACE_LEVEL_INFORMATION,
+                TRACE_BCM_2836_CONTROLLER,
+                "restored modem to active state (line control=0x%x, divisor latch=0x%x, modem control=0x%x)", 
+                (unsigned int) pDeviceExtension->LineControl,
+                (unsigned int) pDeviceExtension->DivisorLatch,
+                (unsigned int) pDeviceExtension->ModemControl);
+
+    WdfSpinLockRelease(pDeviceExtension->WdfDeviceSpinLock);
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_BCM_2836_CONTROLLER, "%!FUNC! Exit");
+    return STATUS_SUCCESS;
+}
