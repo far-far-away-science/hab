@@ -30,9 +30,8 @@ NTSTATUS UartDeviceCreate(_In_ PWDFDEVICE_INIT deviceInit)
     pnpPowerCallbacks.EvtDevicePrepareHardware = UartDeviceEvtPrepareHardware;
     pnpPowerCallbacks.EvtDeviceReleaseHardware = UartDeviceEvtReleaseHardware;
     pnpPowerCallbacks.EvtDeviceD0Entry = PowerEvtD0Entry;
-    pnpPowerCallbacks.EvtDeviceD0EntryPostInterruptsEnabled = PowerEvtD0EntryPostInterruptsEnabled;
-    pnpPowerCallbacks.EvtDeviceD0Exit = PowerEvtD0Exit;
     pnpPowerCallbacks.EvtDeviceD0ExitPreInterruptsDisabled = PowerEvtD0ExitPreInterruptsDisabled;
+    pnpPowerCallbacks.EvtDeviceD0Exit = PowerEvtD0Exit;
     WdfDeviceInitSetPnpPowerEventCallbacks(deviceInit, &pnpPowerCallbacks);
 
     NTSTATUS status = SerCx2InitializeDeviceInit(deviceInit);

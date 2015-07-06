@@ -11,6 +11,7 @@
 #define AUX_MU_IO_REGISTER 0x40 // I/O register
 
 #define AUX_MU_IER_REGISTER 0x44 // interrupt enable register
+    #define AUX_MU_IER_REGISTER_RW_RLS (1 << 2) // receiver line status register change
 
 #define AUX_MU_IIR_REGISTER 0x48 // interrupt identity register
     #define AUX_MU_IIR_REGISTER_W_RCVR_RESET (1 << 1) // write 1 to reset receive FIFO
@@ -28,10 +29,16 @@
 // only works if DLAB is 1
 #define AUX_MU_BAUD_RATE_MSB_REGISTER AUX_MU_IER_REGISTER // most significan byte
 
-FORCEINLINE VOID WRITE_FIFO_CONTROL(_In_ PUART_DEVICE_EXTENSION pDeviceExtension, _In_ UCHAR controlValue)
+FORCEINLINE VOID WRITE_INTERRUPT_ENABLE(_In_ PUART_DEVICE_EXTENSION pDeviceExtension, _In_ UCHAR interruptValue)
+{
+    REGBASE baseAddress = pDeviceExtension->ControllerAddress;
+    pDeviceExtension->UartWriteDeviceUChar(baseAddress, AUX_MU_IER_REGISTER, interruptValue);
+}
+
+FORCEINLINE VOID WRITE_FIFO_CONTROL(_In_ PUART_DEVICE_EXTENSION pDeviceExtension, _In_ UCHAR fifoControlValue)
 {
     const REGBASE baseAddress = pDeviceExtension->ControllerAddress;
-    pDeviceExtension->UartWriteDeviceUChar(baseAddress, AUX_MU_IIR_REGISTER, controlValue);
+    pDeviceExtension->UartWriteDeviceUChar(baseAddress, AUX_MU_IIR_REGISTER, fifoControlValue);
 }
 
 FORCEINLINE UCHAR READ_LINE_STATUS(_In_ PUART_DEVICE_EXTENSION pDeviceExtension)
@@ -40,10 +47,10 @@ FORCEINLINE UCHAR READ_LINE_STATUS(_In_ PUART_DEVICE_EXTENSION pDeviceExtension)
     return pDeviceExtension->UartReadDeviceUChar(baseAddress, AUX_MU_LSR_REGISTER);
 }
 
-FORCEINLINE VOID WRITE_LINE_CONTROL(_In_ PUART_DEVICE_EXTENSION pDeviceExtension, _In_ UCHAR lineControl)
+FORCEINLINE VOID WRITE_LINE_CONTROL(_In_ PUART_DEVICE_EXTENSION pDeviceExtension, _In_ UCHAR lineControlValue)
 {
     const REGBASE baseAddress = pDeviceExtension->ControllerAddress;
-    pDeviceExtension->UartWriteDeviceUChar(baseAddress, AUX_MU_LCR_REGISTER, lineControl);
+    pDeviceExtension->UartWriteDeviceUChar(baseAddress, AUX_MU_LCR_REGISTER, lineControlValue);
 }
 
 FORCEINLINE UCHAR READ_MODEM_STATUS(_In_ PUART_DEVICE_EXTENSION pDeviceExtension)
@@ -52,18 +59,18 @@ FORCEINLINE UCHAR READ_MODEM_STATUS(_In_ PUART_DEVICE_EXTENSION pDeviceExtension
     return pDeviceExtension->UartReadDeviceUChar(baseAddress, AUX_MU_MSR_REGISTER);
 }
 
-FORCEINLINE VOID WRITE_MODEM_CONTROL(_In_ PUART_DEVICE_EXTENSION pDeviceExtension, _In_ UCHAR modemControl)
+FORCEINLINE VOID WRITE_MODEM_CONTROL(_In_ PUART_DEVICE_EXTENSION pDeviceExtension, _In_ UCHAR modemControlValue)
 {
     const REGBASE baseAddress = pDeviceExtension->ControllerAddress;
-    pDeviceExtension->UartWriteDeviceUChar(baseAddress, AUX_MU_MCR_REGISTER, modemControl);
+    pDeviceExtension->UartWriteDeviceUChar(baseAddress, AUX_MU_MCR_REGISTER, modemControlValue);
 }
 
-FORCEINLINE VOID WRITE_DIVISOR_LATCH(_In_ PUART_DEVICE_EXTENSION pDeviceExtension, _In_ USHORT divisor)
+FORCEINLINE VOID WRITE_DIVISOR_LATCH(_In_ PUART_DEVICE_EXTENSION pDeviceExtension, _In_ USHORT divisorValue)
 {
     const REGBASE baseAddress = pDeviceExtension->ControllerAddress;
     const UCHAR lineControl = pDeviceExtension->UartReadDeviceUChar(baseAddress, AUX_MU_LCR_REGISTER);
     pDeviceExtension->UartWriteDeviceUChar(baseAddress, AUX_MU_LCR_REGISTER, (lineControl | AUX_MU_LCR_REGISTER_RW_DLAB));
-    pDeviceExtension->UartWriteDeviceUChar(baseAddress, AUX_MU_BAUD_RATE_LSB_REGISTER, (divisor & 0xff));
-    pDeviceExtension->UartWriteDeviceUChar(baseAddress, AUX_MU_BAUD_RATE_MSB_REGISTER, ((divisor & 0xff00) >> 8));
+    pDeviceExtension->UartWriteDeviceUChar(baseAddress, AUX_MU_BAUD_RATE_LSB_REGISTER, (divisorValue & 0xff));
+    pDeviceExtension->UartWriteDeviceUChar(baseAddress, AUX_MU_BAUD_RATE_MSB_REGISTER, ((divisorValue & 0xff00) >> 8));
     pDeviceExtension->UartWriteDeviceUChar(baseAddress, AUX_MU_LCR_REGISTER, lineControl);
 }

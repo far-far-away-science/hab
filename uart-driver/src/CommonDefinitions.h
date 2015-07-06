@@ -35,6 +35,7 @@ typedef struct _UART_DEVICE_EXTENSION
     BOOLEAN DeviceActive;
     UCHAR LineStatus;
     UCHAR LineControl;
+    UCHAR InterruptEnableRegister;
     UCHAR ModemStatus;
     UCHAR ModemControl;
     USHORT DivisorLatch;

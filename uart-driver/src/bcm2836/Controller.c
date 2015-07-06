@@ -92,3 +92,17 @@ NTSTATUS PowerEvtD0Entry(_In_ WDFDEVICE device, _In_ WDF_POWER_DEVICE_STATE prev
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_BCM_2836_CONTROLLER, "%!FUNC! Exit");
     return STATUS_SUCCESS;
 }
+
+NTSTATUS UartInterruptEvtInterruptEnable(_In_ WDFINTERRUPT interrupt, _In_ WDFDEVICE associatedDevice)
+{
+    UNREFERENCED_PARAMETER(interrupt);
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_BCM_2836_CONTROLLER, "%!FUNC! Entry");
+
+    PUART_DEVICE_EXTENSION pDeviceExtension = GetUartDeviceExtension(associatedDevice);
+
+    pDeviceExtension->InterruptEnableRegister |= AUX_MU_IER_REGISTER_RW_RLS;
+    WRITE_INTERRUPT_ENABLE(pDeviceExtension, pDeviceExtension->InterruptEnableRegister);
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_BCM_2836_CONTROLLER, "%!FUNC! Exit");
+    return STATUS_SUCCESS;
+}
