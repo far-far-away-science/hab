@@ -34,7 +34,7 @@ namespace RPiViewer {
 		/// Default constructor.
 		/// </summary>
 		public MainPage() {
-			this.InitializeComponent();
+			InitializeComponent();
 			i2cID = null;
 		}
 

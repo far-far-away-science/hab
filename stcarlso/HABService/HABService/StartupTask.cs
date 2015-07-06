@@ -18,6 +18,10 @@ namespace HABService {
 		/// The default I2C controller ID.
 		/// </summary>
 		private const string I2C_CONTROLLER = "I2C1";
+		/// <summary>
+		/// The date format string used for the timestamp in the log file name.
+		/// </summary>
+		private const string DATE_FORMAT = "yyyyMMdd-HHmmss";
 
 		/// <summary>
 		/// The global sensor lock to prevent multiple (async) sensors using the bus at once.
@@ -64,7 +68,7 @@ namespace HABService {
 						} catch (Exception e) {
 							// Error when bringing up
 							await log.Log(sensor.Prefix, "Exception when initializing: " +
-								e.Message);
+								e.ToDebug());
 						}
 					}
 				// Uh oh!
@@ -114,16 +118,21 @@ namespace HABService {
 					} catch (Exception e) {
 						// Log the fatal exception -- everything that makes it through at this
 						// point is a bug and needs to be seen
-						await log.Log("Unhandled exception: " + e.Message);
+						await log.Log("Unhandled exception: " + e.ToDebug());
 					}
 				}
 			} finally {
 				deferral.Complete();
 			}
 		}
+		/// <summary>
+		/// Opens the log file.
+		/// </summary>
+		/// <returns>The log file</returns>
+		/// <exception cref="IOException">If the log could not be opened</exception>
 		private async Task<StreamWriter> OpenLog() {
 			// Get the current time as the filename
-			string date = DateTime.Now.ToString("yyyyMMdd-HHmmss");
+			string date = DateTime.Now.ToString(DATE_FORMAT);
 			// If it collides, append a number to avoid trashing old logs
 			StorageFile file = await DownloadsFolder.CreateFileAsync(date + ".log",
 				CreationCollisionOption.GenerateUniqueName);
@@ -137,11 +146,17 @@ namespace HABService {
 		private async void SampleOneSensor(I2CSensor sensor, StreamWriter log) {
 			try {
 				using (I2cDevice device = await OpenI2CConnection(sensor.Address)) {
-					await log.Log(sensor.Prefix, await sensor.Sample(device, gsl));
+					string message;
+					// Handle null devices gracefully (can this happen?)
+					if (device == null)
+						message = "Sampling error: Device not available";
+					else
+						message = await sensor.Sample(device, gsl);
+                    await log.Log(sensor.Prefix, message);
 				}
 			} catch (Exception e) {
 				// Error!
-				await log.Log(sensor.Prefix, "Exception when sampling: " + e.Message);
+				await log.Log(sensor.Prefix, "Exception when sampling: " + e.ToDebug());
 			}
 		}
 		/// <summary>
@@ -174,7 +189,7 @@ namespace HABService {
 				while (ptr != null && ptr.Value.At < task.At)
 					ptr = ptr.Next;
 				if (ptr == null)
-					// The list had only one element!
+					// The list had only one element, or the element belongs at the end
 					toDo.AddLast(task);
 				else
 					toDo.AddBefore(ptr, task);
@@ -182,6 +197,9 @@ namespace HABService {
 		}
 	}
 
+	/// <summary>
+	/// A wrapper class used to schedule sensors to go at the proper times.
+	/// </summary>
 	class SensorSchedule : IComparable<SensorSchedule> {
 		/// <summary>
 		/// When it needs to go next in milliseconds.
@@ -196,8 +214,15 @@ namespace HABService {
 			}
 		}
 
+		/// <summary>
+		/// The I2C sensor to poll.
+		/// </summary>
 		private I2CSensor sensor;
 
+		/// <summary>
+		/// Creates a sensor schedule object and sets At to 0.
+		/// </summary>
+		/// <param name="sensor">The sensor to be checked</param>
 		public SensorSchedule(I2CSensor sensor) {
 			this.sensor = sensor;
 			At = 0L;
@@ -213,6 +238,11 @@ namespace HABService {
 
 	static class ExtensionMethods {
 		/// <summary>
+		/// String used for the timestamps in the log file
+		/// </summary>
+		private const string DATE_FORMAT = "yyyy-MM-dd HH:mm:ss";
+
+		/// <summary>
 		/// Logs a system message.
 		/// </summary>
 		/// <param name="log">The log file (this)</param>
@@ -227,8 +257,36 @@ namespace HABService {
 		/// <param name="prefix">The source generating the message</param>
 		/// <param name="message">The message to log</param>
 		public static async Task Log(this StreamWriter log, string prefix, string message) {
-			await log.WriteLineAsync(prefix + "," + message);
+			await log.WriteLineAsync(String.Format("{0:" + DATE_FORMAT + "},{1},{2}",
+				DateTime.Now, prefix, message));
 			await log.FlushAsync();
+		}
+		/// <summary>
+		/// Creates a short, succinct, yet useful string representation of an exception.
+		/// </summary>
+		/// <param name="src">The exception to log</param>
+		/// <returns>A short but useful form of the exception</returns>
+		public static string ToDebug(this Exception src) {
+			Exception e = src;
+			// Drill down to root cause
+			while (e.InnerException != null)
+				e = e.InnerException;
+			string type = src.GetType().Name;
+			// Strip "Exception" which is redundant -- we know there was an exception!
+			if (type.Length > 9 && type.EndsWith("Exception"))
+				type = type.Substring(0, type.Length - 9);
+			// Go through the root cause stack trace and find the causing file and line
+			string trace = e.StackTrace;
+			int index = trace.IndexOfAny(new char[] { '\r', '\n' });
+			// Get the first entry of the stack trace
+			if (index > 0)
+				trace = trace.Substring(0, index);
+			// Cut the message down to its first line as well
+			string message = e.Message;
+			index = message.IndexOfAny(new char[] { '\r', '\n' });
+			if (index > 0)
+				message = message.Substring(0, index);
+			return String.Format("[{0}] {1} {2}", type, message.Trim(), trace.Trim());
 		}
 	}
 }
