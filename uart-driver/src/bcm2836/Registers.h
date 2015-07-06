@@ -8,6 +8,9 @@
 
 #include "..\..\Trace.h"
 
+#define AUX_ENABLES 0x04
+    #define AUX_ENABLES_ENABLE_UART (1 << 0) // if 1 uart device is enabled
+
 #define AUX_MU_IO_REGISTER 0x40 // I/O register
 
 #define AUX_MU_IER_REGISTER 0x44 // interrupt enable register
@@ -33,6 +36,21 @@
 #define AUX_MU_BAUD_RATE_LSB_REGISTER AUX_MU_IO_REGISTER // least significant byte
 // only works if DLAB is 1
 #define AUX_MU_BAUD_RATE_MSB_REGISTER AUX_MU_IER_REGISTER // most significan byte
+
+FORCEINLINE VOID WRITE_UART_ENABLE(_In_ PUART_DEVICE_EXTENSION pDeviceExtension, _In_ BOOLEAN uartEnable)
+{
+    REGBASE baseAddress = pDeviceExtension->ControllerAddress;
+    UCHAR deviceEnabledFlags = pDeviceExtension->UartReadDeviceUChar(baseAddress, AUX_ENABLES);
+    if (uartEnable)
+    {
+        deviceEnabledFlags |= AUX_ENABLES_ENABLE_UART;
+    }
+    else
+    {
+        deviceEnabledFlags &= ~AUX_ENABLES_ENABLE_UART;
+    }
+    pDeviceExtension->UartWriteDeviceUChar(baseAddress, AUX_ENABLES, deviceEnabledFlags);
+}
 
 FORCEINLINE VOID WRITE_INTERRUPT_ENABLE(_In_ PUART_DEVICE_EXTENSION pDeviceExtension, _In_ UCHAR interruptValue)
 {

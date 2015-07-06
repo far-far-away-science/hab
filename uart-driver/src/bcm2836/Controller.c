@@ -35,6 +35,9 @@ NTSTATUS InitializeUartController(_In_ WDFDEVICE device, _In_ const UART_HARDWAR
     pDeviceExtension->InterruptLevel = (KIRQL) pUartHardwareConfiguration->InterruptLevel;
     pDeviceExtension->InterruptAffinity = pUartHardwareConfiguration->InterruptAffinity;
 
+    WRITE_UART_ENABLE(pDeviceExtension, TRUE);
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_BCM_2836_CONTROLLER, "enabled uart device");
+
     // FIFO is always enabled on BCM2836 so we only need to reset it
 
     UCHAR fifoControlRegister = (UCHAR)
@@ -63,6 +66,13 @@ NTSTATUS InitializeUartController(_In_ WDFDEVICE device, _In_ const UART_HARDWAR
 
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_BCM_2836_CONTROLLER, "%!FUNC! Exit");
     return STATUS_SUCCESS;
+}
+
+VOID UninitializeUartController(_In_ WDFDEVICE device)
+{
+    PUART_DEVICE_EXTENSION pDeviceExtension = GetUartDeviceExtension(device);
+    WRITE_UART_ENABLE(pDeviceExtension, FALSE);
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_BCM_2836_CONTROLLER, "disabled uart device");
 }
 
 NTSTATUS PowerEvtD0Entry(_In_ WDFDEVICE device, _In_ WDF_POWER_DEVICE_STATE previousState)
@@ -130,7 +140,9 @@ VOID LogLineStatusEvents(_In_ PUART_DEVICE_EXTENSION pDeviceExtension, UCHAR lin
 {
     UNREFERENCED_PARAMETER(pDeviceExtension);
     UNREFERENCED_PARAMETER(lineStatusRegister);
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "--- %!FUNC! Entry");
     // TODO
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "--- %!FUNC! Exit");
 }
 
 NTSTATUS PowerEvtD0Exit(_In_ WDFDEVICE device, _In_ WDF_POWER_DEVICE_STATE targetState)
@@ -149,6 +161,7 @@ NTSTATUS PowerEvtD0Exit(_In_ WDFDEVICE device, _In_ WDF_POWER_DEVICE_STATE targe
     {
         // some data is still available in transmitter
         InterlockedIncrement(&pDeviceExtension->ErrorCount.TxFifoDataLossOnD0Exit);
+        // TODO LOG in ETW
         TraceEvents(TRACE_LEVEL_ERROR, TRACE_BCM_2836_CONTROLLER, "data loss on EvtD0Exit (count = %li)", (long) pDeviceExtension->ErrorCount.TxFifoDataLossOnD0Exit);
     }
 

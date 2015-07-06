@@ -27,6 +27,7 @@ NTSTATUS DriverEntry(_In_ PDRIVER_OBJECT driverObject, _In_ PUNICODE_STRING regi
 
     if (!NT_SUCCESS(status))
     {
+        // TODO log in ETW
         TraceEvents(TRACE_LEVEL_ERROR, TRACE_DRIVER, "WdfDriverCreate failed %!STATUS!", status);
         WPP_CLEANUP(driverObject);
         return status;
@@ -46,6 +47,13 @@ NTSTATUS UartDriverEvtDeviceAdd(_In_ WDFDRIVER driver, _Inout_ PWDFDEVICE_INIT d
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DRIVER, "%!FUNC! Entry");
 
     NTSTATUS status = UartDeviceCreate(deviceInit);
+
+    if (!NT_SUCCESS(status))
+    {
+        // TODO log in ETW
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DRIVER, "UartDeviceCreate failed %!STATUS!", status);
+        return status;
+    }
 
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DRIVER, "%!FUNC! Exit");
 
