@@ -1,10 +1,10 @@
 #include "Device.h"
 
-#include "Uart.h"
 #include "Power.h"
 #include "Receive.h"
 #include "Transmit.h"
 #include "Interrupt.h"
+#include "SerCx2Utils.h"
 
 #include "bcm2836\Controller.h"
 
@@ -60,15 +60,6 @@ NTSTATUS UartDeviceCreate(_In_ PWDFDEVICE_INIT deviceInit)
     WDF_DEVICE_STATE_INIT(&deviceState);
     deviceState.NotDisableable = WdfFalse;
     WdfDeviceSetDeviceState(device, &deviceState);
-
-    status = UartInitContext(device);
-
-    if (!NT_SUCCESS(status))
-    {
-        // TODO log in ETW
-        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "UartInitContext(...) failed %!STATUS!", status);
-        return status;
-    }
 
     status = UartDeviceInitSerCx2(device);
 
@@ -143,17 +134,17 @@ NTSTATUS UartDeviceInitInterrupts(_In_ WDFDEVICE device)
 
     PUART_DEVICE_EXTENSION pDeviceExtension = GetUartDeviceExtension(device);
 
-    // spin lock for interriupt DPC
+    // spin lock for registers
     WDF_OBJECT_ATTRIBUTES attributes;
     WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
     attributes.ParentObject = device;
 
-    NTSTATUS status = WdfSpinLockCreate(&attributes, &pDeviceExtension->WdfDeviceSpinLock);
+    NTSTATUS status = WdfSpinLockCreate(&attributes, &pDeviceExtension->WdfRegistersSpinLock);
 
     if (!NT_SUCCESS(status))
     {
         // TODO log in ETW
-        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "WdfSpinLockCreate(...) Device failed %!STATUS!", status);
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "WdfSpinLockCreate(...) registers failed %!STATUS!", status);
         return status;
     }
 
@@ -167,7 +158,7 @@ NTSTATUS UartDeviceInitInterrupts(_In_ WDFDEVICE device)
     if (!NT_SUCCESS(status))
     {
         // TODO log in ETW
-        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "WdfSpinLockCreate(...) Interrupt failed %!STATUS!", status);
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "WdfSpinLockCreate(...) interrupt failed %!STATUS!", status);
         return status;
     }
 
@@ -217,7 +208,7 @@ NTSTATUS UartDeviceInitIdleTimeout(_In_ WDFDEVICE device)
     WDF_DEVICE_POWER_POLICY_IDLE_SETTINGS idleSettings;
     WDF_DEVICE_POWER_POLICY_IDLE_SETTINGS_INIT(&idleSettings, IdleCannotWakeFromS0);
 
-    idleSettings.IdleTimeout = 100; // ms TODO need to check what value is good for 4800 baud
+    idleSettings.IdleTimeout = 500; // ms TODO need to check what value is good for 1200 baud
     idleSettings.IdleTimeoutType = SystemManagedIdleTimeoutWithHint;
 
     status = WdfDeviceAssignS0IdleSettings(device, &idleSettings);

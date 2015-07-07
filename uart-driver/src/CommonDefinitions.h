@@ -20,10 +20,8 @@ typedef struct _UART_ERROR_COUNT
 
 typedef struct _UART_DEVICE_EXTENSION
 {
-    WDFDEVICE WdfDevice;
-
-    WDFSPINLOCK WdfDeviceSpinLock;
     WDFINTERRUPT WdfInterrupt;
+    WDFSPINLOCK WdfRegistersSpinLock;
 
     SERCX2PIOTRANSMIT WdfPioTransmit;
     SERCX2PIORECEIVE WdfPioReceive;

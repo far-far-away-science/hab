@@ -35,9 +35,6 @@
     <ClInclude Include="src\Public.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Uart.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Power.h">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -62,15 +59,15 @@
     <ClInclude Include="src\bcm2836\Registers.h">
       <Filter>Source Files\bcm2836</Filter>
     </ClInclude>
+    <ClInclude Include="src\SerCx2Utils.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Device.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Driver.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
-    <ClCompile Include="src\Uart.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\Power.c">
@@ -87,6 +84,12 @@
     </ClCompile>
     <ClCompile Include="src\bcm2836\Controller.c">
       <Filter>Source Files\bcm2836</Filter>
+    </ClCompile>
+    <ClCompile Include="src\bcm2836\Registers.c">
+      <Filter>Source Files\bcm2836</Filter>
+    </ClCompile>
+    <ClCompile Include="src\SerCx2Utils.c">
+      <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
   <ItemGroup>

@@ -42,8 +42,8 @@ NTSTATUS InitializeUartController(_In_ WDFDEVICE device, _In_ const UART_HARDWAR
 
     UCHAR fifoControlRegister = (UCHAR)
     (
-        AUX_MU_IIR_REGISTER_W_RCVR_RESET |
-        AUX_MU_IIR_REGISTER_W_TXMT_RESET
+        AUX_MU_IIR_REGISTER_W_RESET_RECEIVE_FIFO |
+        AUX_MU_IIR_REGISTER_W_RESET_TRANSMIT_FIFO
     );
 
     WRITE_FIFO_CONTROL(pDeviceExtension, fifoControlRegister);
@@ -85,7 +85,7 @@ NTSTATUS PowerEvtD0Entry(_In_ WDFDEVICE device, _In_ WDF_POWER_DEVICE_STATE prev
 
     pDeviceExtension->DeviceActive = TRUE;
 
-    WdfSpinLockAcquire(pDeviceExtension->WdfDeviceSpinLock);
+    WdfSpinLockAcquire(pDeviceExtension->WdfRegistersSpinLock);
     WRITE_LINE_CONTROL(pDeviceExtension, pDeviceExtension->LineControl);
     WRITE_DIVISOR_LATCH(pDeviceExtension, pDeviceExtension->DivisorLatch);
     WRITE_MODEM_CONTROL(pDeviceExtension, pDeviceExtension->ModemControl);
@@ -97,7 +97,7 @@ NTSTATUS PowerEvtD0Entry(_In_ WDFDEVICE device, _In_ WDF_POWER_DEVICE_STATE prev
                 (unsigned int) pDeviceExtension->DivisorLatch,
                 (unsigned int) pDeviceExtension->ModemControl);
 
-    WdfSpinLockRelease(pDeviceExtension->WdfDeviceSpinLock);
+    WdfSpinLockRelease(pDeviceExtension->WdfRegistersSpinLock);
 
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_BCM_2836_CONTROLLER, "%!FUNC! Exit");
     return STATUS_SUCCESS;
@@ -110,7 +110,7 @@ NTSTATUS UartInterruptEvtInterruptEnable(_In_ WDFINTERRUPT interrupt, _In_ WDFDE
 
     PUART_DEVICE_EXTENSION pDeviceExtension = GetUartDeviceExtension(associatedDevice);
 
-    pDeviceExtension->InterruptEnableRegister |= AUX_MU_IER_REGISTER_RW_RLS;
+    pDeviceExtension->InterruptEnableRegister |= AUX_MU_IER_REGISTER_W_INT_ENABLE_LINE_STATUS_CHANGE;
     WRITE_INTERRUPT_ENABLE(pDeviceExtension, pDeviceExtension->InterruptEnableRegister);
 
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_BCM_2836_CONTROLLER, "%!FUNC! Exit");
@@ -125,31 +125,16 @@ NTSTATUS PowerEvtD0ExitPreInterruptsDisabled(_In_ WDFDEVICE device, _In_ WDF_POW
     PUART_DEVICE_EXTENSION pDeviceExtension = GetUartDeviceExtension(device);
     pDeviceExtension->DeviceActive = FALSE;
 
-    WdfSpinLockAcquire(pDeviceExtension->WdfDeviceSpinLock);
+    WdfSpinLockAcquire(pDeviceExtension->WdfRegistersSpinLock);
 
-    WRITE_MODEM_CONTROL(pDeviceExtension, pDeviceExtension->ModemControl & ~AUX_MU_MCR_REGISTER_RW_RTS);
+    WRITE_MODEM_CONTROL(pDeviceExtension, pDeviceExtension->ModemControl & ~AUX_MU_IER_REGISTER_W_INT_ENABLE_LINE_STATUS_CHANGE);
 
-    WdfSpinLockRelease(pDeviceExtension->WdfDeviceSpinLock);
+    WdfSpinLockRelease(pDeviceExtension->WdfRegistersSpinLock);
+
     SerCx2SaveReceiveFifoOnD0Exit(pDeviceExtension->WdfPioReceive, SERIAL_RECIVE_BUFFER_SIZE);
 
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Exit");
     return STATUS_SUCCESS;
-}
-
-VOID LogLineStatusEvents(_In_ PUART_DEVICE_EXTENSION pDeviceExtension, UCHAR lineStatusRegister)
-{
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Entry");
-
-    // only this error flag is supported by this UART chip
-
-    if (lineStatusRegister & AUX_MU_LSR_REGISTER_R_OE)
-    {
-        const long int newValue = InterlockedIncrement(&pDeviceExtension->ErrorCount.FifoOverrunError);
-        // TODO LOG in ETW
-        TraceEvents(TRACE_LEVEL_ERROR, TRACE_BCM_2836_CONTROLLER, "fifo overrun error (count = %li)", (long int) newValue);
-    }
-
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Exit");
 }
 
 NTSTATUS PowerEvtD0Exit(_In_ WDFDEVICE device, _In_ WDF_POWER_DEVICE_STATE targetState)
@@ -159,12 +144,12 @@ NTSTATUS PowerEvtD0Exit(_In_ WDFDEVICE device, _In_ WDF_POWER_DEVICE_STATE targe
 
     PUART_DEVICE_EXTENSION pDeviceExtension = GetUartDeviceExtension(device);
 
-    WdfSpinLockAcquire(pDeviceExtension->WdfDeviceSpinLock);
+    WdfSpinLockAcquire(pDeviceExtension->WdfRegistersSpinLock);
 
     const UCHAR lineStatusRegister = READ_LINE_STATUS(pDeviceExtension);
     LogLineStatusEvents(pDeviceExtension, lineStatusRegister);
 
-    if (((lineStatusRegister & AUX_MU_LSR_REGISTER_R_THRE) == 0) || ((lineStatusRegister & AUX_MU_LSR_REGISTER_R_TEMT) == 0))
+    if (((lineStatusRegister & AUX_MU_LSR_REGISTER_R_TRANSMITTER_EMPTY) == 0) || ((lineStatusRegister & AUX_MU_LSR_REGISTER_R_TRANSMITTER_IDLE) == 0))
     {
         // some data is still available in transmitter
         const long int newValue = InterlockedIncrement(&pDeviceExtension->ErrorCount.TxFifoDataLossOnD0Exit);
@@ -172,7 +157,7 @@ NTSTATUS PowerEvtD0Exit(_In_ WDFDEVICE device, _In_ WDF_POWER_DEVICE_STATE targe
         TraceEvents(TRACE_LEVEL_ERROR, TRACE_BCM_2836_CONTROLLER, "data loss on EvtD0Exit (count = %li)", (long int) newValue);
     }
 
-    WdfSpinLockRelease(pDeviceExtension->WdfDeviceSpinLock);
+    WdfSpinLockRelease(pDeviceExtension->WdfRegistersSpinLock);
 
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Exit");
     return STATUS_SUCCESS;
