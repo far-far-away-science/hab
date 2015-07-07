@@ -84,7 +84,7 @@ NTSTATUS UartDeviceCreate(_In_ PWDFDEVICE_INIT deviceInit)
     if (!NT_SUCCESS(status))
     {
         // TODO log in ETW
-        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "UartDeviceInitInterrupts(...) failed %!STATUS!", status);
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "UartDeviceInitIdleTimeout(...) failed %!STATUS!", status);
         return status;
     }
 
@@ -125,6 +125,95 @@ NTSTATUS UartDeviceInitSerCx2(_In_ WDFDEVICE device)
     }
 
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Exit");
+    return STATUS_SUCCESS;
+}
+
+NTSTATUS QueryId(_In_ WDFDEVICE device, _Out_ USHORT* pInstanceId)
+{
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Entry");
+
+    WDFIOTARGET ioTarget = WdfDeviceGetIoTarget(device);
+
+    if (ioTarget == NULL)
+    {
+        // TODO lot in ETW
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "WdfDeviceGetIoTarget(...) returned nullptr io target");
+        return STATUS_UNSUCCESSFUL;
+    }
+
+    WDFREQUEST request = NULL;
+    NTSTATUS status = WdfRequestCreate(WDF_NO_OBJECT_ATTRIBUTES, ioTarget, &request);
+
+    if (!NT_SUCCESS(status))
+    {
+        // TODO log in ETW
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "WdfRequestCreate(...) failed %!STATUS!", status);
+        return status;
+    }
+
+    WDF_REQUEST_REUSE_PARAMS reuseParams;
+    WDF_REQUEST_REUSE_PARAMS_INIT(&reuseParams, WDF_REQUEST_REUSE_NO_FLAGS, STATUS_NOT_SUPPORTED);
+
+    status = WdfRequestReuse(request, &reuseParams);
+
+    if (!NT_SUCCESS(status))
+    {
+        // TODO log in ETW
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "WdfRequestReuse(...) failed %!STATUS!", status);
+        return status;
+    }
+
+    IO_STACK_LOCATION ioStack;
+    RtlZeroMemory(&ioStack, sizeof(ioStack));
+    ioStack.MinorFunction = IRP_MN_QUERY_ID;
+    ioStack.MajorFunction = IRP_MJ_PNP;
+    ioStack.Parameters.QueryId.IdType = BusQueryInstanceID;
+    WdfRequestWdmFormatUsingStackLocation(request, &ioStack);
+
+    WDF_REQUEST_SEND_OPTIONS sendOptions;
+    WDF_REQUEST_SEND_OPTIONS_INIT(&sendOptions, WDF_REQUEST_SEND_OPTION_SYNCHRONOUS);
+
+    if (!WdfRequestSend(request, ioTarget, &sendOptions))
+    {
+        // TODO lot in ETW
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "WdfRequestSend(...) failed");
+        return STATUS_UNSUCCESSFUL;
+    }
+
+    status = WdfRequestGetStatus(request);
+
+    if (!NT_SUCCESS(status))
+    {
+        // TODO log in ETW
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "WdfRequestGetStatus(...) failed %!STATUS!", status);
+        return status;
+    }
+
+    UNICODE_STRING destinationString;
+    PWCHAR pInstanceIdString = (PWCHAR) WdfRequestGetInformation(request);
+    RtlInitUnicodeString(&destinationString, pInstanceIdString);
+
+    if (destinationString.Length == 0)
+    {
+        // TODO log in ETW
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "WdfRequestGetInformation(...) failed to get string id");
+        return STATUS_INVALID_PARAMETER;
+    }
+
+    ULONG instanceId;
+    status = RtlUnicodeStringToInteger(&destinationString, 10, &instanceId);
+
+    if (!NT_SUCCESS(status))
+    {
+        // TODO log in ETW
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "RtlUnicodeStringToInteger(...) failed %!STATUS!", status);
+        return status;
+    }
+
+    *pInstanceId = (USHORT) instanceId;
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Exit");
+
     return STATUS_SUCCESS;
 }
 
@@ -178,6 +267,15 @@ NTSTATUS UartDeviceInitInterrupts(_In_ WDFDEVICE device)
         return status;
     }
 
+    status = QueryId(device, &pDeviceExtension->InstanceId);
+
+    if (!NT_SUCCESS(status))
+    {
+        // TODO log in ETW
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "QueryId(...) failed %!STATUS!", status);
+        return status;
+    }
+
     WDF_INTERRUPT_EXTENDED_POLICY policyAndGroup;
     WDF_INTERRUPT_EXTENDED_POLICY_INIT(&policyAndGroup);
     policyAndGroup.Priority = WdfIrqPriorityNormal;
@@ -208,7 +306,7 @@ NTSTATUS UartDeviceInitIdleTimeout(_In_ WDFDEVICE device)
     WDF_DEVICE_POWER_POLICY_IDLE_SETTINGS idleSettings;
     WDF_DEVICE_POWER_POLICY_IDLE_SETTINGS_INIT(&idleSettings, IdleCannotWakeFromS0);
 
-    idleSettings.IdleTimeout = 500; // ms TODO need to check what value is good for 1200 baud
+    idleSettings.IdleTimeout = 5000; // ms TODO fake for now, need to check what value is good for 1200 baud
     idleSettings.IdleTimeoutType = SystemManagedIdleTimeoutWithHint;
 
     status = WdfDeviceAssignS0IdleSettings(device, &idleSettings);

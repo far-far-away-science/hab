@@ -51,6 +51,8 @@ typedef struct _UART_DEVICE_EXTENSION
     USHORT TxFifoSize;
     USHORT RxFifoSize;
 
+    USHORT InstanceId;
+
     POHANDLE PoHandle;
 
     UART_ERROR_COUNT ErrorCount;

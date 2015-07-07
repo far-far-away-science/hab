@@ -119,5 +119,8 @@
     <Text Include="docs\uart.txt">
       <Filter>Docs</Filter>
     </Text>
+    <Text Include="docs\hardware-interrupts.txt">
+      <Filter>Docs</Filter>
+    </Text>
   </ItemGroup>
 </Project>

@@ -113,5 +113,11 @@ FORCEINLINE UCHAR READ_RECEIVE_BUFFER(_In_ PUART_DEVICE_EXTENSION pDeviceExtensi
     return pDeviceExtension->UartReadDeviceUChar(baseAddress, AUX_MU_IO_REGISTER);
 }
 
+FORCEINLINE UCHAR READ_INTERRUPT_ID_REG(_In_ PUART_DEVICE_EXTENSION pDeviceExtension)
+{
+    const REGBASE baseAddress = pDeviceExtension->ControllerAddress;
+    return pDeviceExtension->UartReadDeviceUChar(baseAddress, AUX_MU_IIR_REGISTER);
+}
+
 VOID LogLineStatusEvents(_In_ PUART_DEVICE_EXTENSION pDeviceExtension, _In_ UCHAR lineStatusRegister);
 BOOLEAN GetCanReadFromLineStatus(_In_ WDFDEVICE device);
