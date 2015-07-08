@@ -246,7 +246,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Trace.h" />
-    <ClInclude Include="src\Definitions.h" />
+    <ClInclude Include="src\Public.h" />
     <ClInclude Include="src\Registers.h" />
   </ItemGroup>
   <ItemGroup>
@@ -255,7 +255,6 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Controller.c" />
     <ClCompile Include="src\Registers.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

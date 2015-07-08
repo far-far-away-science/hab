@@ -36,13 +36,12 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Trace.h" />
-    <ClInclude Include="DeviceDefinitions.h" />
     <ClInclude Include="src\CommonDefinitions.h" />
     <ClInclude Include="src\Device.h" />
+    <ClInclude Include="src\DeviceDefinitions.h" />
     <ClInclude Include="src\Driver.h" />
     <ClInclude Include="src\Interrupt.h" />
     <ClInclude Include="src\Power.h" />
-    <ClInclude Include="src\Public.h" />
     <ClInclude Include="src\Receive.h" />
     <ClInclude Include="src\SerCx2Utils.h" />
     <ClInclude Include="src\Transmit.h" />

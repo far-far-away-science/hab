@@ -4,117 +4,107 @@
 
 #include "Registers.tmh"
 
-VOID LogLineStatusEvents(_In_ PUART_DEVICE_EXTENSION pDeviceExtension, _In_ UCHAR lineStatusRegister)
+BOOLEAN CanReadCharacter(_In_ PUART_DEVICE_EXTENSION pDeviceExtension)
 {
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Entry");
-
-    // only this error flag is supported by this UART chip
-
-    if (lineStatusRegister & AUX_MU_LSR_REGISTER_R_OVERRUN_ERROR)
-    {
-        const long int newValue = InterlockedIncrement(&pDeviceExtension->ErrorCount.FifoOverrunError);
-        // TODO LOG in ETW
-        TraceEvents(TRACE_LEVEL_ERROR, TRACE_UART_MINI_CONTROLLER, "fifo overrun error (count = %li)", (long int) newValue);
-    }
-
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Exit");
+    UNREFERENCED_PARAMETER(pDeviceExtension);
+    return FALSE;
 }
 
-BOOLEAN GetCanReadFromLineStatus(_In_ WDFDEVICE device)
+BOOLEAN IsFifoDataLoss(_In_ PUART_DEVICE_EXTENSION pDeviceExtension)
 {
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_MINI_CONTROLLER, "%!FUNC! Entry");
-
-    PUART_DEVICE_EXTENSION pDeviceExtension = GetUartDeviceExtension(device);
-
-    UCHAR lineStatusRegisterValue;
-    WdfInterruptAcquireLock(pDeviceExtension->WdfInterrupt);
-    pDeviceExtension->LineStatus = READ_LINE_STATUS(pDeviceExtension);
-    lineStatusRegisterValue = pDeviceExtension->LineStatus;
-    WdfInterruptReleaseLock(pDeviceExtension->WdfInterrupt);
-
-    LogLineStatusEvents(pDeviceExtension, lineStatusRegisterValue);
-
-    const BOOLEAN result = (lineStatusRegisterValue & AUX_MU_LSR_REGISTER_R_DATA_READY) != 0;
-
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_MINI_CONTROLLER, "%!FUNC! Exit");
-
-    return result;
+    UNREFERENCED_PARAMETER(pDeviceExtension);
+    return FALSE;
 }
 
-VOID WRITE_UART_ENABLE(_In_ PUART_DEVICE_EXTENSION pDeviceExtension, _In_ BOOLEAN uartEnable)
+VOID UART_DEVICE_ENABLE(_In_ PUART_DEVICE_EXTENSION pDeviceExtension, _In_ BOOLEAN enable)
 {
-    REGBASE baseAddress = pDeviceExtension->ControllerAddress;
-    UCHAR deviceEnabledFlags = pDeviceExtension->UartReadDeviceUChar(baseAddress, AUX_ENABLES);
-    if (uartEnable)
-    {
-        deviceEnabledFlags |= AUX_ENABLES_ENABLE_UART;
-    }
-    else
-    {
-        deviceEnabledFlags &= ~AUX_ENABLES_ENABLE_UART;
-    }
-    pDeviceExtension->UartWriteDeviceUChar(baseAddress, AUX_ENABLES, deviceEnabledFlags);
+    UNREFERENCED_PARAMETER(pDeviceExtension);
+    UNREFERENCED_PARAMETER(enable);
 }
 
-VOID WRITE_INTERRUPT_ENABLE(_In_ PUART_DEVICE_EXTENSION pDeviceExtension, _In_ UCHAR interruptValue)
+USHORT READ_SERIAL_TX_FIFO_SIZE()
 {
-    REGBASE baseAddress = pDeviceExtension->ControllerAddress;
-    pDeviceExtension->UartWriteDeviceUChar(baseAddress, AUX_MU_IER_REGISTER, interruptValue);
+    return 16;
 }
 
-VOID DISABLE_ALL_INTERRUPTS(_In_ PUART_DEVICE_EXTENSION pDeviceExtension)
+USHORT READ_SERIAL_RX_FIFO_SIZE()
 {
-    WRITE_INTERRUPT_ENABLE(pDeviceExtension, 0);
+    return 16;
 }
 
-VOID WRITE_FIFO_CONTROL(_In_ PUART_DEVICE_EXTENSION pDeviceExtension, _In_ UCHAR fifoControlValue)
+VOID FIFO_CONTROL_ENABLE(_In_ PUART_DEVICE_EXTENSION pDeviceExtension)
 {
-    const REGBASE baseAddress = pDeviceExtension->ControllerAddress;
-    pDeviceExtension->UartWriteDeviceUChar(baseAddress, AUX_MU_IIR_REGISTER, fifoControlValue);
+    UNREFERENCED_PARAMETER(pDeviceExtension);
 }
 
-UCHAR READ_LINE_STATUS(_In_ PUART_DEVICE_EXTENSION pDeviceExtension)
+UCHAR LINE_STATUS_READ(_In_ PUART_DEVICE_EXTENSION pDeviceExtension)
 {
-    const REGBASE baseAddress = pDeviceExtension->ControllerAddress;
-    return pDeviceExtension->UartReadDeviceUChar(baseAddress, AUX_MU_LSR_REGISTER);
+    UNREFERENCED_PARAMETER(pDeviceExtension);
+    return 0;
 }
 
-VOID WRITE_LINE_CONTROL(_In_ PUART_DEVICE_EXTENSION pDeviceExtension, _In_ UCHAR lineControlValue)
+UCHAR MODEM_STATUS_READ(_In_ PUART_DEVICE_EXTENSION pDeviceExtension)
 {
-    const REGBASE baseAddress = pDeviceExtension->ControllerAddress;
-    pDeviceExtension->UartWriteDeviceUChar(baseAddress, AUX_MU_LCR_REGISTER, lineControlValue);
+    UNREFERENCED_PARAMETER(pDeviceExtension);
+    return 0;
 }
 
-UCHAR READ_MODEM_STATUS(_In_ PUART_DEVICE_EXTENSION pDeviceExtension)
+VOID LINE_CONTROL_WRITE(_In_ PUART_DEVICE_EXTENSION pDeviceExtension, _In_ UCHAR lineControlValue)
 {
-    const REGBASE baseAddress = pDeviceExtension->ControllerAddress;
-    return pDeviceExtension->UartReadDeviceUChar(baseAddress, AUX_MU_MSR_REGISTER);
+    UNREFERENCED_PARAMETER(pDeviceExtension);
+    UNREFERENCED_PARAMETER(lineControlValue);
 }
 
-VOID WRITE_MODEM_CONTROL(_In_ PUART_DEVICE_EXTENSION pDeviceExtension, _In_ UCHAR modemControlValue)
+VOID MODEM_CONTROL_WRITE(_In_ PUART_DEVICE_EXTENSION pDeviceExtension, _In_ UCHAR modemControlValue)
 {
-    const REGBASE baseAddress = pDeviceExtension->ControllerAddress;
-    pDeviceExtension->UartWriteDeviceUChar(baseAddress, AUX_MU_MCR_REGISTER, modemControlValue);
+    UNREFERENCED_PARAMETER(pDeviceExtension);
+    UNREFERENCED_PARAMETER(modemControlValue);
 }
 
-VOID WRITE_DIVISOR_LATCH(_In_ PUART_DEVICE_EXTENSION pDeviceExtension, _In_ USHORT divisorValue)
+VOID MODEM_CONTROL_DISABLE_REQUEST_TO_SEND(_In_ PUART_DEVICE_EXTENSION pDeviceExtension)
 {
-    const REGBASE baseAddress = pDeviceExtension->ControllerAddress;
-    const UCHAR lineControl = pDeviceExtension->UartReadDeviceUChar(baseAddress, AUX_MU_LCR_REGISTER);
-    pDeviceExtension->UartWriteDeviceUChar(baseAddress, AUX_MU_LCR_REGISTER, (lineControl | AUX_MU_LCR_REGISTER_W_DLAB));
-    pDeviceExtension->UartWriteDeviceUChar(baseAddress, AUX_MU_BAUD_RATE_LSB_REGISTER, (divisorValue & 0xff));
-    pDeviceExtension->UartWriteDeviceUChar(baseAddress, AUX_MU_BAUD_RATE_MSB_REGISTER, ((divisorValue & 0xff00) >> 8));
-    pDeviceExtension->UartWriteDeviceUChar(baseAddress, AUX_MU_LCR_REGISTER, lineControl);
+    UNREFERENCED_PARAMETER(pDeviceExtension);
 }
 
-UCHAR READ_RECEIVE_BUFFER(_In_ PUART_DEVICE_EXTENSION pDeviceExtension)
+VOID DIVISOR_LATCH_WRITE(_In_ PUART_DEVICE_EXTENSION pDeviceExtension, _In_ USHORT divisorValue)
 {
-    const REGBASE baseAddress = pDeviceExtension->ControllerAddress;
-    return pDeviceExtension->UartReadDeviceUChar(baseAddress, AUX_MU_IO_REGISTER);
+    UNREFERENCED_PARAMETER(pDeviceExtension);
+    UNREFERENCED_PARAMETER(divisorValue);
 }
 
-UCHAR READ_INTERRUPT_ID_REG(_In_ PUART_DEVICE_EXTENSION pDeviceExtension)
+UCHAR RECEIVE_BUFFER_READ(_In_ PUART_DEVICE_EXTENSION pDeviceExtension)
 {
-    const REGBASE baseAddress = pDeviceExtension->ControllerAddress;
-    return pDeviceExtension->UartReadDeviceUChar(baseAddress, AUX_MU_IIR_REGISTER);
+    UNREFERENCED_PARAMETER(pDeviceExtension);
+    return 0;
+}
+
+VOID INTERRUPT_DISABLE_ALL(_In_ PUART_DEVICE_EXTENSION pDeviceExtension)
+{
+    UNREFERENCED_PARAMETER(pDeviceExtension);
+}
+
+VOID INTERRUPT_ENABLE_LINE_STATUS_CHANGE(_In_ PUART_DEVICE_EXTENSION pDeviceExtension)
+{
+    UNREFERENCED_PARAMETER(pDeviceExtension);
+}
+
+VOID INTERRUPT_DISABLE_LINE_STATUS_CHANGE(_In_ PUART_DEVICE_EXTENSION pDeviceExtension)
+{
+    UNREFERENCED_PARAMETER(pDeviceExtension);
+}
+
+VOID INTERRUPT_ENABLE_RECEIVE_DATA_AVAILABLE(_In_ PUART_DEVICE_EXTENSION pDeviceExtension)
+{
+    UNREFERENCED_PARAMETER(pDeviceExtension);
+}
+
+VOID INTERRUPT_DISABLE_RECEIVE_DATA_AVAILABLE(_In_ PUART_DEVICE_EXTENSION pDeviceExtension)
+{
+    UNREFERENCED_PARAMETER(pDeviceExtension);
+}
+
+UCHAR INTERRUPT_READ_MASKED_RECEIVE_DATA_AVAILABLE(_In_ PUART_DEVICE_EXTENSION pDeviceExtension)
+{
+    UNREFERENCED_PARAMETER(pDeviceExtension);
+    return 0;
 }

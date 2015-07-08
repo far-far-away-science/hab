@@ -7,7 +7,6 @@
     </Filter>
   </ItemGroup>
   <ItemGroup>
-    <ClInclude Include="DeviceDefinitions.h" />
     <ClInclude Include="src\CommonDefinitions.h">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -23,9 +22,6 @@
     <ClInclude Include="src\Power.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Public.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\Receive.h">
       <Filter>Source Files</Filter>
     </ClInclude>
@@ -36,6 +32,9 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="..\Trace.h" />
+    <ClInclude Include="src\DeviceDefinitions.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\Device.c">

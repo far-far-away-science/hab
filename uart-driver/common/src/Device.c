@@ -5,8 +5,7 @@
 #include "Transmit.h"
 #include "Interrupt.h"
 #include "SerCx2Utils.h"
-
-#include "..\DeviceDefinitions.h"
+#include "DeviceDefinitions.h"
 
 #include "..\..\Trace.h"
 
@@ -475,6 +474,57 @@ NTSTATUS PrepareUartHardware(_In_ WDFDEVICE device, _In_ WDFCMRESLIST resources,
     return STATUS_SUCCESS;
 }
 
+NTSTATUS InitializeUartController(_In_ WDFDEVICE device, _In_ const UART_HARDWARE_CONFIGURATION* pUartHardwareConfiguration)
+{
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_MINI_CONTROLLER, "%!FUNC! Entry");
+
+    PUART_DEVICE_EXTENSION pDeviceExtension = GetUartDeviceExtension(device);
+
+    if (pUartHardwareConfiguration->AddressSpace == 0)
+    {
+        pDeviceExtension->ControllerAddress = MmMapIoSpace(pUartHardwareConfiguration->MemoryStartTranslated, pUartHardwareConfiguration->MemoryLength, MmNonCached);
+        pDeviceExtension->RegistersMapped = pDeviceExtension->ControllerAddress != NULL;
+    }
+    else
+    {
+        pDeviceExtension->ControllerAddress = ULongToPtr(pUartHardwareConfiguration->MemoryStartTranslated.LowPart);
+        pDeviceExtension->RegistersMapped = FALSE;
+    }
+
+    if (!pDeviceExtension->ControllerAddress)
+    {
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_UART_MINI_CONTROLLER, "failed to map device memory to virtual memory");
+        pDeviceExtension->RegistersMapped = FALSE;
+        return STATUS_NONE_MAPPED;
+    }
+
+    pDeviceExtension->ControllerAddressSpace = pUartHardwareConfiguration->AddressSpace;
+    pDeviceExtension->ControllerMemorySpan = pUartHardwareConfiguration->MemoryLength;
+
+    pDeviceExtension->InterruptVector = pUartHardwareConfiguration->InterruptVector;
+    pDeviceExtension->InterruptLevel = (KIRQL)pUartHardwareConfiguration->InterruptLevel;
+    pDeviceExtension->InterruptAffinity = pUartHardwareConfiguration->InterruptAffinity;
+
+    UART_DEVICE_ENABLE(pDeviceExtension, TRUE);
+
+    FIFO_CONTROL_ENABLE(pDeviceExtension);
+
+    pDeviceExtension->LineStatus = LINE_STATUS_READ(pDeviceExtension);
+    pDeviceExtension->ModemStatus = MODEM_STATUS_READ(pDeviceExtension);
+
+    pDeviceExtension->ModemControl = 0;
+    pDeviceExtension->LineControl = 0;
+    pDeviceExtension->DivisorLatch = 0;
+    pDeviceExtension->ClockRate = 0;
+    pDeviceExtension->DeviceActive = FALSE;
+
+    pDeviceExtension->TxFifoSize = READ_SERIAL_TX_FIFO_SIZE();
+    pDeviceExtension->RxFifoSize = READ_SERIAL_RX_FIFO_SIZE();
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_MINI_CONTROLLER, "%!FUNC! Exit");
+    return STATUS_SUCCESS;
+}
+
 NTSTATUS UartDeviceEvtPrepareHardware(_In_ WDFDEVICE device, _In_ WDFCMRESLIST resources, _In_ WDFCMRESLIST resourcesTranslated)
 {
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Entry");
@@ -512,7 +562,7 @@ NTSTATUS UartDeviceEvtReleaseHardware(_In_ WDFDEVICE device, _In_ WDFCMRESLIST r
 
     if (pDeviceExtension->RegistersMapped)
     {
-        UninitializeUartController(device);
+        UART_DEVICE_ENABLE(pDeviceExtension, FALSE);
 
         MmUnmapIoSpace(pDeviceExtension->ControllerAddress, pDeviceExtension->ControllerMemorySpan);
 

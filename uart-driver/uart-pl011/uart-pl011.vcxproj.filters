@@ -17,17 +17,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Trace.h" />
-    <ClInclude Include="src\Definitions.h">
+    <ClInclude Include="src\Registers.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\Registers.h">
+    <ClInclude Include="src\Public.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Controller.c">
-      <Filter>Source Files</Filter>
-    </ClCompile>
     <ClCompile Include="src\Registers.c">
       <Filter>Source Files</Filter>
     </ClCompile>

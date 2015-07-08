@@ -1,8 +1,20 @@
 #include "Interrupt.h"
 
-#include "..\DeviceDefinitions.h"
+#include "DeviceDefinitions.h"
 
 #include "Interrupt.tmh"
+
+NTSTATUS UartInterruptEvtInterruptEnable(_In_ WDFINTERRUPT interrupt, _In_ WDFDEVICE associatedDevice)
+{
+    UNREFERENCED_PARAMETER(interrupt);
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_MINI_CONTROLLER, "%!FUNC! Entry");
+
+    PUART_DEVICE_EXTENSION pDeviceExtension = GetUartDeviceExtension(associatedDevice);
+    INTERRUPT_ENABLE_LINE_STATUS_CHANGE(pDeviceExtension);
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_MINI_CONTROLLER, "%!FUNC! Exit");
+    return STATUS_SUCCESS;
+}
 
 NTSTATUS UartInterruptEvtInterruptDisable(_In_ WDFINTERRUPT interrupt, _In_ WDFDEVICE associatedDevice)
 {
@@ -10,7 +22,7 @@ NTSTATUS UartInterruptEvtInterruptDisable(_In_ WDFINTERRUPT interrupt, _In_ WDFD
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_INTERRUPT, "%!FUNC! Entry");
 
     PUART_DEVICE_EXTENSION pDeviceExtension = GetUartDeviceExtension(associatedDevice);
-    DISABLE_ALL_INTERRUPTS(pDeviceExtension);
+    INTERRUPT_DISABLE_ALL(pDeviceExtension);
 
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_INTERRUPT, "%!FUNC! Exit");
     return STATUS_SUCCESS;
