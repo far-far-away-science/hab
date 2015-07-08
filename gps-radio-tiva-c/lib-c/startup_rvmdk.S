@@ -86,6 +86,7 @@ __heap_limit
         EXTERN  Uart4IntHandler
         EXTERN  Timer0IntHandler
         EXTERN  Pwm10Handler
+        EXTERN  I2cSlaveHandler
 
 ;******************************************************************************
 ;
@@ -148,7 +149,7 @@ __Vectors
         DCD     IntDefaultHandler           ; SSI1 Rx and Tx
         DCD     IntDefaultHandler           ; Timer 3 subtimer A
         DCD     IntDefaultHandler           ; Timer 3 subtimer B
-        DCD     IntDefaultHandler           ; I2C1 Master and Slave
+        DCD     I2cSlaveHandler             ; I2C1 Master and Slave
         DCD     IntDefaultHandler           ; Quadrature Encoder 1
         DCD     IntDefaultHandler           ; CAN0
         DCD     IntDefaultHandler           ; CAN1

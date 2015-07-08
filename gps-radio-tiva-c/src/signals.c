@@ -24,7 +24,6 @@ void initializeSignals(void)
     ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOF);
 #ifdef PWM_OUTPUT
     ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_PWM1);
-    ROM_SysCtlPWMClockSet(SYSCTL_PWMDIV_2);
     ROM_GPIOPinTypePWM(GPIO_PORTF_BASE, GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3);
     PWMClockSet(PWM1_BASE, PWM_SYSCLK_DIV_1);
     // Need to set up Generator 2 (M1PWM5=R) and Generator 3 (M1PWM6=B, M1PWM7=G)
@@ -67,7 +66,7 @@ void signalSuccess(void)
 {
 #ifdef PWM_OUTPUT
     signalRed(0U);
-    signalGreen(65535U);
+    signalGreen(1024U);
 #else
     GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1 | GPIO_PIN_3, GPIO_PIN_3);
 #endif
@@ -76,7 +75,7 @@ void signalSuccess(void)
 void signalError(void)
 {
 #ifdef PWM_OUTPUT
-    signalRed(32767U);
+    signalRed(4096U);
     signalGreen(0U);
 #else
     GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1 | GPIO_PIN_3, GPIO_PIN_1);

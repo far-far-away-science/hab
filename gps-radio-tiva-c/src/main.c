@@ -116,10 +116,6 @@ int main()
             shouldSendVenusDataToAprs = !shouldSendVenusDataToAprs;
             startTime = currentTime;
         }
-        
-        // Shut off LED after successful start up (3 seconds)
-        if (currentTime == 3)
-            signalOff();
 
         // TODO if 60 seconds expired write stats to EPPROM
 

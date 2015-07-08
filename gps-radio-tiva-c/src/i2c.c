@@ -37,6 +37,7 @@
  */
 
 #include "i2c.h"
+#include "signals.h"
 #include <string.h>
 
 #include <driverlib/i2c.h>
@@ -56,7 +57,7 @@ static struct {
     volatile uint8_t address;
 } i2cData;
 
-static void i2cSlaveRequestHandler(void) {
+void I2cSlaveHandler(void) {
     const uint32_t action = MAP_I2CSlaveStatus(I2C_MODULE);
     bool ack = false;
     // Shut off the alarm clock to prevent us from being called again
@@ -81,6 +82,7 @@ static void i2cSlaveRequestHandler(void) {
     {
         // Data has been requested from us
         uint32_t address = (uint32_t)i2cData.address;
+        signalBlue(65535U);
         // Clear data available flag if necessary
         if (address >= REG_LON_0 && address <= REG_HDG_1)
             i2cData.regs[REG_DATA_AVAILABLE] = 0U;
@@ -91,6 +93,7 @@ static void i2cSlaveRequestHandler(void) {
             address = 0U;
         i2cData.address = (uint8_t)address;
         ack = true;
+        signalBlue(0U);
         break;
     }
     default:
@@ -156,7 +159,6 @@ void initializeI2C(void) {
     MAP_I2CSlaveEnable(I2C_MODULE);
     MAP_I2CSlaveInit(I2C_MODULE, I2C_ADDRESS);
     // Register IRQ and clear spurious conditions
-    I2CIntRegister(I2C_MODULE, &i2cSlaveRequestHandler);
     MAP_I2CSlaveIntClear(I2C_MODULE);
     MAP_I2CSlaveIntEnableEx(I2C_MODULE, I2C_SLAVE_INT_DATA);
     // Init register file
