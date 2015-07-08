@@ -13,4 +13,10 @@ void initializeTivaC(void)
     ROM_IntMasterEnable();
     FPUEnable();
     ROM_FPULazyStackingEnable();
+    // Putting FLASH and SRAM into low power mode increases wake up time from 0 to 100 us for
+    // a measly gain of 800 uA power saved. Until we make other power savings this is totally
+    // not worth it.
+#if 0
+    SysCtlSleepPowerSet(SYSCTL_FLASH_LOW_POWER | SYSCTL_SRAM_LOW_POWER);
+#endif
 }

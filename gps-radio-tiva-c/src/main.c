@@ -123,6 +123,7 @@ int main()
 
         // TODO if 60 seconds expired write stats to EPPROM
 
-        // TODO Enter low power mode, it can save 26 mA
+        // Enter low power mode
+        ROM_SysCtlSleep();
     }
 }

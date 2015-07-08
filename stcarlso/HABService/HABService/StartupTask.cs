@@ -1,5 +1,6 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.IO;
 using System.Threading.Tasks;
 using Windows.ApplicationModel;
@@ -87,7 +88,7 @@ namespace HABService {
 			I2cConnectionSettings settings = new I2cConnectionSettings(address);
 			// Create settings to address device
 			settings.BusSpeed = I2cBusSpeed.FastMode;
-			settings.SharingMode = I2cSharingMode.Exclusive;
+			settings.SharingMode = I2cSharingMode.Shared;
 			if (i2cID == null)
 				throw new IOException("Failed to find I2C controller matching " +
 					I2C_CONTROLLER);
@@ -107,7 +108,7 @@ namespace HABService {
 					// Header
 					var ver = Package.Current.Id.Version;
 					await log.Log(String.Format("HABService Version {0:D}.{1:D}.{2:D}.{3:D}",
-						ver.Major, ver.Minor, ver.Revision, ver.Build));
+						ver.Major, ver.Minor, ver.Build, ver.Revision));
 					await log.Log("Log opened " + DateTime.Now.ToString());
 					try {
 						if (await InitSensors(sensors, log))
@@ -144,19 +145,35 @@ namespace HABService {
 		/// <param name="sensor">The sensor to sample</param>
 		/// <param name="log">The log file</param>
 		private async void SampleOneSensor(I2CSensor sensor, StreamWriter log) {
+#if DEBUG
+			Stopwatch elapsed = new Stopwatch();
+			elapsed.Start();
+#endif
 			try {
 				using (I2cDevice device = await OpenI2CConnection(sensor.Address)) {
 					string message;
-					// Handle null devices gracefully (can this happen?)
-					if (device == null)
-						message = "Sampling error: Device not available";
-					else
+					// Handle null devices gracefully
+					if (device == null) {
+#if DEBUG
+						message = String.Format("[{0:D}ms] Sampling device not available",
+							elapsed.ElapsedMilliseconds);
+#else
+						message = "Sampling device not available";
+#endif
+					} else
 						message = await sensor.Sample(device, gsl);
                     await log.Log(sensor.Prefix, message);
 				}
 			} catch (Exception e) {
 				// Error!
-				await log.Log(sensor.Prefix, "Exception when sampling: " + e.ToDebug());
+				string message;
+#if DEBUG
+				message = String.Format("[{0:D}ms] Exception when sampling: {1}",
+					elapsed.ElapsedMilliseconds, e.ToDebug());
+#else
+				message = "Exception when sampling: " + e.ToDebug();
+#endif
+				await log.Log(sensor.Prefix, message);
 			}
 		}
 		/// <summary>
@@ -281,11 +298,9 @@ namespace HABService {
 			// Get the first entry of the stack trace
 			if (index > 0)
 				trace = trace.Substring(0, index);
-			// Cut the message down to its first line as well
-			string message = e.Message;
-			index = message.IndexOfAny(new char[] { '\r', '\n' });
-			if (index > 0)
-				message = message.Substring(0, index);
+			// Remove all new lines from the message
+			string message = src.Message;
+			message = message.Replace("\r", "").Replace('\n', ' ');
 			return String.Format("[{0}] {1} {2}", type, message.Trim(), trace.Trim());
 		}
 	}
