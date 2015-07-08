@@ -1,10 +1,10 @@
 #include "Device.h"
 
-#include "Uart.h"
 #include "Power.h"
 #include "Receive.h"
 #include "Transmit.h"
 #include "Interrupt.h"
+#include "SerCx2Utils.h"
 
 #include "bcm2836\Controller.h"
 
@@ -30,15 +30,15 @@ NTSTATUS UartDeviceCreate(_In_ PWDFDEVICE_INIT deviceInit)
     pnpPowerCallbacks.EvtDevicePrepareHardware = UartDeviceEvtPrepareHardware;
     pnpPowerCallbacks.EvtDeviceReleaseHardware = UartDeviceEvtReleaseHardware;
     pnpPowerCallbacks.EvtDeviceD0Entry = PowerEvtD0Entry;
-    pnpPowerCallbacks.EvtDeviceD0EntryPostInterruptsEnabled = PowerEvtD0EntryPostInterruptsEnabled;
-    pnpPowerCallbacks.EvtDeviceD0Exit = PowerEvtD0Exit;
     pnpPowerCallbacks.EvtDeviceD0ExitPreInterruptsDisabled = PowerEvtD0ExitPreInterruptsDisabled;
+    pnpPowerCallbacks.EvtDeviceD0Exit = PowerEvtD0Exit;
     WdfDeviceInitSetPnpPowerEventCallbacks(deviceInit, &pnpPowerCallbacks);
 
     NTSTATUS status = SerCx2InitializeDeviceInit(deviceInit);
 
     if (!NT_SUCCESS(status))
     {
+        // TODO log in ETW
         TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "SerCx2InitializeDeviceInit(...) failed %!STATUS!", status);
         return status;
     }
@@ -51,6 +51,7 @@ NTSTATUS UartDeviceCreate(_In_ PWDFDEVICE_INIT deviceInit)
 
     if (!NT_SUCCESS(status))
     {
+        // TODO log in ETW
         TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "WdfDeviceCreate(...) failed %!STATUS!", status);
         return status;
     }
@@ -60,18 +61,11 @@ NTSTATUS UartDeviceCreate(_In_ PWDFDEVICE_INIT deviceInit)
     deviceState.NotDisableable = WdfFalse;
     WdfDeviceSetDeviceState(device, &deviceState);
 
-    status = UartInitContext(device);
-
-    if (!NT_SUCCESS(status))
-    {
-        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "UartInitContext(...) failed %!STATUS!", status);
-        return status;
-    }
-
     status = UartDeviceInitSerCx2(device);
 
     if (!NT_SUCCESS(status))
     {
+        // TODO log in ETW
         TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "UartDeviceInitSerCx2(...) failed %!STATUS!", status);
         return status;
     }
@@ -80,6 +74,7 @@ NTSTATUS UartDeviceCreate(_In_ PWDFDEVICE_INIT deviceInit)
 
     if (!NT_SUCCESS(status))
     {
+        // TODO log in ETW
         TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "UartDeviceInitInterrupts(...) failed %!STATUS!", status);
         return status;
     }
@@ -88,7 +83,8 @@ NTSTATUS UartDeviceCreate(_In_ PWDFDEVICE_INIT deviceInit)
 
     if (!NT_SUCCESS(status))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "UartDeviceInitInterrupts(...) failed %!STATUS!", status);
+        // TODO log in ETW
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "UartDeviceInitIdleTimeout(...) failed %!STATUS!", status);
         return status;
     }
 
@@ -96,6 +92,7 @@ NTSTATUS UartDeviceCreate(_In_ PWDFDEVICE_INIT deviceInit)
 
     if (!NT_SUCCESS(status))
     {
+        // TODO log in ETW
         TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "UartDeviceInitPio(...) failed %!STATUS!", status);
         return status;
     }
@@ -122,11 +119,101 @@ NTSTATUS UartDeviceInitSerCx2(_In_ WDFDEVICE device)
 
     if (!NT_SUCCESS(status))
     {
+        // TODO log in ETW
         TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "SerCx2InitializeDevice(...) failed %!STATUS!", status);
         return status;
     }
 
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Exit");
+    return STATUS_SUCCESS;
+}
+
+NTSTATUS QueryId(_In_ WDFDEVICE device, _Out_ USHORT* pInstanceId)
+{
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Entry");
+
+    WDFIOTARGET ioTarget = WdfDeviceGetIoTarget(device);
+
+    if (ioTarget == NULL)
+    {
+        // TODO lot in ETW
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "WdfDeviceGetIoTarget(...) returned nullptr io target");
+        return STATUS_UNSUCCESSFUL;
+    }
+
+    WDFREQUEST request = NULL;
+    NTSTATUS status = WdfRequestCreate(WDF_NO_OBJECT_ATTRIBUTES, ioTarget, &request);
+
+    if (!NT_SUCCESS(status))
+    {
+        // TODO log in ETW
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "WdfRequestCreate(...) failed %!STATUS!", status);
+        return status;
+    }
+
+    WDF_REQUEST_REUSE_PARAMS reuseParams;
+    WDF_REQUEST_REUSE_PARAMS_INIT(&reuseParams, WDF_REQUEST_REUSE_NO_FLAGS, STATUS_NOT_SUPPORTED);
+
+    status = WdfRequestReuse(request, &reuseParams);
+
+    if (!NT_SUCCESS(status))
+    {
+        // TODO log in ETW
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "WdfRequestReuse(...) failed %!STATUS!", status);
+        return status;
+    }
+
+    IO_STACK_LOCATION ioStack;
+    RtlZeroMemory(&ioStack, sizeof(ioStack));
+    ioStack.MinorFunction = IRP_MN_QUERY_ID;
+    ioStack.MajorFunction = IRP_MJ_PNP;
+    ioStack.Parameters.QueryId.IdType = BusQueryInstanceID;
+    WdfRequestWdmFormatUsingStackLocation(request, &ioStack);
+
+    WDF_REQUEST_SEND_OPTIONS sendOptions;
+    WDF_REQUEST_SEND_OPTIONS_INIT(&sendOptions, WDF_REQUEST_SEND_OPTION_SYNCHRONOUS);
+
+    if (!WdfRequestSend(request, ioTarget, &sendOptions))
+    {
+        // TODO lot in ETW
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "WdfRequestSend(...) failed");
+        return STATUS_UNSUCCESSFUL;
+    }
+
+    status = WdfRequestGetStatus(request);
+
+    if (!NT_SUCCESS(status))
+    {
+        // TODO log in ETW
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "WdfRequestGetStatus(...) failed %!STATUS!", status);
+        return status;
+    }
+
+    UNICODE_STRING destinationString;
+    PWCHAR pInstanceIdString = (PWCHAR) WdfRequestGetInformation(request);
+    RtlInitUnicodeString(&destinationString, pInstanceIdString);
+
+    if (destinationString.Length == 0)
+    {
+        // TODO log in ETW
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "WdfRequestGetInformation(...) failed to get string id");
+        return STATUS_INVALID_PARAMETER;
+    }
+
+    ULONG instanceId;
+    status = RtlUnicodeStringToInteger(&destinationString, 10, &instanceId);
+
+    if (!NT_SUCCESS(status))
+    {
+        // TODO log in ETW
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "RtlUnicodeStringToInteger(...) failed %!STATUS!", status);
+        return status;
+    }
+
+    *pInstanceId = (USHORT) instanceId;
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Exit");
+
     return STATUS_SUCCESS;
 }
 
@@ -136,16 +223,17 @@ NTSTATUS UartDeviceInitInterrupts(_In_ WDFDEVICE device)
 
     PUART_DEVICE_EXTENSION pDeviceExtension = GetUartDeviceExtension(device);
 
-    // spin lock for interriupt DPC
+    // spin lock for registers
     WDF_OBJECT_ATTRIBUTES attributes;
     WDF_OBJECT_ATTRIBUTES_INIT(&attributes);
     attributes.ParentObject = device;
 
-    NTSTATUS status = WdfSpinLockCreate(&attributes, &pDeviceExtension->WdfDpcSpinLock);
+    NTSTATUS status = WdfSpinLockCreate(&attributes, &pDeviceExtension->WdfRegistersSpinLock);
 
     if (!NT_SUCCESS(status))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "WdfSpinLockCreate(...) DPC failed %!STATUS!", status);
+        // TODO log in ETW
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "WdfSpinLockCreate(...) registers failed %!STATUS!", status);
         return status;
     }
 
@@ -158,7 +246,8 @@ NTSTATUS UartDeviceInitInterrupts(_In_ WDFDEVICE device)
 
     if (!NT_SUCCESS(status))
     {
-        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "WdfSpinLockCreate(...) failed %!STATUS!", status);
+        // TODO log in ETW
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "WdfSpinLockCreate(...) interrupt failed %!STATUS!", status);
         return status;
     }
 
@@ -173,7 +262,17 @@ NTSTATUS UartDeviceInitInterrupts(_In_ WDFDEVICE device)
 
     if (!NT_SUCCESS(status))
     {
+        // TODO log in ETW
         TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "WdfInterruptCreate(...) failed %!STATUS!", status);
+        return status;
+    }
+
+    status = QueryId(device, &pDeviceExtension->InstanceId);
+
+    if (!NT_SUCCESS(status))
+    {
+        // TODO log in ETW
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "QueryId(...) failed %!STATUS!", status);
         return status;
     }
 
@@ -199,6 +298,7 @@ NTSTATUS UartDeviceInitIdleTimeout(_In_ WDFDEVICE device)
 
     if (!NT_SUCCESS(status))
     {
+        // TODO log in ETW
         TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "WdfDeviceWdmAssignPowerFrameworkSettings(...) failed %!STATUS!", status);
         return status;
     }
@@ -206,13 +306,14 @@ NTSTATUS UartDeviceInitIdleTimeout(_In_ WDFDEVICE device)
     WDF_DEVICE_POWER_POLICY_IDLE_SETTINGS idleSettings;
     WDF_DEVICE_POWER_POLICY_IDLE_SETTINGS_INIT(&idleSettings, IdleCannotWakeFromS0);
 
-    idleSettings.IdleTimeout = 100; // ms TODO need to check what value is good for 4800 baud
+    idleSettings.IdleTimeout = 5000; // ms TODO fake for now, need to check what value is good for 1200 baud
     idleSettings.IdleTimeoutType = SystemManagedIdleTimeoutWithHint;
 
     status = WdfDeviceAssignS0IdleSettings(device, &idleSettings);
 
     if (!NT_SUCCESS(status))
     {
+        // TODO log in ETW
         TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "WdfDeviceAssignS0IdleSettings(...) failed %!STATUS!", status);
         return status;
     }
@@ -239,6 +340,7 @@ NTSTATUS UartDeviceInitPio(_In_ WDFDEVICE device)
 
     if (!NT_SUCCESS(status))
     {
+        // TODO log in ETW
         TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "SerCx2PioTransmitCreate(...) failed %!STATUS!", status);
         return status;
     }
@@ -258,6 +360,7 @@ NTSTATUS UartDeviceInitPio(_In_ WDFDEVICE device)
 
     if (!NT_SUCCESS(status))
     {
+        // TODO log in ETW
         TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "SerCx2PioTransmitCreate(...) failed %!STATUS!", status);
         return status;
     }
@@ -279,11 +382,12 @@ NTSTATUS PrepareUartHardware(_In_ WDFDEVICE device, _In_ WDFCMRESLIST resources,
 
     if (resourceListCount != resourceTranslatedListCount)
     {
+        // TODO log in ETW
         TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "resourceListCountRaw != resourceListCountTrans");
         return STATUS_UNSUCCESSFUL;
     }
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "number of resources = %lu", resourceListCount);
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "number of resources = %lu", (unsigned long) resourceListCount);
 
     ULONG numberOfMemoryResourcesFound = 0;
     ULONG numberOfInterrupResourcesFound = 0;
@@ -347,6 +451,7 @@ NTSTATUS PrepareUartHardware(_In_ WDFDEVICE device, _In_ WDFCMRESLIST resources,
 
     if (numberOfInterrupResourcesFound == 0)
     {
+        // TODO log in ETW
         TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "didn't find any interrupt resources");
         return STATUS_INSUFFICIENT_RESOURCES;
     }
@@ -359,6 +464,7 @@ NTSTATUS PrepareUartHardware(_In_ WDFDEVICE device, _In_ WDFCMRESLIST resources,
     }
     else
     {
+        // TODO log in ETW
         TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "didn't find any memory resources");
         return STATUS_INSUFFICIENT_RESOURCES;
     }
@@ -376,6 +482,7 @@ NTSTATUS UartDeviceEvtPrepareHardware(_In_ WDFDEVICE device, _In_ WDFCMRESLIST r
 
     if (!NT_SUCCESS(status))
     {
+        // TODO log in ETW
         TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "PrepareUartHardware(...) failed %!STATUS!", status);
         return status;
     }
@@ -384,6 +491,7 @@ NTSTATUS UartDeviceEvtPrepareHardware(_In_ WDFDEVICE device, _In_ WDFCMRESLIST r
 
     if (!NT_SUCCESS(status))
     {
+        // TODO log in ETW
         TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "InitializeUartController(...) failed %!STATUS!", status);
         return status;
     }
@@ -394,14 +502,16 @@ NTSTATUS UartDeviceEvtPrepareHardware(_In_ WDFDEVICE device, _In_ WDFCMRESLIST r
 
 NTSTATUS UartDeviceEvtReleaseHardware(_In_ WDFDEVICE device, _In_ WDFCMRESLIST resourcesTranslated)
 {
-    UNREFERENCED_PARAMETER(device);
     UNREFERENCED_PARAMETER(resourcesTranslated);
+
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Entry");
 
     PUART_DEVICE_EXTENSION pDeviceExtension = GetUartDeviceExtension(device);
 
     if (pDeviceExtension->RegistersMapped)
     {
+        UninitializeUartController(device);
+
         MmUnmapIoSpace(pDeviceExtension->ControllerAddress, pDeviceExtension->ControllerMemorySpan);
 
         pDeviceExtension->ControllerAddress = NULL;

@@ -1,0 +1,2 @@
+http://www.lammertbies.nl/comm/info/serial-uart.html
+http://www.ti.com/lit/ds/symlink/pc16550d.pdf

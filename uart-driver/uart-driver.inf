@@ -39,12 +39,6 @@ CopyFiles=Drivers_Dir
 [Drivers_Dir]
 uart-driver.sys
 
-;[uart-driver_Device.NT.HW] 
-;AddReg=uart-driver_AddReg 
-;
-;[uart-driver_AddReg] 
-;HKLM,System\CurrentControlSet\Services\SerCx2\Parameters,Flags,0x00010001,1 
-
 ;-------------- Service installation
 [uart-driver_Device.NT.Services]
 AddService = uart-driver,%SPSVCINST_ASSOCSERVICE%, uart-driver_Service_Inst
@@ -57,6 +51,10 @@ StartType      = 3               ; SERVICE_DEMAND_START
 ErrorControl   = 1               ; SERVICE_ERROR_NORMAL
 ServiceBinary  = %12%\uart-driver.sys
 Dependencies   = SerCx2 
+AddReg         = UartClass_AddReg
+
+[UartClass_AddReg]
+HKLM,System\CurrentControlSet\Services\SerCx2\Parameters,Flags,0x00010001,1
 
 ;
 ;--- uart-driver_Device Coinstaller installation ------

@@ -46,7 +46,7 @@
     <ClInclude Include="src\Public.h" />
     <ClInclude Include="src\Receive.h" />
     <ClInclude Include="src\Transmit.h" />
-    <ClInclude Include="src\Uart.h" />
+    <ClInclude Include="src\SerCx2Utils.h" />
     <ClInclude Include="Trace.h" />
   </ItemGroup>
   <ItemGroup>
@@ -251,13 +251,14 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\bcm2836\Controller.c" />
+    <ClCompile Include="src\bcm2836\Registers.c" />
     <ClCompile Include="src\Device.c" />
     <ClCompile Include="src\Driver.c" />
     <ClCompile Include="src\Interrupt.c" />
     <ClCompile Include="src\Power.c" />
     <ClCompile Include="src\Receive.c" />
     <ClCompile Include="src\Transmit.c" />
-    <ClCompile Include="src\Uart.c" />
+    <ClCompile Include="src\SerCx2Utils.c" />
   </ItemGroup>
   <ItemGroup>
     <None Include="utils\connect-home.ps1" />
@@ -267,7 +268,9 @@
     <None Include="utils\tracing.bat" />
   </ItemGroup>
   <ItemGroup>
+    <Text Include="docs\hardware-interrupts.txt" />
     <Text Include="docs\install-driver.txt" />
+    <Text Include="docs\uart.txt" />
     <Text Include="docs\wpp.txt" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -1,21 +1,19 @@
 #include "Interrupt.h"
-#include "Interrupt.tmh"
 
-NTSTATUS UartInterruptEvtInterruptEnable(_In_ WDFINTERRUPT interrupt, _In_ WDFDEVICE associatedDevice)
-{
-    UNREFERENCED_PARAMETER(interrupt);
-    UNREFERENCED_PARAMETER(associatedDevice);
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_INTERRUPT, "--- %!FUNC! Entry");
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_INTERRUPT, "--- %!FUNC! Exit");
-    return STATUS_SUCCESS;
-}
+#include "CommonDefinitions.h"
+#include "bcm2836\Registers.h"
+
+#include "Interrupt.tmh"
 
 NTSTATUS UartInterruptEvtInterruptDisable(_In_ WDFINTERRUPT interrupt, _In_ WDFDEVICE associatedDevice)
 {
     UNREFERENCED_PARAMETER(interrupt);
-    UNREFERENCED_PARAMETER(associatedDevice);
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_INTERRUPT, "--- %!FUNC! Entry");
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_INTERRUPT, "--- %!FUNC! Exit");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_INTERRUPT, "%!FUNC! Entry");
+
+    PUART_DEVICE_EXTENSION pDeviceExtension = GetUartDeviceExtension(associatedDevice);
+    DISABLE_ALL_INTERRUPTS(pDeviceExtension);
+
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_INTERRUPT, "%!FUNC! Exit");
     return STATUS_SUCCESS;
 }
 

@@ -4,7 +4,6 @@ set TRACE_NAME=uart-driver
 set TRACE_LOG_PATH=%SystemRoot%\Tracing\%TRACE_NAME%
 set PROVIDER_GUID=#37f79f75-a9ac-46ad-b69c-61d2e9aa5bd5
 set TMFFILE=uart-driver.tmf
-set TRACE_FORMAT_PREFIX=%%2!-20.20s!%%!FUNC!-
 set TRACE_FLAGS=0xFFFF
 set TRACE_LEVEL=5
 
@@ -17,7 +16,7 @@ if /I %command% == start (
     if not exist "%TRACE_LOG_PATH%" (
         md "%TRACE_LOG_PATH%"
     )
-    tracelog.exe -start "%TRACE_NAME%" -seq 10 -rt -guid %PROVIDER_GUID% -flags %TRACE_FLAGS% -level %TRACE_LEVEL% -f "%TRACE_LOG_PATH%\%TRACE_NAME%.etl"
+    tracelog.exe -start "%TRACE_NAME%" -seq 10 -rt -guid %PROVIDER_GUID% -flags %TRACE_FLAGS% -level %TRACE_LEVEL% -f "%TRACE_LOG_PATH%\%TRACE_NAME%.etl" -UseSystemTime
 )
 if /I %command% == stop (
     echo stopping trace
