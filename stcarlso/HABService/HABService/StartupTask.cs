@@ -9,6 +9,9 @@ using Windows.Devices.Enumeration;
 using Windows.Devices.I2c;
 using Windows.Storage;
 
+// Convenience for lists of sensors to be polled
+using ToDoList = System.Collections.Generic.LinkedList<HABService.SensorSchedule>;
+
 namespace HABService {
 	/// <summary>
 	/// Task executed when the board boots up. Opens a log file and periodically logs sensor
@@ -38,6 +41,20 @@ namespace HABService {
 			i2cID = null;
 		}
 		/// <summary>
+		/// Closes all of the I2C devices.
+		/// </summary>
+		/// <param name="toDo">The list of (completed?) tasks</param>
+		private void CloseAllSensors(IEnumerable<SensorSchedule> toDo) {
+			foreach (SensorSchedule schedule in toDo) {
+				I2cDevice device = schedule.Device;
+				// Ensure that all devices are closed
+				if (device != null)
+					try {
+						device.Dispose();
+					} catch { }
+			}
+		}
+		/// <summary>
 		/// Queries the system and populates i2cID with the ACPI ID of the I2C controller.
 		/// </summary>
 		/// <param name="controller">The controller ID to match</param>
@@ -52,30 +69,53 @@ namespace HABService {
 		/// <summary>
 		/// Initializes all sensors.
 		/// </summary>
-		/// <param name="sensors">The sensors to be initialized</param>
+		/// <param name="toDo">The sensors to be initialized</param>
 		/// <param name="log">The log file</param>
 		/// <returns>true if all sensors were brought up, or false otherwise</returns>
-		private async Task<bool> InitSensors(List<I2CSensor> sensors, StreamWriter log) {
+		private async Task<bool> InitSensors(ToDoList toDo, StreamWriter log) {
 			// Bring up the sensors
 			bool ok, allPass = true;
-			foreach (I2CSensor sensor in sensors) {
+			foreach (SensorSchedule sensor in toDo) {
 				ok = false;
 				for (int i = 0; i < 3 && !ok; i++)
 					// 3 attempts
-					using (I2cDevice device = await OpenI2CConnection(sensor.Address)) {
-						try {
-							await log.Log(sensor.Prefix, sensor.Init(device));
-							ok = true;
-						} catch (Exception e) {
-							// Error when bringing up
-							await log.Log(sensor.Prefix, "Exception when initializing: " +
-								e.ToDebug());
-						}
+					try {
+						await log.Log(sensor.Prefix, sensor.Sensor.Init(sensor.Device));
+						ok = true;
+					} catch (Exception e) {
+						// Error when bringing up
+						await log.Log(sensor.Prefix, "Exception when initializing: " +
+							e.ToDebug());
 					}
 				// Uh oh!
 				if (!ok) allPass = false;
 			}
 			return allPass;
+		}
+		/// <summary>
+		/// Opens all sensors and creates schedule items for them starting at time 0. This is
+		/// a different task than initializing them!
+		/// </summary>
+		/// <param name="sensors">The sensors to open</param>
+		/// <param name="log">The log file</param>
+		/// <returns>A list of all sensors opened successfully</returns>
+		private async Task<ToDoList> OpenAllSensors(IEnumerable<I2CSensor> sensors,
+				StreamWriter log) {
+			ToDoList toDo = new ToDoList();
+			foreach (I2CSensor sensor in sensors) {
+				I2cDevice device = null;
+				try {
+					// Create a shared device to avoid opening/closing the bus frequently
+					device = await OpenI2CConnection(sensor.Address);
+					if (device != null)
+						toDo.AddLast(new SensorSchedule(sensor, device));
+				} catch (Exception e) {
+					// Do not move to finally block, device must remain open if success!
+					device.Dispose();
+					await log.Log(sensor.Prefix, "Exception when opening: " + e.ToDebug());
+				}
+			}
+			return toDo;
 		}
 		/// <summary>
 		/// Opens a connection to the specified I2C device address.
@@ -94,6 +134,19 @@ namespace HABService {
 					I2C_CONTROLLER);
 			return await I2cDevice.FromIdAsync(i2cID, settings);
 		}
+		/// <summary>
+		/// Opens the log file.
+		/// </summary>
+		/// <returns>The log file</returns>
+		/// <exception cref="IOException">If the log could not be opened</exception>
+		private async Task<StreamWriter> OpenLog() {
+			// Get the current time as the filename
+			string date = DateTime.Now.ToString(DATE_FORMAT);
+			// If it collides, append a number to avoid trashing old logs
+			StorageFile file = await DownloadsFolder.CreateFileAsync(date + ".log",
+				CreationCollisionOption.GenerateUniqueName);
+			return new StreamWriter(await file.OpenStreamForWriteAsync());
+		}
 		public async void Run(IBackgroundTaskInstance taskInstance) {
 			// Get a deferral to stop us from quitting immediately
 			List<I2CSensor> sensors = new List<I2CSensor>();
@@ -110,16 +163,19 @@ namespace HABService {
 					await log.Log(String.Format("HABService Version {0:D}.{1:D}.{2:D}.{3:D}",
 						ver.Major, ver.Minor, ver.Build, ver.Revision));
 					await log.Log("Log opened " + DateTime.Now.ToString());
+					ToDoList toDo = await OpenAllSensors(sensors, log);
 					try {
-						if (await InitSensors(sensors, log))
-							await SensorWorker(sensors, log);
+						if (await InitSensors(toDo, log))
+							await SensorWorker(toDo, log);
 						else
-							// TODO Should we continue here anyways!?
 							await log.Log("Failed to initialize some sensors, bailing out!");
 					} catch (Exception e) {
 						// Log the fatal exception -- everything that makes it through at this
 						// point is a bug and needs to be seen
 						await log.Log("Unhandled exception: " + e.ToDebug());
+					} finally {
+						// Be a good citizen and clean up
+						CloseAllSensors(toDo);
 					}
 				}
 			} finally {
@@ -127,43 +183,17 @@ namespace HABService {
 			}
 		}
 		/// <summary>
-		/// Opens the log file.
-		/// </summary>
-		/// <returns>The log file</returns>
-		/// <exception cref="IOException">If the log could not be opened</exception>
-		private async Task<StreamWriter> OpenLog() {
-			// Get the current time as the filename
-			string date = DateTime.Now.ToString(DATE_FORMAT);
-			// If it collides, append a number to avoid trashing old logs
-			StorageFile file = await DownloadsFolder.CreateFileAsync(date + ".log",
-				CreationCollisionOption.GenerateUniqueName);
-			return new StreamWriter(await file.OpenStreamForWriteAsync());
-		}
-		/// <summary>
 		/// Samples one sensor. Broken out to allow the result to not be awaited...
 		/// </summary>
 		/// <param name="sensor">The sensor to sample</param>
 		/// <param name="log">The log file</param>
-		private async void SampleOneSensor(I2CSensor sensor, StreamWriter log) {
+		private async void SampleOneSensor(SensorSchedule sensor, StreamWriter log) {
 #if DEBUG
 			Stopwatch elapsed = new Stopwatch();
 			elapsed.Start();
 #endif
 			try {
-				using (I2cDevice device = await OpenI2CConnection(sensor.Address)) {
-					string message;
-					// Handle null devices gracefully
-					if (device == null) {
-#if DEBUG
-						message = String.Format("[{0:D}ms] Sampling device not available",
-							elapsed.ElapsedMilliseconds);
-#else
-						message = "Sampling device not available";
-#endif
-					} else
-						message = await sensor.Sample(device, gsl);
-                    await log.Log(sensor.Prefix, message);
-				}
+				await log.Log(sensor.Prefix, await sensor.SampleSensor(gsl));
 			} catch (Exception e) {
 				// Error!
 				string message;
@@ -180,12 +210,9 @@ namespace HABService {
 		/// Performs the work of reading and logging sensors. The sensors must have been
 		/// initialized first!
 		/// </summary>
-		/// <param name="sensors">The sensors to be polled</param>
+		/// <param name="toDo">The sensors to be polled</param>
 		/// <param name="log">The log file</param>
-		private async Task SensorWorker(List<I2CSensor> sensors, StreamWriter log) {
-			LinkedList<SensorSchedule> toDo = new LinkedList<SensorSchedule>();
-			foreach (I2CSensor sensor in sensors)
-				toDo.AddLast(new SensorSchedule(sensor));
+		private async Task SensorWorker(ToDoList toDo, StreamWriter log) {
 			long now = 0L;
 			// Do it!
 			while (toDo.Count > 0) {
@@ -198,7 +225,7 @@ namespace HABService {
 					await Task.Delay((int)(task.At - now));
 				now = task.At;
 				// Do it
-				SampleOneSensor(sensor, log);
+				SampleOneSensor(task, log);
 				// Reschedule for next time
 				task.At += sensor.LogInterval;
 				// Inject into the right place
@@ -223,6 +250,22 @@ namespace HABService {
 		/// </summary>
 		public long At { get; set; }
 		/// <summary>
+		/// An instance of the I2C device to be used to poll this sensor.
+		/// </summary>
+		public I2cDevice Device {
+			get {
+				return device;
+			}
+		}
+		/// <summary>
+		/// Convenience method to access the sensor prefix.
+		/// </summary>
+		public string Prefix {
+			get {
+				return sensor.Prefix;
+			}
+		}
+		/// <summary>
 		/// The I2C sensor to poll.
 		/// </summary>
 		public I2CSensor Sensor {
@@ -235,13 +278,19 @@ namespace HABService {
 		/// The I2C sensor to poll.
 		/// </summary>
 		private I2CSensor sensor;
+		/// <summary>
+		/// An instance of the I2C device to be used to poll this sensor.
+		/// </summary>
+		private I2cDevice device;
 
 		/// <summary>
 		/// Creates a sensor schedule object and sets At to 0.
 		/// </summary>
 		/// <param name="sensor">The sensor to be checked</param>
-		public SensorSchedule(I2CSensor sensor) {
+		/// <param name="device">The device reference</param>
+		public SensorSchedule(I2CSensor sensor, I2cDevice device) {
 			this.sensor = sensor;
+			this.device = device;
 			At = 0L;
 		}
 		public int CompareTo(SensorSchedule other) {
@@ -250,6 +299,15 @@ namespace HABService {
 			else if (At < other.At)
 				return -1;
 			return 0;
+		}
+		/// <summary>
+		/// Samples the sensor in this object.
+		/// </summary>
+		/// <param name="gsl">The global sensor lock</param>
+		/// <returns>The sensor data or error message</returns>
+		/// <exception cref="IOException">If an error occurs during sampling</exception>
+		public async Task<string> SampleSensor(object gsl) {
+			return await sensor.Sample(device, gsl);
 		}
 	}
 
