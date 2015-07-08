@@ -1,4 +1,0 @@
-WPP message formatting description:
-https://msdn.microsoft.com/en-us/library/ff544918(v=vs.85).aspx
-https://msdn.microsoft.com/en-us/library/ff556136(v=vs.85).aspx
-http://www.cplusplus.com/reference/cstdio/printf/
