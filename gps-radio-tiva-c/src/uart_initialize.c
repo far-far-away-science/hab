@@ -158,6 +158,7 @@ void Uart0IntHandler(void)
 {
     UartChannelData* const pChannelData = uart2UartChannelData[UART_0];
     const uint32_t status = MAP_UARTIntStatus(pChannelData->base, true);
+    MAP_UARTIntClear(pChannelData->base, status);
 
     if (status & (UART_INT_RX | UART_INT_RT))
     {
@@ -167,14 +168,13 @@ void Uart0IntHandler(void)
     {
         uartWriteIntHandler(pChannelData);
     }
-
-    MAP_UARTIntClear(pChannelData->base, status);
 }
 
 void Uart1IntHandler(void)
 {
     UartChannelData* const pChannelData = uart2UartChannelData[UART_1];
     const uint32_t status = MAP_UARTIntStatus(pChannelData->base, true);
+    MAP_UARTIntClear(pChannelData->base, status);
 
     if (status & (UART_INT_RX | UART_INT_RT))
     {
@@ -184,14 +184,13 @@ void Uart1IntHandler(void)
     {
         uartWriteIntHandler(pChannelData);
     }
-
-    MAP_UARTIntClear(pChannelData->base, status);
 }
 
 void Uart2IntHandler(void)
 {
     UartChannelData* const pChannelData = uart2UartChannelData[UART_2];
     const uint32_t status = MAP_UARTIntStatus(pChannelData->base, true);
+    MAP_UARTIntClear(pChannelData->base, status);
 
     if (status & (UART_INT_RX | UART_INT_RT))
     {
@@ -201,14 +200,13 @@ void Uart2IntHandler(void)
     {
         uartWriteIntHandler(pChannelData);
     }
-
-    MAP_UARTIntClear(pChannelData->base, status);
 }
 
 void Uart3IntHandler(void)
 {
     UartChannelData* const pChannelData = uart2UartChannelData[UART_3];
     const uint32_t status = MAP_UARTIntStatus(pChannelData->base, true);
+    MAP_UARTIntClear(pChannelData->base, status);
 
     if (status & (UART_INT_RX | UART_INT_RT))
     {
@@ -218,14 +216,13 @@ void Uart3IntHandler(void)
     {
         uartWriteIntHandler(pChannelData);
     }
-
-    MAP_UARTIntClear(pChannelData->base, status);
 }
 
 void Uart4IntHandler(void)
 {
     UartChannelData* const pChannelData = uart2UartChannelData[UART_4];
     const uint32_t status = MAP_UARTIntStatus(pChannelData->base, true);
+    MAP_UARTIntClear(pChannelData->base, status);
 
     if (status & (UART_INT_RX | UART_INT_RT))
     {
@@ -235,6 +232,4 @@ void Uart4IntHandler(void)
     {
         uartWriteIntHandler(pChannelData);
     }
-
-    MAP_UARTIntClear(pChannelData->base, status);
 }

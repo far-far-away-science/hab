@@ -9,7 +9,7 @@
 #include <driverlib/gpio.h>
 #include <driverlib/sysctl.h>
 
-#define PWM_OUTPUT
+// #define PWM_OUTPUT
 
 // Configures the PWM generator to the right values
 #define PWM_GEN_CONFIGURE(_gen) do {\
@@ -34,21 +34,6 @@ void initializeSignals(void)
     ROM_GPIOPinTypeGPIOOutput(GPIO_PORTF_BASE, GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3);
 #endif
     signalOff();
-}
-
-void signalRed(uint32_t red)
-{
-    ROM_PWMPulseWidthSet(PWM1_BASE, PWM_OUT_5, red & 0xFFFFU);
-}
-
-void signalGreen(uint32_t green)
-{
-    ROM_PWMPulseWidthSet(PWM1_BASE, PWM_OUT_7, green & 0xFFFFU);
-}
-
-void signalBlue(uint32_t blue)
-{
-    ROM_PWMPulseWidthSet(PWM1_BASE, PWM_OUT_6, blue & 0xFFFFU);
 }
 
 void signalOff(void)
@@ -80,4 +65,24 @@ void signalError(void)
 #else
     GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1 | GPIO_PIN_3, GPIO_PIN_1);
 #endif
+}
+
+void signalFaultInterrupt(void)
+{
+#ifdef PWM_OUTPUT
+    signalRed(4096U);
+    signalGreen(0U);
+#else
+    GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_1 | GPIO_PIN_2 | GPIO_PIN_3, GPIO_PIN_1 | GPIO_PIN_3);
+#endif
+}
+
+void signalI2CDataRequested()
+{
+    ROM_PWMPulseWidthSet(PWM1_BASE, PWM_OUT_6, 0xFFFFU);
+}
+
+void clearI2CDataRequested()
+{
+    ROM_PWMPulseWidthSet(PWM1_BASE, PWM_OUT_6, 0x0U);
 }

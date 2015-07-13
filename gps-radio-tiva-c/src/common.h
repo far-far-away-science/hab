@@ -6,9 +6,8 @@
 
 #define CHANNEL_VENUS_GPS      0
 #define CHANNEL_COPERNICUS_GPS 1
-#define CHANNEL_TELEMETRY_MCU  2
 #ifdef DEBUG
-#define CHANNEL_DEBUG          3
+#define CHANNEL_DEBUG          2
 #endif
 
 #define RADIO_MCU_MESSAGE_SENDING_INTERVAL_SECONDS 30

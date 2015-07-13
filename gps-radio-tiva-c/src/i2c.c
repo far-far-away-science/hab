@@ -82,7 +82,7 @@ void I2cSlaveHandler(void) {
     {
         // Data has been requested from us
         uint32_t address = (uint32_t)i2cData.address;
-        signalBlue(65535U);
+        signalI2CDataRequested();
         // Clear data available flag if necessary
         if (address >= REG_LON_0 && address <= REG_HDG_1)
             i2cData.regs[REG_DATA_AVAILABLE] = 0U;
@@ -93,7 +93,7 @@ void I2cSlaveHandler(void) {
             address = 0U;
         i2cData.address = (uint8_t)address;
         ack = true;
-        signalBlue(0U);
+        clearI2CDataRequested();
         break;
     }
     default:

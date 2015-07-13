@@ -4,9 +4,9 @@
 #include <stdbool.h>
 
 #ifdef DEBUG
-    #define UART_NUMBER_OF_CHANNELS 4
-#else
     #define UART_NUMBER_OF_CHANNELS 3
+#else
+    #define UART_NUMBER_OF_CHANNELS 2
 #endif
 
 #define UART_READ_BUFFER_MAX_MESSAGES_LEN 3

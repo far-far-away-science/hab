@@ -378,8 +378,8 @@ NTSTATUS PrepareUartHardware(_In_ WDFDEVICE device, _In_ WDFCMRESLIST resources,
 {
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Entry");
 
-    const ULONG resourceListCount = WdfCmResourceListGetCount(resources);
-    const ULONG resourceTranslatedListCount = WdfCmResourceListGetCount(resourcesTranslated);
+    const ULONG resourceListCount = resources ? WdfCmResourceListGetCount(resources) : 0;
+    const ULONG resourceTranslatedListCount = resourcesTranslated ? WdfCmResourceListGetCount(resourcesTranslated) : 0;
 
     if (resourceListCount != resourceTranslatedListCount)
     {
@@ -398,55 +398,63 @@ NTSTATUS PrepareUartHardware(_In_ WDFDEVICE device, _In_ WDFCMRESLIST resources,
         PCM_PARTIAL_RESOURCE_DESCRIPTOR pPartialResourceDesc = WdfCmResourceListGetDescriptor(resources, i);
         PCM_PARTIAL_RESOURCE_DESCRIPTOR pPartialResourceTransltedDesc = WdfCmResourceListGetDescriptor(resourcesTranslated, i);
 
-        switch (pPartialResourceTransltedDesc->Type)
+        if (pPartialResourceDesc && pPartialResourceTransltedDesc)
         {
-            case CmResourceTypeMemory:
+            switch (pPartialResourceTransltedDesc->Type)
             {
-                if (numberOfMemoryResourcesFound == 0)
+                case CmResourceTypeMemory:
                 {
-                    pUartHardwareConfiguration->MemoryStart = pPartialResourceDesc->u.Memory.Start;
-                    pUartHardwareConfiguration->MemoryStartTranslated = pPartialResourceTransltedDesc->u.Memory.Start;
-                    pUartHardwareConfiguration->MemoryLength = pPartialResourceDesc->u.Memory.Length;
-                    pUartHardwareConfiguration->AddressSpace = CM_RESOURCE_PORT_MEMORY;
-                    TraceEvents(TRACE_LEVEL_INFORMATION,
-                                TRACE_DEVICE,
-                                "memory resource found (start=0x%llx,startTranslated=0x%llx,length=0x%lx)",
-                                (unsigned long long) pUartHardwareConfiguration->MemoryStart.QuadPart,
-                                (unsigned long long) pUartHardwareConfiguration->MemoryStartTranslated.QuadPart,
-                                (unsigned long) pUartHardwareConfiguration->MemoryLength);
+                    if (numberOfMemoryResourcesFound == 0)
+                    {
+                        pUartHardwareConfiguration->MemoryStart = pPartialResourceDesc->u.Memory.Start;
+                        pUartHardwareConfiguration->MemoryStartTranslated = pPartialResourceTransltedDesc->u.Memory.Start;
+                        pUartHardwareConfiguration->MemoryLength = pPartialResourceDesc->u.Memory.Length;
+                        pUartHardwareConfiguration->AddressSpace = CM_RESOURCE_PORT_MEMORY;
+                        TraceEvents(TRACE_LEVEL_INFORMATION,
+                                    TRACE_DEVICE,
+                                    "memory resource found (start=0x%llx,startTranslated=0x%llx,length=0x%lx)",
+                                    (unsigned long long) pUartHardwareConfiguration->MemoryStart.QuadPart,
+                                    (unsigned long long) pUartHardwareConfiguration->MemoryStartTranslated.QuadPart,
+                                    (unsigned long) pUartHardwareConfiguration->MemoryLength);
+                    }
+                    else
+                    {
+                        TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "found more than one memory resource, not sure what to do about them");
+                    }
+                    ++numberOfMemoryResourcesFound;
+                    break;
                 }
-                else
+                case CmResourceTypeInterrupt:
                 {
-                    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "found more than one memory resource, not sure what to do about them");
+                    if (numberOfInterrupResourcesFound == 0)
+                    {
+                        pUartHardwareConfiguration->InterruptVector = pPartialResourceTransltedDesc->u.Interrupt.Vector;
+                        pUartHardwareConfiguration->InterruptLevel = pPartialResourceTransltedDesc->u.Interrupt.Level;
+                        pUartHardwareConfiguration->InterruptAffinity = pPartialResourceTransltedDesc->u.Interrupt.Affinity;
+                        TraceEvents(TRACE_LEVEL_INFORMATION,
+                                    TRACE_DEVICE,
+                                    "interrupt resource found (vector=0x%lx,level=0x%lx,affinity=0x%lx)",
+                                    (unsigned long) pUartHardwareConfiguration->InterruptVector,
+                                    (unsigned long) pUartHardwareConfiguration->InterruptLevel,
+                                    (unsigned long) pUartHardwareConfiguration->InterruptAffinity);
+                    }
+                    else
+                    {
+                        TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "found more than one interrupt resource, not sure what to do about them");
+                    }
+                    ++numberOfInterrupResourcesFound;
+                    break;
                 }
-                ++numberOfMemoryResourcesFound;
-                break;
+                default:
+                {
+                    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "found unsupported resource with type = %hu", (unsigned short int) pPartialResourceTransltedDesc->Type);
+                }
             }
-            case CmResourceTypeInterrupt:
-            {
-                if (numberOfInterrupResourcesFound == 0)
-                {
-                    pUartHardwareConfiguration->InterruptVector = pPartialResourceTransltedDesc->u.Interrupt.Vector;
-                    pUartHardwareConfiguration->InterruptLevel = pPartialResourceTransltedDesc->u.Interrupt.Level;
-                    pUartHardwareConfiguration->InterruptAffinity = pPartialResourceTransltedDesc->u.Interrupt.Affinity;
-                    TraceEvents(TRACE_LEVEL_INFORMATION,
-                                TRACE_DEVICE,
-                                "interrupt resource found (vector=0x%lx,level=0x%lx,affinity=0x%lx)",
-                                (unsigned long) pUartHardwareConfiguration->InterruptVector,
-                                (unsigned long) pUartHardwareConfiguration->InterruptLevel,
-                                (unsigned long) pUartHardwareConfiguration->InterruptAffinity);
-                }
-                else
-                {
-                    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "found more than one interrupt resource, not sure what to do about them");
-                }
-                ++numberOfInterrupResourcesFound;
-                break;
-            }
-            default:
-            {
-                TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "found unsupported resource with type = %hu", (unsigned short int) pPartialResourceTransltedDesc->Type);
-            }
+        }
+        else
+        {
+            // TODO log in ETW
+            TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "invalid arguments pPartialResourceDesc=0x%p, pPartialResourceTransltedDesc=0x%p", pPartialResourceDesc, pPartialResourceTransltedDesc);
         }
     }
 
@@ -476,7 +484,7 @@ NTSTATUS PrepareUartHardware(_In_ WDFDEVICE device, _In_ WDFCMRESLIST resources,
 
 NTSTATUS InitializeUartController(_In_ WDFDEVICE device, _In_ const UART_HARDWARE_CONFIGURATION* pUartHardwareConfiguration)
 {
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_MINI_CONTROLLER, "%!FUNC! Entry");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Entry");
 
     PUART_DEVICE_EXTENSION pDeviceExtension = GetUartDeviceExtension(device);
 
@@ -493,7 +501,7 @@ NTSTATUS InitializeUartController(_In_ WDFDEVICE device, _In_ const UART_HARDWAR
 
     if (!pDeviceExtension->ControllerAddress)
     {
-        TraceEvents(TRACE_LEVEL_ERROR, TRACE_UART_MINI_CONTROLLER, "failed to map device memory to virtual memory");
+        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "failed to map device memory to virtual memory");
         pDeviceExtension->RegistersMapped = FALSE;
         return STATUS_NONE_MAPPED;
     }
@@ -521,7 +529,7 @@ NTSTATUS InitializeUartController(_In_ WDFDEVICE device, _In_ const UART_HARDWAR
     pDeviceExtension->TxFifoSize = READ_SERIAL_TX_FIFO_SIZE();
     pDeviceExtension->RxFifoSize = READ_SERIAL_RX_FIFO_SIZE();
 
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_MINI_CONTROLLER, "%!FUNC! Exit");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Exit");
     return STATUS_SUCCESS;
 }
 

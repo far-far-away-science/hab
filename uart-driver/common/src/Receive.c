@@ -49,13 +49,7 @@ BOOLEAN EvtSerCx2PioReceiveCancelReadyNotification(_In_ SERCX2PIORECEIVE pioRece
     PUART_DEVICE_EXTENSION pDeviceExtension = GetUartDeviceExtension(pSerCx2Context->WdfDevice);
 
     WdfInterruptAcquireLock(pDeviceExtension->WdfInterrupt);
-    BOOLEAN cancelHandledSuccessfully = FALSE;
-    const UCHAR receiveInterrupts = INTERRUPT_READ_MASKED_RECEIVE_DATA_AVAILABLE(pDeviceExtension);
-    if (receiveInterrupts != 0)
-    {
-        cancelHandledSuccessfully = TRUE;
-        INTERRUPT_DISABLE_RECEIVE_DATA_AVAILABLE(pDeviceExtension);
-    }
+    BOOLEAN cancelHandledSuccessfully = INTERRUPT_DISABLE_RECEIVE_DATA_AVAILABLE(pDeviceExtension);
     WdfInterruptReleaseLock(pDeviceExtension->WdfInterrupt);
 
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_RECEIVE, "%!FUNC! Exit");
@@ -64,5 +58,12 @@ BOOLEAN EvtSerCx2PioReceiveCancelReadyNotification(_In_ SERCX2PIORECEIVE pioRece
 
 UCHAR UartReadRegisterUChar(_In_reads_(_Inexpressible_(offset)) REGBASE baseAddress, _In_ ULONG offset)
 {
-    return READ_REGISTER_UCHAR(((PUCHAR) baseAddress) + offset);
+    const UCHAR readChar = READ_REGISTER_UCHAR(((PUCHAR) baseAddress) + offset);
+    TraceEvents(TRACE_LEVEL_INFORMATION,
+                TRACE_RECEIVE,
+                "read register UCHAR (0x%p + 0x%lx) = 0x%x",
+                (void*) baseAddress,
+                (long int) offset,
+                (unsigned int) readChar);
+    return readChar;
 }

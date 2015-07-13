@@ -149,8 +149,6 @@ void initializeAprs(void)
 
 bool sendAprsMessage(const GpsData* pGpsData)
 {
-    // TODO disable all UARTS
-    // TODO disable all timers
     if (g_sendingMessage)
     {
         return false;
@@ -446,6 +444,8 @@ float normalizePulseWidth(float width)
 
 void Pwm10Handler(void)
 {
+    PWMGenIntClear(PWM0_BASE, PWM_GEN_0, PWM_INT_CNT_ZERO);
+    
     if (g_currentSymbolPulsesCount >= F1200_PWM_PULSES_COUNT_PER_SYMBOL)
     {
         g_currentSymbolPulsesCount = 0;
@@ -455,8 +455,6 @@ void Pwm10Handler(void)
         {
             disablePwm();
             disableHx1();
-            // TODO enable all UARTS
-            // TODO enable all timers
             g_sendingMessage = false;
             return;
         }
@@ -546,6 +544,4 @@ void Pwm10Handler(void)
     }
     
     ++g_currentSymbolPulsesCount;
-    
-    PWMGenIntClear(PWM0_BASE, PWM_GEN_0, PWM_INT_CNT_ZERO);
 }

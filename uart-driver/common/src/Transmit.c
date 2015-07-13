@@ -38,4 +38,10 @@ BOOLEAN EvtSerCx2PioTransmitCancelReadyNotification(_In_ SERCX2PIOTRANSMIT pioTr
 VOID UartWriteRegisterUChar(_In_reads_(_Inexpressible_(offset)) REGBASE baseAddress, _In_ ULONG offset, _In_ UCHAR value)
 {
     WRITE_REGISTER_UCHAR(((PUCHAR) baseAddress) + offset, value);
+    TraceEvents(TRACE_LEVEL_INFORMATION,
+                TRACE_RECEIVE,
+                "wrote register UCHAR (0x%p + 0x%lx) = 0x%x",
+                (void*) baseAddress,
+                (long int) offset,
+                (unsigned int) value);
 }
