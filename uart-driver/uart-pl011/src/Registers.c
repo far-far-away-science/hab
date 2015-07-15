@@ -1,5 +1,4 @@
-#include "Registers.h"
-
+#include "pl011.h"
 #include "..\..\Trace.h"
 
 #include "Registers.tmh"
@@ -7,18 +6,18 @@
 BOOLEAN CanReadCharacter(_In_ PUART_DEVICE_EXTENSION pDeviceExtension)
 {
     UNREFERENCED_PARAMETER(pDeviceExtension);
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- %!FUNC! Entry");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- 1 %!FUNC! Entry");
     // TODO
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- %!FUNC! Exit");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- 1 %!FUNC! Exit");
     return FALSE;
 }
 
 BOOLEAN IsFifoDataLoss(_In_ PUART_DEVICE_EXTENSION pDeviceExtension)
 {
     UNREFERENCED_PARAMETER(pDeviceExtension);
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- %!FUNC! Entry");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- 2 %!FUNC! Entry");
     // TODO
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- %!FUNC! Exit");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- 2 %!FUNC! Exit");
     return FALSE;
 }
 
@@ -26,9 +25,6 @@ VOID UART_DEVICE_ENABLE(_In_ PUART_DEVICE_EXTENSION pDeviceExtension, _In_ BOOLE
 {
     UNREFERENCED_PARAMETER(pDeviceExtension);
     UNREFERENCED_PARAMETER(enable);
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- %!FUNC! Entry");
-    // TODO
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- %!FUNC! Exit");
 }
 
 USHORT READ_SERIAL_TX_FIFO_SIZE()
@@ -43,27 +39,29 @@ USHORT READ_SERIAL_RX_FIFO_SIZE()
 
 VOID FIFO_CONTROL_ENABLE(_In_ PUART_DEVICE_EXTENSION pDeviceExtension)
 {
-    UNREFERENCED_PARAMETER(pDeviceExtension);
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- %!FUNC! Entry");
-    // TODO
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- %!FUNC! Exit");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "enabling FIFO");
+    DisableUart(pDeviceExtension);
+    pDeviceExtension->ModemControl |= REGISTER_LCRH_FEN;
+    REGISTER_LCRH_WRITE(pDeviceExtension, pDeviceExtension->ModemControl);
+    EnableUart(pDeviceExtension);
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "enabled FIFO");
 }
 
 UCHAR LINE_STATUS_READ(_In_ PUART_DEVICE_EXTENSION pDeviceExtension)
 {
     UNREFERENCED_PARAMETER(pDeviceExtension);
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- %!FUNC! Entry");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- 5 %!FUNC! Entry");
     // TODO
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- %!FUNC! Exit");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- 5 %!FUNC! Exit");
     return 0;
 }
 
 UCHAR MODEM_STATUS_READ(_In_ PUART_DEVICE_EXTENSION pDeviceExtension)
 {
     UNREFERENCED_PARAMETER(pDeviceExtension);
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- %!FUNC! Entry");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- 6 %!FUNC! Entry");
     // TODO
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- %!FUNC! Exit");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- 6 %!FUNC! Exit");
     return 0;
 }
 
@@ -71,83 +69,83 @@ VOID LINE_CONTROL_WRITE(_In_ PUART_DEVICE_EXTENSION pDeviceExtension, _In_ UCHAR
 {
     UNREFERENCED_PARAMETER(pDeviceExtension);
     UNREFERENCED_PARAMETER(lineControlValue);
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- %!FUNC! Entry");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- 7 %!FUNC! Entry");
     // TODO
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- %!FUNC! Exit");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- 7 %!FUNC! Exit");
 }
 
 VOID MODEM_CONTROL_WRITE(_In_ PUART_DEVICE_EXTENSION pDeviceExtension, _In_ UCHAR modemControlValue)
 {
     UNREFERENCED_PARAMETER(pDeviceExtension);
     UNREFERENCED_PARAMETER(modemControlValue);
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- %!FUNC! Entry");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- 8 %!FUNC! Entry");
     // TODO
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- %!FUNC! Exit");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- 8 %!FUNC! Exit");
 }
 
 VOID MODEM_CONTROL_DISABLE_REQUEST_TO_SEND(_In_ PUART_DEVICE_EXTENSION pDeviceExtension)
 {
     UNREFERENCED_PARAMETER(pDeviceExtension);
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- %!FUNC! Entry");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- 9 %!FUNC! Entry");
     // TODO
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- %!FUNC! Exit");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- 9 %!FUNC! Exit");
 }
 
 VOID DIVISOR_LATCH_WRITE(_In_ PUART_DEVICE_EXTENSION pDeviceExtension, _In_ USHORT divisorValue)
 {
     UNREFERENCED_PARAMETER(pDeviceExtension);
     UNREFERENCED_PARAMETER(divisorValue);
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- %!FUNC! Entry");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- 10 %!FUNC! Entry");
     // TODO
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- %!FUNC! Exit");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- 10 %!FUNC! Exit");
 }
 
 UCHAR RECEIVE_BUFFER_READ(_In_ PUART_DEVICE_EXTENSION pDeviceExtension)
 {
     UNREFERENCED_PARAMETER(pDeviceExtension);
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- %!FUNC! Entry");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- 11 %!FUNC! Entry");
     // TODO
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- %!FUNC! Exit");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- 11 %!FUNC! Exit");
     return 0;
 }
 
 VOID INTERRUPT_DISABLE_ALL(_In_ PUART_DEVICE_EXTENSION pDeviceExtension)
 {
     UNREFERENCED_PARAMETER(pDeviceExtension);
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- %!FUNC! Entry");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- 12 %!FUNC! Entry");
     // TODO
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- %!FUNC! Exit");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- 12 %!FUNC! Exit");
 }
 
 VOID INTERRUPT_ENABLE_LINE_STATUS_CHANGE(_In_ PUART_DEVICE_EXTENSION pDeviceExtension)
 {
     UNREFERENCED_PARAMETER(pDeviceExtension);
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- %!FUNC! Entry");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- 13 %!FUNC! Entry");
     // TODO
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- %!FUNC! Exit");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- 13 %!FUNC! Exit");
 }
 
 VOID INTERRUPT_DISABLE_LINE_STATUS_CHANGE(_In_ PUART_DEVICE_EXTENSION pDeviceExtension)
 {
     UNREFERENCED_PARAMETER(pDeviceExtension);
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- %!FUNC! Entry");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- 14 %!FUNC! Entry");
     // TODO
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- %!FUNC! Exit");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- 14 %!FUNC! Exit");
 }
 
 VOID INTERRUPT_ENABLE_RECEIVE_DATA_AVAILABLE(_In_ PUART_DEVICE_EXTENSION pDeviceExtension)
 {
     UNREFERENCED_PARAMETER(pDeviceExtension);
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- %!FUNC! Entry");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- 15 %!FUNC! Entry");
     // TODO
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- %!FUNC! Exit");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- 15 %!FUNC! Exit");
 }
 
 BOOLEAN INTERRUPT_DISABLE_RECEIVE_DATA_AVAILABLE(_In_ PUART_DEVICE_EXTENSION pDeviceExtension)
 {
     UNREFERENCED_PARAMETER(pDeviceExtension);
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- %!FUNC! Entry");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- 16 %!FUNC! Entry");
     // TODO
-    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- %!FUNC! Exit");
+    TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_UART_PL011, "--- 16 %!FUNC! Exit");
     return TRUE;
 }

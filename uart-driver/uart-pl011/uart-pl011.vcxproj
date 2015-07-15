@@ -246,8 +246,8 @@
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="..\Trace.h" />
+    <ClInclude Include="src\pl011.h" />
     <ClInclude Include="src\Public.h" />
-    <ClInclude Include="src\Registers.h" />
   </ItemGroup>
   <ItemGroup>
     <ProjectReference Include="..\common\common.vcxproj">
@@ -255,6 +255,7 @@
     </ProjectReference>
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="src\pl011.c" />
     <ClCompile Include="src\Registers.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />

@@ -35,11 +35,8 @@ typedef struct _UART_DEVICE_EXTENSION
     ULONG ControllerMemorySpan;
     ULONG ControllerAddressSpace;
 
-    ULONG InterruptVector;
-    KIRQL InterruptLevel;
-    KAFFINITY InterruptAffinity;
-
     BOOLEAN DeviceActive;
+
     UCHAR LineStatus;
     UCHAR LineControl;
     UCHAR InterruptEnableRegister;

@@ -458,12 +458,14 @@ NTSTATUS PrepareUartHardware(_In_ WDFDEVICE device, _In_ WDFCMRESLIST resources,
         }
     }
 
+    /* TODO some devices might not have it
     if (numberOfInterrupResourcesFound == 0)
     {
         // TODO log in ETW
         TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "didn't find any interrupt resources");
         return STATUS_INSUFFICIENT_RESOURCES;
     }
+    */
 
     if (numberOfMemoryResourcesFound != 0)
     {
@@ -515,8 +517,6 @@ NTSTATUS InitializeUartController(_In_ WDFDEVICE device, _In_ const UART_HARDWAR
 
     UART_DEVICE_ENABLE(pDeviceExtension, TRUE);
 
-    FIFO_CONTROL_ENABLE(pDeviceExtension);
-
     pDeviceExtension->LineStatus = LINE_STATUS_READ(pDeviceExtension);
     pDeviceExtension->ModemStatus = MODEM_STATUS_READ(pDeviceExtension);
 
@@ -525,6 +525,8 @@ NTSTATUS InitializeUartController(_In_ WDFDEVICE device, _In_ const UART_HARDWAR
     pDeviceExtension->DivisorLatch = 0;
     pDeviceExtension->ClockRate = 0;
     pDeviceExtension->DeviceActive = FALSE;
+
+    FIFO_CONTROL_ENABLE(pDeviceExtension);
 
     pDeviceExtension->TxFifoSize = READ_SERIAL_TX_FIFO_SIZE();
     pDeviceExtension->RxFifoSize = READ_SERIAL_RX_FIFO_SIZE();

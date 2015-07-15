@@ -25,6 +25,6 @@ if /I %command% == stop (
 )
 if /I %command% == format (
     mkdir ./!tracing-out!
-    "%WIN_KITS_PATH%\tracepdb.exe" -f ..\ARM\Release\uart-mini.pdb -p ./!tracing-out! -o ./!tracing-out!/"%TMFFILE%"
+    "%WIN_KITS_PATH%\tracepdb.exe" -f ..\ARM\Release\uart-*.pdb -p ./!tracing-out! -o ./!tracing-out!/"%TMFFILE%"
     "%WIN_KITS_PATH%\tracefmt.exe" ./!tracing-out!/"%TRACE_NAME%.etl" -tmf ./!tracing-out!/"%TMFFILE%" -p ./!tracing-out! -nosummary -o ./!tracing-out!/"TRACE_NAME.txt"
 )

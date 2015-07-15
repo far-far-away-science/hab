@@ -1,5 +1,6 @@
 #pragma once
 
+#include "telemetry.h"
 #include "nmea_messages.h"
 
 typedef struct Callsign_t
@@ -12,4 +13,4 @@ extern const Callsign CALLSIGN_SOURCE;
 extern const Callsign CALLSIGN_DESTINATION;
 
 void initializeAprs(void);
-bool sendAprsMessage(const GpsData* pGpsData);
+bool sendAprsMessage(const GpsData* pGpsData, const Telemetry* pTelemetry);

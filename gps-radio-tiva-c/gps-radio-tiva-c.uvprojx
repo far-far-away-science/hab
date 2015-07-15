@@ -349,7 +349,7 @@
           </ArmAdsMisc>
           <Cads>
             <interw>1</interw>
-            <Optim>3</Optim>
+            <Optim>1</Optim>
             <oTime>1</oTime>
             <SplitLS>0</SplitLS>
             <OneElfS>1</OneElfS>
@@ -456,6 +456,16 @@
               <FileName>signals.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\signals.c</FilePath>
+            </File>
+            <File>
+              <FileName>telemetry.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\telemetry.h</FilePath>
+            </File>
+            <File>
+              <FileName>telemetry.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\telemetry.c</FilePath>
             </File>
             <File>
               <FileName>timer.h</FileName>

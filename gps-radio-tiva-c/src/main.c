@@ -3,6 +3,7 @@
 #include "tiva_c.h"
 #include "common.h"
 #include "signals.h"
+#include "telemetry.h"
 #include "aprs_board.h"
 #include "i2c.h"
 
@@ -19,6 +20,7 @@ int main()
     initializeUart();
     initializeI2C();
     initializeSignals();
+    initializeTelemetry();
 
     bool r = true;
 
@@ -37,15 +39,17 @@ int main()
         signalError();
     }
 
-    uint32_t startTime = getSecondsSinceStart();
-
     GpsData venusGpsData = { 0 };
     GpsData copernicusGpsData = { 0 };
 
     Message venusGpsMessage = { 0 };
     Message copernicusGpsMessage = { 0 };
 
+    Telemetry telemetry;
+
     bool shouldSendVenusDataToAprs = true;
+
+    uint32_t lastRadioSentTime = getSecondsSinceStart();
     
     while (true)
     {
@@ -96,20 +100,23 @@ int main()
 
         uint32_t currentTime = getSecondsSinceStart();
 
-        if (currentTime - startTime >= RADIO_MCU_MESSAGE_SENDING_INTERVAL_SECONDS)
+        if (currentTime - lastRadioSentTime >= RADIO_MCU_MESSAGE_SENDING_INTERVAL_SECONDS)
         {
+            getTelemetry(&telemetry);
+            
             if (shouldSendVenusDataToAprs && venusGpsData.isValid)
             {
-                sendAprsMessage(&venusGpsData);
+                sendAprsMessage(&venusGpsData, &telemetry);
             }
             else
             {
                 // higher chance that copernicus will work more reliably
                 // so we will use it as a default fallback
-                sendAprsMessage(&copernicusGpsData);
+                sendAprsMessage(&copernicusGpsData, &telemetry);
             }
+
             shouldSendVenusDataToAprs = !shouldSendVenusDataToAprs;
-            startTime = currentTime;
+            lastRadioSentTime = currentTime;
         }
 
         // TODO if 60 seconds expired write stats to EPPROM

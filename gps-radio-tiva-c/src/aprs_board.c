@@ -133,7 +133,7 @@ uint8_t g_currentSymbolPulsesCount = 0;
 
 void enableHx1(void);
 void enablePwm(void);
-bool createAprsMessage(const GpsData* pGpsData);
+bool createAprsMessage(const GpsData* pGpsData, const Telemetry* pTelemetry);
 
 void initializeAprs(void)
 {
@@ -147,13 +147,13 @@ void initializeAprs(void)
     PWMPulseWidthSet(PWM0_BASE, PWM_OUT_0, PWM_MIN_PULSE_WIDTH);
 }
 
-bool sendAprsMessage(const GpsData* pGpsData)
+bool sendAprsMessage(const GpsData* pGpsData, const Telemetry* pTelemetry)
 {
     if (g_sendingMessage)
     {
         return false;
     }
-    if (!createAprsMessage(pGpsData))
+    if (!createAprsMessage(pGpsData, pTelemetry))
     {
         return false;
     }
@@ -307,6 +307,7 @@ bool encodeAndAppendBits(uint8_t* pBitstreamBuffer,
 bool generateMessage(const Callsign* pCallsignDestination,
                      const Callsign* pCallsignSource,
                      const GpsData* pGpsData,
+                     const Telemetry* pTelemetry,
                      uint8_t* bitstreamBuffer,
                      uint16_t maxBitstreamBufferLen,
                      BitstreamPos* pBitstreamSize)
@@ -341,6 +342,7 @@ bool generateMessage(const Callsign* pCallsignDestination,
     //
     // TODO add GPS encoding
     // TODO temporary code below
+    // TODO encode telemetry
     encodeAndAppendBits(bitstreamBuffer, maxBitstreamBufferLen, &encodingData, (const uint8_t*) "Hello World!", 12, PERFORM_STUFFING, CALCULATE_FCS, NO_SHIFT_ONE_LEFT);
     // TODO add GPS encoding
     //
@@ -369,7 +371,7 @@ bool generateMessage(const Callsign* pCallsignDestination,
 }
 
 
-bool createAprsMessage(const GpsData* pGpsData)
+bool createAprsMessage(const GpsData* pGpsData, const Telemetry* pTelemetry)
 {
     g_leadingOnesLeft = LEADING_ONES_COUNT_TO_CANCEL_PREVIOUS_PACKET;
     g_leadingMidSignalLeft = LEADING_MID_AMPLITUDE_DC_PULSES_COUNT;
@@ -388,6 +390,7 @@ bool createAprsMessage(const GpsData* pGpsData)
     if (generateMessage(&CALLSIGN_DESTINATION,
                         &CALLSIGN_SOURCE,
                         pGpsData,
+                        pTelemetry,
                         g_currentBitstream,
                         APRS_BITSTREAM_MAX_LEN,
                         &g_currentBitstreamSize))
@@ -455,6 +458,7 @@ void Pwm10Handler(void)
         {
             disablePwm();
             disableHx1();
+            PWMPulseWidthSet(PWM0_BASE, PWM_OUT_0, PWM_MIN_PULSE_WIDTH);
             g_sendingMessage = false;
             return;
         }
@@ -470,7 +474,6 @@ void Pwm10Handler(void)
         else
         {
             // bit stream is already AFSK encoded so we simply send ones and zeroes as is
-
             const bool isOne = g_currentBitstream[g_currentBitstreamPos.bitstreamCharIdx] & (1 << g_currentBitstreamPos.bitstreamCharBitIdx);
 
             // zero
