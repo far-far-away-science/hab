@@ -1,6 +1,6 @@
 #include "Receive.h"
 
-#include "DeviceDefinitions.h"
+#include "DeviceSpecific.h"
 
 #include "Receive.tmh"
 
@@ -14,7 +14,7 @@ ULONG EvtSerCx2PioReceiveReadBuffer(_In_ SERCX2PIORECEIVE pioReceive, _Out_ PUCH
     WdfSpinLockAcquire(pDeviceExtension->WdfRegistersSpinLock);
 
     ULONG bytesTransferred = 0;
-    for (; CanReadCharacter(pDeviceExtension) && bytesTransferred < length; ++bytesTransferred)
+    for (; CAN_RECEIVE_CHARACTER(pDeviceExtension) && bytesTransferred < length; ++bytesTransferred)
     {
         buffer[bytesTransferred] = RECEIVE_BUFFER_READ(pDeviceExtension);
     }
@@ -54,16 +54,4 @@ BOOLEAN EvtSerCx2PioReceiveCancelReadyNotification(_In_ SERCX2PIORECEIVE pioRece
 
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_RECEIVE, "%!FUNC! Exit");
     return cancelHandledSuccessfully;
-}
-
-UCHAR UartReadRegisterUChar(_In_reads_(_Inexpressible_(offset)) REGBASE baseAddress, _In_ ULONG offset)
-{
-    const UCHAR readChar = READ_REGISTER_UCHAR(((PUCHAR) baseAddress) + offset);
-    TraceEvents(TRACE_LEVEL_INFORMATION,
-                TRACE_RECEIVE,
-                "read register UCHAR (0x%p + 0x%lx) = 0x%x",
-                (void*) baseAddress,
-                (long int) offset,
-                (unsigned int) readChar);
-    return readChar;
 }

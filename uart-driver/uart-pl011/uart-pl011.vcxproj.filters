@@ -25,10 +25,10 @@
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="src\Registers.c">
+    <ClCompile Include="src\pl011.c">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="src\pl011.c">
+    <ClCompile Include="src\DeviceSpecific.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>

@@ -1,6 +1,6 @@
 #include "Power.h"
 
-#include "DeviceDefinitions.h"
+#include "DeviceSpecific.h"
 
 #include "Power.tmh"
 
@@ -15,16 +15,8 @@ NTSTATUS PowerEvtD0Entry(_In_ WDFDEVICE device, _In_ WDF_POWER_DEVICE_STATE prev
     pDeviceExtension->DeviceActive = TRUE;
 
     WdfSpinLockAcquire(pDeviceExtension->WdfRegistersSpinLock);
-    LINE_CONTROL_WRITE(pDeviceExtension, pDeviceExtension->LineControl);
-    DIVISOR_LATCH_WRITE(pDeviceExtension, pDeviceExtension->DivisorLatch);
-    MODEM_CONTROL_WRITE(pDeviceExtension, pDeviceExtension->ModemControl);
 
-    TraceEvents(TRACE_LEVEL_INFORMATION,
-                TRACE_POWER,
-                "restored modem to active state (line control=0x%x, divisor latch=0x%x, modem control=0x%x)",
-                (unsigned int)pDeviceExtension->LineControl,
-                (unsigned int)pDeviceExtension->DivisorLatch,
-                (unsigned int)pDeviceExtension->ModemControl);
+    RESTORE_REGISTERS_FROM_MEMORY(pDeviceExtension);
 
     WdfSpinLockRelease(pDeviceExtension->WdfRegistersSpinLock);
 
@@ -64,7 +56,7 @@ NTSTATUS PowerEvtD0ExitPreInterruptsDisabled(_In_ WDFDEVICE device, _In_ WDF_POW
 
     WdfSpinLockAcquire(pDeviceExtension->WdfRegistersSpinLock);
 
-    MODEM_CONTROL_DISABLE_REQUEST_TO_SEND(pDeviceExtension);
+    DISABLE_REQUEST_TO_SEND(pDeviceExtension);
 
     WdfSpinLockRelease(pDeviceExtension->WdfRegistersSpinLock);
 
@@ -83,7 +75,7 @@ NTSTATUS PowerEvtD0Exit(_In_ WDFDEVICE device, _In_ WDF_POWER_DEVICE_STATE targe
 
     WdfSpinLockAcquire(pDeviceExtension->WdfRegistersSpinLock);
 
-    if (IsFifoDataLoss(pDeviceExtension))
+    if (IS_FIFO_DATA_LOSS(pDeviceExtension))
     {
         // some data is still available in transmitter
         const long int newValue = InterlockedIncrement(&pDeviceExtension->ErrorCount.TxFifoDataLossOnD0Exit);

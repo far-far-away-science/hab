@@ -1,6 +1,6 @@
 #include "Interrupt.h"
 
-#include "DeviceDefinitions.h"
+#include "DeviceSpecific.h"
 
 #include "Interrupt.tmh"
 

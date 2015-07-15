@@ -5,7 +5,7 @@
 #include "Transmit.h"
 #include "Interrupt.h"
 #include "SerCx2Utils.h"
-#include "DeviceDefinitions.h"
+#include "DeviceSpecific.h"
 
 #include "..\..\Trace.h"
 
@@ -374,7 +374,7 @@ NTSTATUS UartDeviceInitPio(_In_ WDFDEVICE device)
     return STATUS_SUCCESS;
 }
 
-NTSTATUS PrepareUartHardware(_In_ WDFDEVICE device, _In_ WDFCMRESLIST resources, _In_ WDFCMRESLIST resourcesTranslated, _In_ UART_HARDWARE_CONFIGURATION* pUartHardwareConfiguration)
+NTSTATUS PrepareUartHardware(_In_ WDFCMRESLIST resources, _In_ WDFCMRESLIST resourcesTranslated, _In_ UART_HARDWARE_CONFIGURATION* pUartHardwareConfiguration)
 {
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Entry");
 
@@ -391,7 +391,6 @@ NTSTATUS PrepareUartHardware(_In_ WDFDEVICE device, _In_ WDFCMRESLIST resources,
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "number of resources = %lu", (unsigned long) resourceListCount);
 
     ULONG numberOfMemoryResourcesFound = 0;
-    ULONG numberOfInterrupResourcesFound = 0;
 
     for (ULONG i = 0; i < resourceListCount; i++)
     {
@@ -424,27 +423,6 @@ NTSTATUS PrepareUartHardware(_In_ WDFDEVICE device, _In_ WDFCMRESLIST resources,
                     ++numberOfMemoryResourcesFound;
                     break;
                 }
-                case CmResourceTypeInterrupt:
-                {
-                    if (numberOfInterrupResourcesFound == 0)
-                    {
-                        pUartHardwareConfiguration->InterruptVector = pPartialResourceTransltedDesc->u.Interrupt.Vector;
-                        pUartHardwareConfiguration->InterruptLevel = pPartialResourceTransltedDesc->u.Interrupt.Level;
-                        pUartHardwareConfiguration->InterruptAffinity = pPartialResourceTransltedDesc->u.Interrupt.Affinity;
-                        TraceEvents(TRACE_LEVEL_INFORMATION,
-                                    TRACE_DEVICE,
-                                    "interrupt resource found (vector=0x%lx,level=0x%lx,affinity=0x%lx)",
-                                    (unsigned long) pUartHardwareConfiguration->InterruptVector,
-                                    (unsigned long) pUartHardwareConfiguration->InterruptLevel,
-                                    (unsigned long) pUartHardwareConfiguration->InterruptAffinity);
-                    }
-                    else
-                    {
-                        TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "found more than one interrupt resource, not sure what to do about them");
-                    }
-                    ++numberOfInterrupResourcesFound;
-                    break;
-                }
                 default:
                 {
                     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "found unsupported resource with type = %hu", (unsigned short int) pPartialResourceTransltedDesc->Type);
@@ -458,22 +436,7 @@ NTSTATUS PrepareUartHardware(_In_ WDFDEVICE device, _In_ WDFCMRESLIST resources,
         }
     }
 
-    /* TODO some devices might not have it
-    if (numberOfInterrupResourcesFound == 0)
-    {
-        // TODO log in ETW
-        TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "didn't find any interrupt resources");
-        return STATUS_INSUFFICIENT_RESOURCES;
-    }
-    */
-
-    if (numberOfMemoryResourcesFound != 0)
-    {
-        PUART_DEVICE_EXTENSION pDeviceExtension = GetUartDeviceExtension(device);
-        pDeviceExtension->UartReadDeviceUChar = UartReadRegisterUChar;
-        pDeviceExtension->UartWriteDeviceUChar = UartWriteRegisterUChar;
-    }
-    else
+    if (numberOfMemoryResourcesFound == 0)
     {
         // TODO log in ETW
         TraceEvents(TRACE_LEVEL_ERROR, TRACE_DEVICE, "didn't find any memory resources");
@@ -511,22 +474,11 @@ NTSTATUS InitializeUartController(_In_ WDFDEVICE device, _In_ const UART_HARDWAR
     pDeviceExtension->ControllerAddressSpace = pUartHardwareConfiguration->AddressSpace;
     pDeviceExtension->ControllerMemorySpan = pUartHardwareConfiguration->MemoryLength;
 
-    pDeviceExtension->InterruptVector = pUartHardwareConfiguration->InterruptVector;
-    pDeviceExtension->InterruptLevel = (KIRQL)pUartHardwareConfiguration->InterruptLevel;
-    pDeviceExtension->InterruptAffinity = pUartHardwareConfiguration->InterruptAffinity;
-
     UART_DEVICE_ENABLE(pDeviceExtension, TRUE);
-
-    pDeviceExtension->LineStatus = LINE_STATUS_READ(pDeviceExtension);
-    pDeviceExtension->ModemStatus = MODEM_STATUS_READ(pDeviceExtension);
-
-    pDeviceExtension->ModemControl = 0;
-    pDeviceExtension->LineControl = 0;
-    pDeviceExtension->DivisorLatch = 0;
-    pDeviceExtension->ClockRate = 0;
-    pDeviceExtension->DeviceActive = FALSE;
-
+    INITIALIZE_AND_BACKUP_REGISTERS_IN_MEMORY(pDeviceExtension);
     FIFO_CONTROL_ENABLE(pDeviceExtension);
+
+    pDeviceExtension->DeviceActive = FALSE;
 
     pDeviceExtension->TxFifoSize = READ_SERIAL_TX_FIFO_SIZE();
     pDeviceExtension->RxFifoSize = READ_SERIAL_RX_FIFO_SIZE();
@@ -540,7 +492,7 @@ NTSTATUS UartDeviceEvtPrepareHardware(_In_ WDFDEVICE device, _In_ WDFCMRESLIST r
     TraceEvents(TRACE_LEVEL_INFORMATION, TRACE_DEVICE, "%!FUNC! Entry");
 
     UART_HARDWARE_CONFIGURATION uartHardwareConfiguration = { 0 };
-    NTSTATUS status = PrepareUartHardware(device, resources, resourcesTranslated, &uartHardwareConfiguration);
+    NTSTATUS status = PrepareUartHardware(resources, resourcesTranslated, &uartHardwareConfiguration);
 
     if (!NT_SUCCESS(status))
     {

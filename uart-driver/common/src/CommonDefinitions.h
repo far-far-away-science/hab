@@ -26,9 +26,6 @@ typedef struct _UART_DEVICE_EXTENSION
     SERCX2PIOTRANSMIT WdfPioTransmit;
     SERCX2PIORECEIVE WdfPioReceive;
 
-    PREAD_DEVICE_UCHAR UartReadDeviceUChar;
-    PWRITE_DEVICE_UCHAR UartWriteDeviceUChar;
-
     BOOLEAN RegistersMapped;
 
     REGBASE ControllerAddress;
@@ -37,6 +34,14 @@ typedef struct _UART_DEVICE_EXTENSION
 
     BOOLEAN DeviceActive;
 
+    // PL011 only uses up to 16 bits in all of it's registers
+    USHORT ControlRegister;
+    USHORT LineControlRegister;
+
+    /*
+    PREAD_DEVICE_UCHAR UartReadDeviceUChar;
+    PWRITE_DEVICE_UCHAR UartWriteDeviceUChar;
+
     UCHAR LineStatus;
     UCHAR LineControl;
     UCHAR InterruptEnableRegister;
@@ -44,6 +49,7 @@ typedef struct _UART_DEVICE_EXTENSION
     UCHAR ModemControl;
     USHORT DivisorLatch;
     ULONG ClockRate;
+    */
 
     USHORT TxFifoSize;
     USHORT RxFifoSize;
@@ -78,8 +84,4 @@ typedef struct _UART_HARDWARE_CONFIGURATION
     PHYSICAL_ADDRESS MemoryStart;
     PHYSICAL_ADDRESS MemoryStartTranslated;
     ULONG MemoryLength;
-
-    ULONG InterruptVector;
-    ULONG InterruptLevel;
-    KAFFINITY InterruptAffinity;
 } UART_HARDWARE_CONFIGURATION, *PUART_HARDWARE_CONFIGURATION;

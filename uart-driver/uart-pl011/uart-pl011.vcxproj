@@ -256,7 +256,7 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\pl011.c" />
-    <ClCompile Include="src\Registers.c" />
+    <ClCompile Include="src\DeviceSpecific.c" />
   </ItemGroup>
   <Import Project="$(VCTargetsPath)\Microsoft.Cpp.targets" />
   <ImportGroup Label="ExtensionTargets">

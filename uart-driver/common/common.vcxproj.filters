@@ -32,7 +32,7 @@
       <Filter>Source Files</Filter>
     </ClInclude>
     <ClInclude Include="..\Trace.h" />
-    <ClInclude Include="src\DeviceDefinitions.h">
+    <ClInclude Include="src\DeviceSpecific.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>
