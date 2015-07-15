@@ -6,7 +6,7 @@
 
 FORCEINLINE VOID WriteRegisterUShort(_In_reads_(_Inexpressible_(offset)) REGBASE baseAddress, _In_ ULONG offset, _In_ USHORT value)
 {
-    WRITE_REGISTER_USHORT(((PUSHORT) baseAddress) + offset, value);
+    WRITE_REGISTER_USHORT((PUSHORT) (((PUCHAR) baseAddress) + offset), value);
     TraceEvents(TRACE_LEVEL_INFORMATION,
                 TRACE_RECEIVE,
                 "wrote register USHORT (0x%p + 0x%lx) = 0x%04x",
@@ -17,7 +17,7 @@ FORCEINLINE VOID WriteRegisterUShort(_In_reads_(_Inexpressible_(offset)) REGBASE
 
 USHORT ReadRegisterUShort(_In_reads_(_Inexpressible_(offset)) REGBASE baseAddress, _In_ ULONG offset)
 {
-    const USHORT result = READ_REGISTER_USHORT(((PUSHORT) baseAddress) + offset);
+    const USHORT result = READ_REGISTER_USHORT((PUSHORT) (((PUCHAR) baseAddress) + offset));
     TraceEvents(TRACE_LEVEL_INFORMATION,
                 TRACE_RECEIVE,
                 "read register UCHAR (0x%p + 0x%lx) = 0x%04x",
