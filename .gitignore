@@ -225,3 +225,6 @@ ModelManifest.xml
 *.d
 *.o
 *.uvguix.*
+
+# eagle temp files
+*.s#*
