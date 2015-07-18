@@ -6450,9 +6450,11 @@ Source: www.johnsoncomponents.com .. J502-ND.pdf</description>
 <part name="GND8" library="supply1" deviceset="GNDA" device=""/>
 <part name="R7" library="resistor" deviceset="R-US_" device="0204/2V" value="100K"/>
 <part name="R8" library="resistor" deviceset="R-US_" device="0204/2V" value="100"/>
-<part name="R9" library="resistor" deviceset="R-US_" device="0204/2V" value="100K"/>
 <part name="C5" library="capacitor-wima" deviceset="C" device="2.5/2" value="10pF"/>
 <part name="GND9" library="supply1" deviceset="GNDA" device=""/>
+<part name="C6" library="capacitor-wima" deviceset="C" device="2.5/2" value="0.1uF"/>
+<part name="GND10" library="supply1" deviceset="GNDA" device=""/>
+<part name="R9" library="resistor" deviceset="R-US_" device="0204/2V" value="100K"/>
 </parts>
 <sheets>
 <sheet>
@@ -6463,7 +6465,7 @@ ARE WE GOING TO WIRE IT
 TO GPIO</text>
 </plain>
 <instances>
-<instance part="TIVA_1" gate="A" x="2.54" y="55.88"/>
+<instance part="TIVA_1" gate="A" x="2.54" y="73.66"/>
 <instance part="TIVA_2" gate="A" x="2.54" y="20.32"/>
 <instance part="VENUS_2" gate="A" x="121.92" y="127"/>
 <instance part="VENUS_1" gate="A" x="134.62" y="127"/>
@@ -6478,7 +6480,7 @@ TO GPIO</text>
 <instance part="C3" gate="G$1" x="114.3" y="12.7" rot="R90"/>
 <instance part="R4" gate="G$1" x="124.46" y="22.86" rot="R90"/>
 <instance part="GND1" gate="1" x="68.58" y="0"/>
-<instance part="+3V1" gate="G$1" x="91.44" y="35.56"/>
+<instance part="+3V1" gate="G$1" x="93.98" y="-7.62" rot="R180"/>
 <instance part="+3V2" gate="G$1" x="124.46" y="35.56"/>
 <instance part="GND2" gate="1" x="33.02" y="-5.08"/>
 <instance part="GND3" gate="1" x="53.34" y="-5.08"/>
@@ -6488,20 +6490,22 @@ TO GPIO</text>
 <instance part="GND5" gate="1" x="142.24" y="2.54"/>
 <instance part="X1" gate="G1" x="134.62" y="78.74" rot="R270"/>
 <instance part="P+1" gate="1" x="137.16" y="45.72"/>
-<instance part="R5" gate="G$1" x="20.32" y="45.72" rot="R90"/>
-<instance part="R6" gate="G$1" x="25.4" y="68.58" rot="R90"/>
-<instance part="C4" gate="G$1" x="30.48" y="48.26"/>
-<instance part="G1" gate="G$1" x="10.16" y="86.36"/>
-<instance part="GND6" gate="1" x="25.4" y="33.02"/>
-<instance part="GND7" gate="1" x="-7.62" y="76.2"/>
+<instance part="R5" gate="G$1" x="20.32" y="66.04" rot="R90"/>
+<instance part="R6" gate="G$1" x="25.4" y="91.44" rot="R90"/>
+<instance part="C4" gate="G$1" x="30.48" y="68.58"/>
+<instance part="G1" gate="G$1" x="10.16" y="99.06"/>
+<instance part="GND6" gate="1" x="25.4" y="50.8"/>
+<instance part="GND7" gate="1" x="-7.62" y="91.44"/>
 <instance part="TIVA_PWR" gate="A" x="-20.32" y="27.94"/>
 <instance part="P+2" gate="1" x="-35.56" y="40.64"/>
 <instance part="GND8" gate="1" x="-35.56" y="15.24"/>
 <instance part="R7" gate="G$1" x="142.24" y="30.48" rot="R90"/>
-<instance part="R8" gate="G$1" x="104.14" y="12.7"/>
-<instance part="R9" gate="G$1" x="48.26" y="25.4" rot="R90"/>
-<instance part="C5" gate="G$1" x="58.42" y="25.4"/>
+<instance part="R8" gate="G$1" x="78.74" y="27.94"/>
+<instance part="C5" gate="G$1" x="60.96" y="22.86" rot="R270"/>
 <instance part="GND9" gate="1" x="88.9" y="0"/>
+<instance part="C6" gate="G$1" x="104.14" y="2.54"/>
+<instance part="GND10" gate="1" x="104.14" y="-7.62"/>
+<instance part="R9" gate="G$1" x="78.74" y="38.1"/>
 </instances>
 <busses>
 </busses>
@@ -6565,20 +6569,20 @@ TO GPIO</text>
 </segment>
 <segment>
 <pinref part="R5" gate="G$1" pin="1"/>
-<wire x1="20.32" y1="40.64" x2="20.32" y2="38.1" width="0.1524" layer="91"/>
-<wire x1="20.32" y1="38.1" x2="25.4" y2="38.1" width="0.1524" layer="91"/>
+<wire x1="20.32" y1="60.96" x2="20.32" y2="58.42" width="0.1524" layer="91"/>
+<wire x1="20.32" y1="58.42" x2="25.4" y2="58.42" width="0.1524" layer="91"/>
 <pinref part="C4" gate="G$1" pin="2"/>
-<wire x1="25.4" y1="38.1" x2="30.48" y2="38.1" width="0.1524" layer="91"/>
-<wire x1="30.48" y1="38.1" x2="30.48" y2="43.18" width="0.1524" layer="91"/>
-<junction x="25.4" y="38.1"/>
+<wire x1="25.4" y1="58.42" x2="30.48" y2="58.42" width="0.1524" layer="91"/>
+<wire x1="30.48" y1="58.42" x2="30.48" y2="63.5" width="0.1524" layer="91"/>
+<junction x="25.4" y="58.42"/>
 <pinref part="GND6" gate="1" pin="GNDA"/>
-<wire x1="25.4" y1="35.56" x2="25.4" y2="38.1" width="0.1524" layer="91"/>
+<wire x1="25.4" y1="53.34" x2="25.4" y2="58.42" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="GND7" gate="1" pin="GNDA"/>
-<wire x1="-7.62" y1="78.74" x2="-7.62" y2="86.36" width="0.1524" layer="91"/>
+<wire x1="-7.62" y1="93.98" x2="-7.62" y2="99.06" width="0.1524" layer="91"/>
 <pinref part="G1" gate="G$1" pin="-"/>
-<wire x1="-7.62" y1="86.36" x2="-2.54" y2="86.36" width="0.1524" layer="91"/>
+<wire x1="-7.62" y1="99.06" x2="-2.54" y2="99.06" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="GND8" gate="1" pin="GNDA"/>
@@ -6592,13 +6596,23 @@ TO GPIO</text>
 <pinref part="GND9" gate="1" pin="GNDA"/>
 <wire x1="88.9" y1="10.16" x2="88.9" y2="2.54" width="0.1524" layer="91"/>
 </segment>
+<segment>
+<pinref part="C6" gate="G$1" pin="2"/>
+<pinref part="GND10" gate="1" pin="GNDA"/>
+<wire x1="104.14" y1="-2.54" x2="104.14" y2="-5.08" width="0.1524" layer="91"/>
+</segment>
 </net>
 <net name="+3V3" class="0">
 <segment>
 <pinref part="LMC6482" gate="G$1" pin="8"/>
-<wire x1="86.36" y1="17.78" x2="91.44" y2="17.78" width="0.1524" layer="91"/>
+<wire x1="86.36" y1="17.78" x2="93.98" y2="17.78" width="0.1524" layer="91"/>
 <pinref part="+3V1" gate="G$1" pin="+3V3"/>
-<wire x1="91.44" y1="17.78" x2="91.44" y2="33.02" width="0.1524" layer="91"/>
+<wire x1="93.98" y1="17.78" x2="93.98" y2="7.62" width="0.1524" layer="91"/>
+<junction x="93.98" y="7.62"/>
+<wire x1="93.98" y1="7.62" x2="93.98" y2="-5.08" width="0.1524" layer="91"/>
+<wire x1="93.98" y1="7.62" x2="104.14" y2="7.62" width="0.1524" layer="91"/>
+<pinref part="C6" gate="G$1" pin="1"/>
+<wire x1="104.14" y1="7.62" x2="104.14" y2="5.08" width="0.1524" layer="91"/>
 </segment>
 <segment>
 <pinref part="+3V2" gate="G$1" pin="+3V3"/>
@@ -6663,26 +6677,26 @@ TO GPIO</text>
 <net name="N$9" class="0">
 <segment>
 <pinref part="R5" gate="G$1" pin="2"/>
-<wire x1="20.32" y1="50.8" x2="20.32" y2="53.34" width="0.1524" layer="91"/>
-<wire x1="20.32" y1="53.34" x2="25.4" y2="53.34" width="0.1524" layer="91"/>
+<wire x1="20.32" y1="71.12" x2="20.32" y2="73.66" width="0.1524" layer="91"/>
+<wire x1="20.32" y1="73.66" x2="25.4" y2="73.66" width="0.1524" layer="91"/>
 <pinref part="C4" gate="G$1" pin="1"/>
-<wire x1="25.4" y1="53.34" x2="30.48" y2="53.34" width="0.1524" layer="91"/>
-<wire x1="30.48" y1="53.34" x2="30.48" y2="50.8" width="0.1524" layer="91"/>
-<junction x="25.4" y="53.34"/>
+<wire x1="25.4" y1="73.66" x2="30.48" y2="73.66" width="0.1524" layer="91"/>
+<wire x1="30.48" y1="73.66" x2="30.48" y2="71.12" width="0.1524" layer="91"/>
+<junction x="25.4" y="73.66"/>
 <pinref part="TIVA_1" gate="A" pin="8"/>
-<wire x1="7.62" y1="58.42" x2="25.4" y2="58.42" width="0.1524" layer="91"/>
+<wire x1="7.62" y1="76.2" x2="25.4" y2="76.2" width="0.1524" layer="91"/>
 <pinref part="R6" gate="G$1" pin="1"/>
-<wire x1="25.4" y1="58.42" x2="25.4" y2="63.5" width="0.1524" layer="91"/>
-<junction x="25.4" y="58.42"/>
-<wire x1="25.4" y1="53.34" x2="25.4" y2="58.42" width="0.1524" layer="91"/>
+<wire x1="25.4" y1="76.2" x2="25.4" y2="86.36" width="0.1524" layer="91"/>
+<junction x="25.4" y="76.2"/>
+<wire x1="25.4" y1="73.66" x2="25.4" y2="76.2" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$10" class="0">
 <segment>
 <pinref part="G1" gate="G$1" pin="+"/>
-<wire x1="22.86" y1="86.36" x2="25.4" y2="86.36" width="0.1524" layer="91"/>
+<wire x1="22.86" y1="99.06" x2="25.4" y2="99.06" width="0.1524" layer="91"/>
 <pinref part="R6" gate="G$1" pin="2"/>
-<wire x1="25.4" y1="86.36" x2="25.4" y2="73.66" width="0.1524" layer="91"/>
+<wire x1="25.4" y1="99.06" x2="25.4" y2="96.52" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$11" class="0">
@@ -6695,45 +6709,29 @@ TO GPIO</text>
 </net>
 <net name="N$8" class="0">
 <segment>
-<pinref part="R8" gate="G$1" pin="2"/>
 <pinref part="C3" gate="G$1" pin="1"/>
-<wire x1="109.22" y1="12.7" x2="111.76" y2="12.7" width="0.1524" layer="91"/>
+<pinref part="R8" gate="G$1" pin="2"/>
+<wire x1="83.82" y1="27.94" x2="86.36" y2="27.94" width="0.1524" layer="91"/>
+<wire x1="86.36" y1="27.94" x2="96.52" y2="27.94" width="0.1524" layer="91"/>
+<wire x1="96.52" y1="27.94" x2="96.52" y2="12.7" width="0.1524" layer="91"/>
+<wire x1="96.52" y1="12.7" x2="111.76" y2="12.7" width="0.1524" layer="91"/>
+<junction x="86.36" y="27.94"/>
+<pinref part="R9" gate="G$1" pin="2"/>
+<wire x1="83.82" y1="38.1" x2="86.36" y2="38.1" width="0.1524" layer="91"/>
+<wire x1="86.36" y1="38.1" x2="86.36" y2="27.94" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$13" class="0">
 <segment>
-<pinref part="R9" gate="G$1" pin="2"/>
-<wire x1="48.26" y1="30.48" x2="48.26" y2="33.02" width="0.1524" layer="91"/>
-<wire x1="48.26" y1="33.02" x2="53.34" y2="33.02" width="0.1524" layer="91"/>
-<pinref part="C5" gate="G$1" pin="1"/>
-<wire x1="53.34" y1="33.02" x2="58.42" y2="33.02" width="0.1524" layer="91"/>
-<wire x1="58.42" y1="33.02" x2="58.42" y2="27.94" width="0.1524" layer="91"/>
-<junction x="53.34" y="33.02"/>
-<wire x1="53.34" y1="33.02" x2="53.34" y2="35.56" width="0.1524" layer="91"/>
-<wire x1="53.34" y1="35.56" x2="68.58" y2="35.56" width="0.1524" layer="91"/>
 <pinref part="LMC6482" gate="G$1" pin="1"/>
 <wire x1="71.12" y1="17.78" x2="68.58" y2="17.78" width="0.1524" layer="91"/>
 <wire x1="68.58" y1="17.78" x2="68.58" y2="22.86" width="0.1524" layer="91"/>
-<wire x1="68.58" y1="22.86" x2="96.52" y2="22.86" width="0.1524" layer="91"/>
-<wire x1="96.52" y1="22.86" x2="96.52" y2="12.7" width="0.1524" layer="91"/>
-<pinref part="R8" gate="G$1" pin="1"/>
-<wire x1="96.52" y1="12.7" x2="99.06" y2="12.7" width="0.1524" layer="91"/>
+<pinref part="C5" gate="G$1" pin="1"/>
+<wire x1="63.5" y1="22.86" x2="68.58" y2="22.86" width="0.1524" layer="91"/>
 <junction x="68.58" y="22.86"/>
-<wire x1="68.58" y1="35.56" x2="68.58" y2="22.86" width="0.1524" layer="91"/>
-</segment>
-</net>
-<net name="N$12" class="0">
-<segment>
-<pinref part="R9" gate="G$1" pin="1"/>
-<wire x1="48.26" y1="20.32" x2="48.26" y2="17.78" width="0.1524" layer="91"/>
-<wire x1="48.26" y1="17.78" x2="53.34" y2="17.78" width="0.1524" layer="91"/>
-<pinref part="C5" gate="G$1" pin="2"/>
-<wire x1="53.34" y1="17.78" x2="58.42" y2="17.78" width="0.1524" layer="91"/>
-<wire x1="58.42" y1="17.78" x2="58.42" y2="20.32" width="0.1524" layer="91"/>
-<junction x="53.34" y="17.78"/>
-<wire x1="53.34" y1="17.78" x2="53.34" y2="15.24" width="0.1524" layer="91"/>
-<pinref part="LMC6482" gate="G$1" pin="2"/>
-<wire x1="53.34" y1="15.24" x2="71.12" y2="15.24" width="0.1524" layer="91"/>
+<pinref part="R8" gate="G$1" pin="1"/>
+<wire x1="73.66" y1="27.94" x2="68.58" y2="27.94" width="0.1524" layer="91"/>
+<wire x1="68.58" y1="27.94" x2="68.58" y2="22.86" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$4" class="0">
@@ -6743,6 +6741,20 @@ TO GPIO</text>
 <wire x1="88.9" y1="15.24" x2="88.9" y2="12.7" width="0.1524" layer="91"/>
 <pinref part="LMC6482" gate="G$1" pin="6"/>
 <wire x1="88.9" y1="12.7" x2="86.36" y2="12.7" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$15" class="0">
+<segment>
+<pinref part="R9" gate="G$1" pin="1"/>
+<wire x1="73.66" y1="38.1" x2="66.04" y2="38.1" width="0.1524" layer="91"/>
+<wire x1="66.04" y1="38.1" x2="66.04" y2="15.24" width="0.1524" layer="91"/>
+<pinref part="LMC6482" gate="G$1" pin="2"/>
+<wire x1="53.34" y1="15.24" x2="66.04" y2="15.24" width="0.1524" layer="91"/>
+<junction x="66.04" y="15.24"/>
+<wire x1="66.04" y1="15.24" x2="71.12" y2="15.24" width="0.1524" layer="91"/>
+<pinref part="C5" gate="G$1" pin="2"/>
+<wire x1="55.88" y1="22.86" x2="53.34" y2="22.86" width="0.1524" layer="91"/>
+<wire x1="53.34" y1="22.86" x2="53.34" y2="15.24" width="0.1524" layer="91"/>
 </segment>
 </net>
 </nets>
