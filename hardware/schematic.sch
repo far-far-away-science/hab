@@ -6452,6 +6452,7 @@ Source: www.johnsoncomponents.com .. J502-ND.pdf</description>
 <part name="R8" library="resistor" deviceset="R-US_" device="0204/2V" value="100"/>
 <part name="R9" library="resistor" deviceset="R-US_" device="0204/2V" value="100K"/>
 <part name="C5" library="capacitor-wima" deviceset="C" device="2.5/2" value="10pF"/>
+<part name="GND9" library="supply1" deviceset="GNDA" device=""/>
 </parts>
 <sheets>
 <sheet>
@@ -6500,6 +6501,7 @@ TO GPIO</text>
 <instance part="R8" gate="G$1" x="104.14" y="12.7"/>
 <instance part="R9" gate="G$1" x="48.26" y="25.4" rot="R90"/>
 <instance part="C5" gate="G$1" x="58.42" y="25.4"/>
+<instance part="GND9" gate="1" x="88.9" y="0"/>
 </instances>
 <busses>
 </busses>
@@ -6583,6 +6585,12 @@ TO GPIO</text>
 <wire x1="-35.56" y1="17.78" x2="-35.56" y2="25.4" width="0.1524" layer="91"/>
 <pinref part="TIVA_PWR" gate="A" pin="3"/>
 <wire x1="-35.56" y1="25.4" x2="-22.86" y2="25.4" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="LMC6482" gate="G$1" pin="5"/>
+<wire x1="86.36" y1="10.16" x2="88.9" y2="10.16" width="0.1524" layer="91"/>
+<pinref part="GND9" gate="1" pin="GNDA"/>
+<wire x1="88.9" y1="10.16" x2="88.9" y2="2.54" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="+3V3" class="0">
@@ -6726,6 +6734,15 @@ TO GPIO</text>
 <wire x1="53.34" y1="17.78" x2="53.34" y2="15.24" width="0.1524" layer="91"/>
 <pinref part="LMC6482" gate="G$1" pin="2"/>
 <wire x1="53.34" y1="15.24" x2="71.12" y2="15.24" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$4" class="0">
+<segment>
+<pinref part="LMC6482" gate="G$1" pin="7"/>
+<wire x1="86.36" y1="15.24" x2="88.9" y2="15.24" width="0.1524" layer="91"/>
+<wire x1="88.9" y1="15.24" x2="88.9" y2="12.7" width="0.1524" layer="91"/>
+<pinref part="LMC6482" gate="G$1" pin="6"/>
+<wire x1="88.9" y1="12.7" x2="86.36" y2="12.7" width="0.1524" layer="91"/>
 </segment>
 </net>
 </nets>
