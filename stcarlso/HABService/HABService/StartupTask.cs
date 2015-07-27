@@ -149,13 +149,14 @@ namespace HABService {
 		}
 		public async void Run(IBackgroundTaskInstance taskInstance) {
 			// Get a deferral to stop us from quitting immediately
+			BackgroundTaskDeferral deferral = taskInstance.GetDeferral();
 			List<I2CSensor> sensors = new List<I2CSensor>();
+			// Dig up the I2C controller ID
 			FindI2CID(I2C_CONTROLLER);
 			#region Sensor Configuration
 			sensors.Add(new TelemetryI2CSensor());
 			sensors.Add(new HTU21I2CSensor());
 			#endregion
-			BackgroundTaskDeferral deferral = taskInstance.GetDeferral();
 			try {
 				using (StreamWriter log = await OpenLog()) {
 					// Header
