@@ -94,7 +94,7 @@ namespace HABService {
 				GPSData venus = GPSFetch(device, 0);
 				GPSData copernicus = GPSFetch(device, 1);
 				result = venus.ToString() + "," + copernicus.ToString();
-            }
+			}
 			// Give up VS!
 			await Task.Delay(0);
 			return result;
