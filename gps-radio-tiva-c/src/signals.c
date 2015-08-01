@@ -79,10 +79,18 @@ void signalFaultInterrupt(void)
 
 void signalI2CDataRequested()
 {
+#ifdef PWM_OUTPUT
     ROM_PWMPulseWidthSet(PWM1_BASE, PWM_OUT_6, 0xFFFFU);
+#else
+    GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_2, GPIO_PIN_2);
+#endif
 }
 
 void clearI2CDataRequested()
 {
+#ifdef PWM_OUTPUT
     ROM_PWMPulseWidthSet(PWM1_BASE, PWM_OUT_6, 0x0U);
+#else
+    GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_2, 0);
+#endif
 }

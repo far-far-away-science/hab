@@ -1,4 +1,6 @@
-﻿using System;
+﻿#define NOLOG
+
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.IO;
@@ -153,10 +155,13 @@ namespace HABService {
 			List<I2CSensor> sensors = new List<I2CSensor>();
 			// Dig up the I2C controller ID
 			FindI2CID(I2C_CONTROLLER);
-			#region Sensor Configuration
+#region Sensor Configuration
+#if TELEMETRY_MCU
 			sensors.Add(new TelemetryI2CSensor());
+#else
+#endif
 			sensors.Add(new HTU21I2CSensor());
-			#endregion
+#endregion
 			try {
 				using (StreamWriter log = await OpenLog()) {
 					// Header
@@ -194,7 +199,11 @@ namespace HABService {
 			elapsed.Start();
 #endif
 			try {
+#if NOLOG
+				await sensor.SampleSensor(gsl);
+#else
 				await log.Log(sensor.Prefix, await sensor.SampleSensor(gsl));
+#endif
 			} catch (Exception e) {
 				// Error!
 				string message;
