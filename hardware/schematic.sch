@@ -2089,7 +2089,7 @@ Standard 0603 ceramic capacitor, and 0.1" leaded capacitor.</description>
 <instance part="GND7" gate="1" x="-7.62" y="91.44"/>
 <instance part="R7" gate="G$1" x="144.78" y="43.18" rot="R270"/>
 <instance part="R8" gate="G$1" x="78.74" y="30.48"/>
-<instance part="C5" gate="G$1" x="60.96" y="22.86" rot="R270"/>
+<instance part="C5" gate="G$1" x="58.42" y="22.86" rot="R270"/>
 <instance part="C6" gate="G$1" x="104.14" y="0"/>
 <instance part="GND10" gate="1" x="104.14" y="-10.16"/>
 <instance part="R9" gate="G$1" x="78.74" y="38.1"/>
@@ -2287,7 +2287,7 @@ Standard 0603 ceramic capacitor, and 0.1" leaded capacitor.</description>
 <wire x1="71.12" y1="17.78" x2="68.58" y2="17.78" width="0.1524" layer="91"/>
 <wire x1="68.58" y1="17.78" x2="68.58" y2="22.86" width="0.1524" layer="91"/>
 <pinref part="C5" gate="G$1" pin="1"/>
-<wire x1="66.04" y1="22.86" x2="68.58" y2="22.86" width="0.1524" layer="91"/>
+<wire x1="63.5" y1="22.86" x2="68.58" y2="22.86" width="0.1524" layer="91"/>
 <junction x="68.58" y="22.86"/>
 <pinref part="R8" gate="G$1" pin="1"/>
 <wire x1="73.66" y1="30.48" x2="68.58" y2="30.48" width="0.1524" layer="91"/>
@@ -2304,7 +2304,7 @@ Standard 0603 ceramic capacitor, and 0.1" leaded capacitor.</description>
 <junction x="66.04" y="15.24"/>
 <wire x1="66.04" y1="15.24" x2="71.12" y2="15.24" width="0.1524" layer="91"/>
 <pinref part="C5" gate="G$1" pin="2"/>
-<wire x1="58.42" y1="22.86" x2="53.34" y2="22.86" width="0.1524" layer="91"/>
+<wire x1="55.88" y1="22.86" x2="53.34" y2="22.86" width="0.1524" layer="91"/>
 <wire x1="53.34" y1="22.86" x2="53.34" y2="15.24" width="0.1524" layer="91"/>
 </segment>
 </net>
@@ -2395,6 +2395,17 @@ Standard 0603 ceramic capacitor, and 0.1" leaded capacitor.</description>
 </nets>
 </sheet>
 </sheets>
+<errors>
+<approved hash="104,1,172.72,58.42,U1,GND,GNDA,,,"/>
+<approved hash="104,1,172.72,68.58,U1,VCC,+5V,,,"/>
+<approved hash="113,1,3.76767,73.7912,TIVA_1,,,,,"/>
+<approved hash="113,1,3.76767,20.4512,TIVA_2,,,,,"/>
+<approved hash="113,1,121.3,129.671,VENUS_2,,,,,"/>
+<approved hash="113,1,134,129.671,VENUS_1,,,,,"/>
+<approved hash="113,1,69.2401,132.211,COPERNICUS_1,,,,,"/>
+<approved hash="113,1,84.4801,132.211,COPERNICUS_2,,,,,"/>
+<approved hash="113,1,78.74,15.168,LMC6482,,,,,"/>
+</errors>
 </schematic>
 </drawing>
 </eagle>
