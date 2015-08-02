@@ -10,6 +10,11 @@ namespace HABService {
 	/// </summary>
 	class TelemetryI2CSensor : I2CSensor {
 		/// <summary>
+		/// The column guide string used in the log headers.
+		/// </summary>
+		public const string COLS = "FIX_1,LAT_1,LON_1,ALT_1,VEL_1,HDG_1," +
+			"FIX_2,LAT_2,LON_2,ALT_2,VEL_2,HDG_2,TEMP,VOLT";
+		/// <summary>
 		/// The Tiva C default slave address.
 		/// </summary>
 		public const int SLAVE_ADDRESS = 0x2A;
@@ -76,13 +81,17 @@ namespace HABService {
 			// 0x02 (SW_VERSION_MINOR)
 			device.WriteRead(new byte[] { 0x00 }, data);
 			// Check for sync
-			if ((data[0] & 0xFF) != SLAVE_ADDRESS)
-				throw new IOException("Telemetry MCU is not in sync or disconnected");
-			// Check firmware version
-			if ((data[1] & 0xFF) != SW_VERSION)
-				throw new IOException("Telemetry MCU is using incompatible firmware");
+			int sync = data[0] & 0xFF;
+			if (sync != SLAVE_ADDRESS)
+				throw new IOException(String.Format("Telemetry MCU is not in sync. " +
+					"Expected: 0x{0:X2} Received: 0x{1:X2}", SLAVE_ADDRESS, sync));
+			// Check firmware version [major only]
+			int fw = data[1] & 0xFF;
+            if (fw != SW_VERSION)
+				throw new IOException(String.Format("Telemetry MCU firmware mismatch. " +
+					"Expected: {0:D} Received: {1:D}", SW_VERSION, fw));
 			// Column guide
-			return "FIX_1,LAT_1,LON_1,ALT_1,VEL_1,HDG_1,FIX_2,LAT_2,LON_2,ALT_2,VEL_2,HDG_2";
+			return COLS;
 		}
 		public override async Task<String> Sample(I2cDevice device, object gsl) {
 			// NOTE This routine reads and reports both GPSes in the log. It should be trivial
@@ -93,7 +102,14 @@ namespace HABService {
 			lock (gsl) {
 				GPSData venus = GPSFetch(device, 0);
 				GPSData copernicus = GPSFetch(device, 1);
-				result = venus.ToString() + "," + copernicus.ToString();
+				// Temperature and voltage
+				byte[] data = new byte[4];
+				device.WriteRead(new byte[] { 0x04 }, data);
+				// Equation for temperature on p. 813 of TM4C123GHPM datasheet
+				float temp = 147.5F - 75F * 3.3F * BitConverter.ToUInt16(data, 0) / 4096F;
+				float voltage = BitConverter.ToUInt16(data, 2) * 1E-3F;
+				// Voltage is in mV
+				result = String.Format("{0},{1},{2:F1},{3:F3}", venus, copernicus, temp, voltage);
 			}
 			// Give up VS!
 			await Task.Delay(0);
