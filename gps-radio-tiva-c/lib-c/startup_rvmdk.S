@@ -101,9 +101,9 @@ __Vectors
         DCD     Reset_Handler               ; Reset Handler
         DCD     NmiSR                       ; NMI Handler
         DCD     FaultISR                    ; Hard Fault Handler
-        DCD     IntDefaultHandler           ; The MPU fault handler
-        DCD     IntDefaultHandler           ; The bus fault handler
-        DCD     IntDefaultHandler           ; The usage fault handler
+        DCD     FaultISR                    ; The MPU fault handler
+        DCD     FaultISR                    ; The bus fault handler
+        DCD     FaultISR                    ; The usage fault handler
         DCD     0                           ; Reserved
         DCD     0                           ; Reserved
         DCD     0                           ; Reserved

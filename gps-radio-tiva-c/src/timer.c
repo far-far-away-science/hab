@@ -9,7 +9,7 @@
 #include <driverlib/timer.h>
 #include <driverlib/sysctl.h>
 
-uint32_t timerSeconds;
+uint32_t timerSeconds = 0;
 
 void initializeTimer(void)
 {

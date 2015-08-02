@@ -11,3 +11,8 @@ void signalFaultInterrupt(void);
 
 void signalI2CDataRequested(void);
 void clearI2CDataRequested(void);
+
+// PWM mode only!
+void signalRed(const uint32_t value);
+void signalGreen(const uint32_t value);
+void signalBlue(const uint32_t value);

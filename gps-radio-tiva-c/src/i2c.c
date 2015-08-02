@@ -10,7 +10,9 @@
  * [0x01] - SW_VERSION_MAJOR - returns the major revision defined in i2c.h
  * [0x02] - SW_VERSION_MINOR - returns the minor revision defined in i2c.h
  * [0x03] - DATA_AVAILABLE - returns 1 if data has been updated since last read of any DR, 0 otherwise
- * [0x04-0x0F] - RESERVED
+ * [0x04-0x05] - TEMP - temperature ADC reading in raw counts LSB first
+ * [0x06-0x07] - VOLT - voltage ADC reading in raw counts [TBD convert to voltage once divider set] LSB first
+ * [0x08-0x0F] - RESERVED
  * [0x10-0x13] – LAT 1 - Latitude as signed 32 bit integer in degrees * 1E6 LSB first
  * [0x14-0x17] - LON 1 - Longitude as signed 32 bit integer in degrees * 1E6 LSB first
  * [0x18-0x19] - VEL 1 - Velocity as unsigned 16 bit integer in km/hr * 10 LSB first
@@ -65,6 +67,7 @@ void I2cSlaveHandler(void) {
     switch (action) {
     case I2C_SLAVE_ACT_RREQ_FBR:
     {
+        signalI2CDataRequested();
         // This is the address
         uint32_t newAddress = MAP_I2CSlaveDataGet(I2C_MODULE);
         if (newAddress >= I2C_NUM_REGS)
@@ -76,13 +79,13 @@ void I2cSlaveHandler(void) {
     }
     case I2C_SLAVE_ACT_RREQ:
         // This is not allowed, all registers are currently read only -- ACK but do nothing
+        (void)MAP_I2CSlaveDataGet(I2C_MODULE);
         ack = true;
         break;
     case I2C_SLAVE_ACT_TREQ:
     {
         // Data has been requested from us
         uint32_t address = (uint32_t)i2cData.address;
-        signalI2CDataRequested();
         // Clear data available flag if necessary
         if (address >= REG_LON_0 && address <= REG_HDG_1)
             i2cData.regs[REG_DATA_AVAILABLE] = 0U;
@@ -145,6 +148,23 @@ void submitI2CData(uint32_t index, GpsData *data) {
     MAP_I2CSlaveIntEnableEx(I2C_MODULE, I2C_SLAVE_INT_DATA);
 }
 
+void submitI2CTelemetry(Telemetry *telemetry) {
+    union {
+        uint8_t bytes[2];
+        uint16_t hword;
+    } data16;
+    // Mask I2C interrupts while we update
+    MAP_I2CSlaveIntDisable(I2C_MODULE);
+    // Velocity update
+    data16.hword = (uint16_t)telemetry->cpuTemperature;
+    memcpy(&i2cData.regs[REG_TEMP_0], data16.bytes, sizeof(data16.bytes));
+    // Heading update
+    data16.hword = (uint16_t)telemetry->voltage;
+    memcpy(&i2cData.regs[REG_VOLT_0], data16.bytes, sizeof(data16.bytes));
+    // Restore interrupts
+    MAP_I2CSlaveIntEnableEx(I2C_MODULE, I2C_SLAVE_INT_DATA);
+}
+
 void initializeI2C(void) {
     // Peripheral enable: the I/O port and the I2C module
     ROM_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
@@ -152,15 +172,18 @@ void initializeI2C(void) {
     // Set up pins to I2C mode
     ROM_GPIOPinConfigure(GPIO_PA6_I2C1SCL);
     ROM_GPIOPinConfigure(GPIO_PA7_I2C1SDA);
+    ROM_GPIOPadConfigSet(GPIO_PORTA_BASE, GPIO_PIN_6 | GPIO_PIN_7, GPIO_STRENGTH_8MA, GPIO_PIN_TYPE_STD);
     ROM_GPIOPinTypeI2C(GPIO_PORTA_BASE, GPIO_PIN_7);
     ROM_GPIOPinTypeI2CSCL(GPIO_PORTA_BASE, GPIO_PIN_6);
-    // Set up in slave mode with correct address
-    // NOTE TM4C123 does not have slave functions in its ROM, do not try, you will be sad
-    MAP_I2CSlaveEnable(I2C_MODULE);
-    MAP_I2CSlaveInit(I2C_MODULE, I2C_ADDRESS);
     // Register IRQ and clear spurious conditions
+    MAP_IntEnable(INT_I2C1);
     MAP_I2CSlaveIntClear(I2C_MODULE);
     MAP_I2CSlaveIntEnableEx(I2C_MODULE, I2C_SLAVE_INT_DATA);
+    // Set up in slave mode with correct address
+    // NOTE TM4C123 does not have slave functions in its ROM, do not try, you will be sad
+    MAP_I2CMasterDisable(I2C_MODULE);
+    MAP_I2CSlaveEnable(I2C_MODULE);
+    MAP_I2CSlaveInit(I2C_MODULE, I2C_ADDRESS);
     // Init register file
     i2cData.address = 0U;
     memset(i2cData.regs, 0, sizeof(i2cData.regs));

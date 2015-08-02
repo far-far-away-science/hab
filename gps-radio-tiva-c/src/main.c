@@ -12,14 +12,21 @@
 #include <driverlib/rom.h>
 #include <driverlib/systick.h>
 
+// Reduce stack usage by main() and get a "free" zero initialization!
+static GpsData venusGpsData;
+static GpsData copernicusGpsData;
+static Message venusGpsMessage;
+static Message copernicusGpsMessage;
+static Telemetry telemetry;
+
 int main()
 {
     initializeTivaC();
     initializeAprs();
     initializeTimer();
     initializeUart();
-    initializeI2C();
     initializeSignals();
+    initializeI2C();
     initializeTelemetry();
 
     bool r = true;
@@ -29,6 +36,26 @@ int main()
 #ifdef DEBUG
     r &= initializeUartChannel(CHANNEL_DEBUG, UART_0, 115200, CPU_SPEED, UART_FLAGS_SEND);
 #endif
+    
+    // AIR mode for Copernicus:
+    // 0x10 DLE
+    // 0xBB Set GPS Processing Options
+    // 0x03 Query Mode
+    // 0x00 Auto 2D/3D
+    // 0x00 Reserved
+    // 0x03 Dynamics Mode AIR
+    // 0x00 Reserved
+    //  0x3db2b8c2 = 5 degrees in radians little endian (0.087266), Copernicus is big endian
+    // 0xC2 Lowest satellite elevation angle for fix
+    // 0xB8
+    // 0xB2
+    // 0x3D
+    //  0x3f19999a = 0.6 little endian
+    // 0x9A Minimum signal level for fix
+    // 0x99
+    // 0x19
+    // 0x3F
+    // 0x00 * 27 (4 + 4 + 1 + 18) Reserved
 
     if (r)
     {
@@ -38,14 +65,6 @@ int main()
     {
         signalError();
     }
-
-    GpsData venusGpsData = { 0 };
-    GpsData copernicusGpsData = { 0 };
-
-    Message venusGpsMessage = { 0 };
-    Message copernicusGpsMessage = { 0 };
-
-    Telemetry telemetry;
 
     bool shouldSendVenusDataToAprs = true;
 
@@ -103,6 +122,7 @@ int main()
         if (currentTime - lastRadioSentTime >= RADIO_MCU_MESSAGE_SENDING_INTERVAL_SECONDS)
         {
             getTelemetry(&telemetry);
+            submitI2CTelemetry(&telemetry);
             
             if (shouldSendVenusDataToAprs && venusGpsData.isValid)
             {
