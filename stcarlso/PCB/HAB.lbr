@@ -6,7 +6,7 @@
 <setting alwaysvectorfont="no"/>
 <setting verticaltext="up"/>
 </settings>
-<grid distance="0.006" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.025" altunitdist="inch" altunit="inch"/>
+<grid distance="0.05" unitdist="inch" unit="inch" style="lines" multiple="1" display="no" altdistance="0.025" altunitdist="inch" altunit="inch"/>
 <layers>
 <layer number="1" name="Top" color="4" fill="1" visible="yes" active="yes"/>
 <layer number="16" name="Bottom" color="1" fill="1" visible="yes" active="yes"/>
@@ -818,6 +818,133 @@ The Maker Garage logo</description>
 <vertex x="5.334" y="3.2004"/>
 <vertex x="0" y="5.1816"/>
 <vertex x="-5.4864" y="3.2004"/>
+</polygon>
+</package>
+<package name="SWIFT">
+<description>SWIFT regulator logo (TEST)</description>
+<polygon width="0.1524" layer="21">
+<vertex x="-3.81" y="2.8956" curve="50"/>
+<vertex x="-4.1148" y="3.048"/>
+<vertex x="-5.0292" y="3.048" curve="30"/>
+<vertex x="-6.096" y="2.5908" curve="60"/>
+<vertex x="-6.4008" y="1.524" curve="60"/>
+<vertex x="-5.4864" y="0.9144" curve="-80"/>
+<vertex x="-5.0292" y="0.6096" curve="-50"/>
+<vertex x="-5.0292" y="0.4572" curve="-60"/>
+<vertex x="-5.4864" y="0.1524" curve="-15"/>
+<vertex x="-7.0104" y="-0.1524"/>
+<vertex x="-7.0104" y="-0.6096"/>
+<vertex x="-6.096" y="-0.6096" curve="30"/>
+<vertex x="-4.8768" y="-0.1524" curve="49"/>
+<vertex x="-4.4196" y="0.6096" curve="60"/>
+<vertex x="-4.572" y="1.0668" curve="20"/>
+<vertex x="-5.1816" y="1.3716" curve="-20"/>
+<vertex x="-5.7912" y="1.6764" curve="-120"/>
+<vertex x="-5.4864" y="2.4384" curve="-20"/>
+<vertex x="-4.7244" y="2.5908" curve="-40"/>
+<vertex x="-4.2672" y="2.4384" curve="-40"/>
+<vertex x="-4.2672" y="2.286" curve="20"/>
+<vertex x="-3.9624" y="2.286" curve="40"/>
+</polygon>
+<polygon width="0.1524" layer="21">
+<vertex x="-3.2004" y="2.8956" curve="10"/>
+<vertex x="-3.2004" y="-0.6096"/>
+<vertex x="-2.7432" y="-0.6096"/>
+<vertex x="-1.3716" y="1.2192" curve="20"/>
+<vertex x="-1.0668" y="-0.4572"/>
+<vertex x="-0.6096" y="-0.4572" curve="10"/>
+<vertex x="0.6096" y="1.3716" curve="20"/>
+<vertex x="1.2192" y="3.048"/>
+<vertex x="0.762" y="3.048" curve="-10"/>
+<vertex x="0.1524" y="1.524" curve="-20"/>
+<vertex x="-0.6096" y="0.3048" curve="-30"/>
+<vertex x="-0.762" y="0.762" curve="-10"/>
+<vertex x="-0.9144" y="2.1336"/>
+<vertex x="-1.2192" y="2.1336"/>
+<vertex x="-2.5908" y="0.3048" curve="-90"/>
+<vertex x="-2.7432" y="0.4572" curve="-10"/>
+<vertex x="-2.5908" y="2.1336" curve="30"/>
+<vertex x="-2.7432" y="2.8956"/>
+</polygon>
+<polygon width="0.1524" layer="21">
+<vertex x="2.1336" y="3.048" curve="10"/>
+<vertex x="1.524" y="1.524" curve="20"/>
+<vertex x="1.2192" y="-0.3048"/>
+<vertex x="1.524" y="-0.3048" curve="-10"/>
+<vertex x="2.1336" y="1.524" curve="10"/>
+<vertex x="2.5908" y="2.8956"/>
+<vertex x="2.5908" y="3.048"/>
+</polygon>
+<polygon width="0.1524" layer="21">
+<vertex x="3.5052" y="2.7432" curve="10"/>
+<vertex x="2.5908" y="-0.4572"/>
+<vertex x="3.048" y="-0.4572" curve="-20"/>
+<vertex x="3.5052" y="0.9144"/>
+<vertex x="5.0292" y="1.0668" curve="50"/>
+<vertex x="5.4864" y="1.3716" curve="60"/>
+<vertex x="5.1816" y="1.524"/>
+<vertex x="3.6576" y="1.3716" curve="-70"/>
+<vertex x="3.6576" y="1.6764" curve="-20"/>
+<vertex x="3.9624" y="2.286" curve="-60"/>
+<vertex x="4.4196" y="2.5908" curve="-30"/>
+<vertex x="5.7912" y="2.5908" curve="-40"/>
+<vertex x="5.9436" y="2.286" curve="30"/>
+<vertex x="6.4008" y="2.286" curve="-20"/>
+<vertex x="7.1628" y="2.4384" curve="10"/>
+<vertex x="6.5532" y="-0.3048"/>
+<vertex x="7.0104" y="-0.3048" curve="-15"/>
+<vertex x="7.62" y="2.286" curve="-40"/>
+<vertex x="8.2296" y="2.5908" curve="-20"/>
+<vertex x="8.9916" y="2.4384" curve="30"/>
+<vertex x="9.2964" y="2.4384" curve="40"/>
+<vertex x="9.4488" y="2.8956" curve="30"/>
+<vertex x="9.4488" y="3.048" curve="10"/>
+<vertex x="6.096" y="2.8956" curve="30"/>
+<vertex x="5.9436" y="3.048" curve="20"/>
+<vertex x="3.6576" y="2.8956" curve="60"/>
+</polygon>
+<polygon width="0.1524" layer="21">
+<vertex x="-1.6764" y="-1.0668"/>
+<vertex x="-1.0668" y="-2.4384"/>
+<vertex x="-0.762" y="-2.4384"/>
+<vertex x="-0.1524" y="-1.0668"/>
+<vertex x="-0.4572" y="-1.0668"/>
+<vertex x="-0.9144" y="-2.1336"/>
+<vertex x="-1.3716" y="-1.0668"/>
+</polygon>
+<polygon width="0.1524" layer="21">
+<vertex x="0.1524" y="-1.0668"/>
+<vertex x="0.1524" y="-2.4384"/>
+<vertex x="0.3048" y="-2.4384"/>
+<vertex x="0.3048" y="-1.8288"/>
+<vertex x="0.762" y="-1.8288"/>
+<vertex x="1.2192" y="-2.4384"/>
+<vertex x="1.3716" y="-2.4384"/>
+<vertex x="0.9144" y="-1.8288" curve="40"/>
+<vertex x="1.2192" y="-1.6764" curve="30"/>
+<vertex x="1.2192" y="-1.2192" curve="45"/>
+<vertex x="1.0668" y="-1.0668"/>
+<vertex x="0.3048" y="-1.0668"/>
+<vertex x="0.3048" y="-1.2192"/>
+<vertex x="1.0668" y="-1.2192" curve="-40"/>
+<vertex x="1.0668" y="-1.6764"/>
+<vertex x="0.3048" y="-1.6764"/>
+<vertex x="0.3048" y="-1.0668"/>
+</polygon>
+<polygon width="0.1524" layer="21">
+<vertex x="1.8288" y="-2.4384"/>
+<vertex x="1.8288" y="-1.2192"/>
+<vertex x="2.4384" y="-2.1336"/>
+<vertex x="2.8956" y="-1.3716"/>
+<vertex x="3.048" y="-1.3716"/>
+<vertex x="3.048" y="-2.4384"/>
+<vertex x="3.2004" y="-2.4384"/>
+<vertex x="3.2004" y="-1.0668"/>
+<vertex x="2.8956" y="-1.0668"/>
+<vertex x="2.4384" y="-1.8288"/>
+<vertex x="1.9812" y="-1.0668"/>
+<vertex x="1.6764" y="-1.0668"/>
+<vertex x="1.6764" y="-2.4384"/>
 </polygon>
 </package>
 </packages>
