@@ -154,7 +154,7 @@ namespace HABService {
 			FindI2CID(I2C_CONTROLLER);
 			#region Sensor Configuration
 			sensors.Add(new TelemetryI2CSensor());
-			sensors.Add(new HTU21I2CSensor());
+			sensors.Add(new TMP102I2CSensor());
 			#endregion
 			try {
 				using (StreamWriter log = await OpenLog()) {
