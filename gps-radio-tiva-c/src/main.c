@@ -68,7 +68,7 @@ int main()
 
     bool shouldSendVenusDataToAprs = true;
 
-    uint32_t lastRadioSentTime = getSecondsSinceStart();
+    uint32_t nextRadioSendTime = 0;
     // Report the I2C information so that the first few packets do not have a zero temperature
     getTelemetry(&telemetry);
     submitI2CTelemetry(&telemetry);
@@ -123,7 +123,7 @@ int main()
 
         uint32_t currentTime = getSecondsSinceStart();
 
-        if (currentTime - lastRadioSentTime >= RADIO_MCU_MESSAGE_SENDING_INTERVAL_SECONDS)
+        if (currentTime >= nextRadioSendTime)
         {
             getTelemetry(&telemetry);
             submitI2CTelemetry(&telemetry);
@@ -140,7 +140,13 @@ int main()
             }
 
             shouldSendVenusDataToAprs = !shouldSendVenusDataToAprs;
-            lastRadioSentTime = currentTime;
+            uint32_t dither;
+#if defined(RADIO_MCU_MESSAGE_DITHER) && (RADIO_MCU_MESSAGE_DITHER > 0)
+            dither = (currentTime % RADIO_MCU_MESSAGE_DITHER);
+#else
+            dither = 0U;
+#endif
+            nextRadioSendTime = currentTime + RADIO_MCU_MESSAGE_SENDING_INTERVAL_SECONDS + dither;
         }
         // Blink green light to let everyone know that we are still running
         if (currentTime & 1)
