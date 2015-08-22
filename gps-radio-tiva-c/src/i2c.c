@@ -67,7 +67,6 @@ void I2cSlaveHandler(void) {
     switch (action) {
     case I2C_SLAVE_ACT_RREQ_FBR:
     {
-        signalI2CDataRequested();
         // This is the address
         uint32_t newAddress = MAP_I2CSlaveDataGet(I2C_MODULE);
         if (newAddress >= I2C_NUM_REGS)
@@ -96,7 +95,6 @@ void I2cSlaveHandler(void) {
             address = 0U;
         i2cData.address = (uint8_t)address;
         ack = true;
-        clearI2CDataRequested();
         break;
     }
     default:

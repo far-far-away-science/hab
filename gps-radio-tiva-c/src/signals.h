@@ -8,6 +8,8 @@ void signalOff(void);
 void signalSuccess(void);
 void signalError(void);
 void signalFaultInterrupt(void);
+void signalHeartbeatOn(void);
+void signalHeartbeatOff(void);
 
 void signalI2CDataRequested(void);
 void clearI2CDataRequested(void);

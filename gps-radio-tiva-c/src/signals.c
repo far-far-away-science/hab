@@ -104,6 +104,24 @@ void signalFaultInterrupt(void)
 #endif
 }
 
+void signalHeartbeatOn(void)
+{
+#ifdef PWM_OUTPUT
+    signalGreen(1024U);
+#else
+    ROM_GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_3, GPIO_PIN_3);
+#endif
+}
+
+void signalHeartbeatOff(void)
+{
+#ifdef PWM_OUTPUT
+    signalGreen(0U);
+#else
+    ROM_GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_3, 0);
+#endif
+}
+
 void signalI2CDataRequested()
 {
 #ifdef PWM_OUTPUT

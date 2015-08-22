@@ -69,6 +69,10 @@ int main()
     bool shouldSendVenusDataToAprs = true;
 
     uint32_t lastRadioSentTime = getSecondsSinceStart();
+    // Report the I2C information so that the first few packets do not have a zero temperature
+    getTelemetry(&telemetry);
+    submitI2CTelemetry(&telemetry);
+    startWatchdog();
     
     while (true)
     {
@@ -138,6 +142,11 @@ int main()
             shouldSendVenusDataToAprs = !shouldSendVenusDataToAprs;
             lastRadioSentTime = currentTime;
         }
+        // Blink green light to let everyone know that we are still running
+        if (currentTime & 1)
+            signalHeartbeatOff();
+        else
+            signalHeartbeatOn();
 
         // TODO if 60 seconds expired write stats to EPPROM
 
