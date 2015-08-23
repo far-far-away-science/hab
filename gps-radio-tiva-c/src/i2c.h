@@ -11,7 +11,7 @@
 // Our software version, major (API compatible)
 #define SW_VERSION_MAJOR 2
 // Our software version, minor (revision)
-#define SW_VERSION_MINOR 1
+#define SW_VERSION_MINOR 2
 
 // I2C module to use
 // NOTE If I2C_MODULE is changed, check initializeI2C to update pin mappings/clocks!
@@ -27,6 +27,12 @@
 #define REG_TEMP_1 0x05
 #define REG_VOLT_0 0x06
 #define REG_VOLT_1 0x07
+#define REG_EEADDR_0 0x08
+#define REG_EEADDR_1 0x09
+#define REG_EEDATA_0 0x0A
+#define REG_EEDATA_1 0x0B
+#define REG_EEDATA_2 0x0C
+#define REG_EEDATA_3 0x0D
 #define REG_LAT_0 0x00
 #define REG_LAT_1 0x01
 #define REG_LAT_2 0x02

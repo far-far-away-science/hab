@@ -12,11 +12,13 @@
 #include <driverlib/watchdog.h>
 #include <driverlib/rom_map.h>
 
-uint32_t timerSeconds = 0;
+static uint32_t timerSeconds = 0;
+static uint32_t watchdogFeed = 0;
 
 void initializeTimer(void)
 {
     timerSeconds = 0;
+    watchdogFeed = 1;
     MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER0);
     MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_WDOG0);
     MAP_TimerConfigure(TIMER0_BASE, TIMER_CFG_PERIODIC);
@@ -42,15 +44,31 @@ void startWatchdog(void)
     MAP_WatchdogEnable(WATCHDOG0_BASE);
 }
 
+void feedWatchdog(void)
+{
+    watchdogFeed = 1;
+}
+
 void Timer0IntHandler(void)
 {
-    ++timerSeconds;
     MAP_TimerIntClear(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
+    ++timerSeconds;
 }
 
 void WatchdogHandler(void)
 {
     // If a fault interrupt is running, it has higher priority and will block this IRQ from
     // being serviced
-    MAP_WatchdogIntClear(WATCHDOG0_BASE);
+    if (watchdogFeed)
+    {
+        MAP_WatchdogIntClear(WATCHDOG0_BASE);
+        watchdogFeed = 0;
+    }
+    else
+    {
+        // We do not clear the flag, and instead mask the interrupt, which will cause a
+        // desired crash and reset
+        signalFaultInterrupt();
+        MAP_IntDisable(INT_WATCHDOG);
+    }
 }

@@ -7,6 +7,7 @@
 #define WATCHDOG_RELOAD 32000000U
 
 void initializeTimer(void);
+void feedWatchdog(void);
 void startWatchdog(void);
 
 uint32_t getSecondsSinceStart(void);

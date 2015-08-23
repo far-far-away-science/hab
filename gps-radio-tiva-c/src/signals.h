@@ -1,5 +1,6 @@
 #pragma once
 
+#include <stdbool.h>
 #include <stdint.h>
 
 void initializeSignals(void);
@@ -18,3 +19,7 @@ void clearI2CDataRequested(void);
 void signalRed(const uint32_t value);
 void signalGreen(const uint32_t value);
 void signalBlue(const uint32_t value);
+
+// User button checking
+bool isUserButton1(void);
+bool isUserButton2(void);
