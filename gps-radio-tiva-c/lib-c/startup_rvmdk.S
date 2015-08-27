@@ -88,6 +88,7 @@ __heap_limit
         EXTERN  Pwm10Handler
         EXTERN  I2cSlaveHandler
         EXTERN  MyFaultISR
+        EXTERN  WatchdogHandler
 
 ;******************************************************************************
 ;
@@ -101,9 +102,9 @@ __Vectors
         DCD     Reset_Handler               ; Reset Handler
         DCD     NmiSR                       ; NMI Handler
         DCD     FaultISR                    ; Hard Fault Handler
-        DCD     IntDefaultHandler           ; The MPU fault handler
-        DCD     IntDefaultHandler           ; The bus fault handler
-        DCD     IntDefaultHandler           ; The usage fault handler
+        DCD     FaultISR                    ; The MPU fault handler
+        DCD     FaultISR                    ; The bus fault handler
+        DCD     FaultISR                    ; The usage fault handler
         DCD     0                           ; Reserved
         DCD     0                           ; Reserved
         DCD     0                           ; Reserved
@@ -131,7 +132,7 @@ __Vectors
         DCD     IntDefaultHandler           ; ADC Sequence 1
         DCD     IntDefaultHandler           ; ADC Sequence 2
         DCD     IntDefaultHandler           ; ADC Sequence 3
-        DCD     IntDefaultHandler           ; Watchdog timer
+        DCD     WatchdogHandler             ; Watchdog timer
         DCD     Timer0IntHandler            ; Timer 0 subtimer A
         DCD     IntDefaultHandler           ; Timer 0 subtimer B
         DCD     IntDefaultHandler           ; Timer 1 subtimer A

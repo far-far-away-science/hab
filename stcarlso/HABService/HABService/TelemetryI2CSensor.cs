@@ -10,6 +10,23 @@ namespace HABService {
 	/// </summary>
 	class TelemetryI2CSensor : I2CSensor {
 		/// <summary>
+		/// The column guide string used in the log headers.
+		/// </summary>
+		public const string COLS = "FIX_1,LAT_1,LON_1,ALT_1,VEL_1,HDG_1," +
+			"FIX_2,LAT_2,LON_2,ALT_2,VEL_2,HDG_2,TEMP,VOLT";
+		/// <summary>
+		/// Starting register address for the first GPS bank.
+		/// </summary>
+		public const int REG_GPS_0 = 0x10;
+		/// <summary>
+		/// Starting register address for the second GPS bank.
+		/// </summary>
+		public const int REG_GPS_1 = 0x30;
+		/// <summary>
+		/// Register address for "Who am I" (sync/address check)
+		/// </summary>
+		public const int REG_WHO_AM_I = 0x00;
+		/// <summary>
 		/// The Tiva C default slave address.
 		/// </summary>
 		public const int SLAVE_ADDRESS = 0x2A;
@@ -57,8 +74,8 @@ namespace HABService {
 		/// <returns>The GPS data in a structure</returns>
 		private GPSData GPSFetch(I2cDevice device, int index) {
 			byte[] data = new byte[17];
-			// Receive 17 bytes starting from 0x10, where 0x30 is the second GPS
-			byte address = (byte)(((index == 0) ? 0x00 : 0x20) + 0x10);
+			// Receive 17 bytes starting from correct GPS address
+			byte address = (byte)((index == 0) ? REG_GPS_0 : REG_GPS_1);
 			device.WriteRead(new byte[] { address }, data);
 			GPSData result = new GPSData();
 			// Convert all to correct types
@@ -74,30 +91,47 @@ namespace HABService {
 			byte[] data = new byte[3];
 			// Stream read 0x00 (WHO_AM_I), 0x01 (SW_VERSION_MAJOR),
 			// 0x02 (SW_VERSION_MINOR)
-			device.WriteRead(new byte[] { 0x00 }, data);
+			device.WriteRead(new byte[] { (byte)REG_WHO_AM_I }, data);
 			// Check for sync
-			if ((data[0] & 0xFF) != SLAVE_ADDRESS)
-				throw new IOException("Telemetry MCU is not in sync or disconnected");
-			// Check firmware version
-			if ((data[1] & 0xFF) != SW_VERSION)
-				throw new IOException("Telemetry MCU is using incompatible firmware");
+			int sync = data[0] & 0xFF;
+			if (sync != SLAVE_ADDRESS)
+				throw new IOException(String.Format("Telemetry MCU is not in sync. " +
+					"Expected: 0x{0:X2} Received: 0x{1:X2}", SLAVE_ADDRESS, sync));
+			// Check firmware version [major only]
+			int fw = data[1] & 0xFF;
+            if (fw != SW_VERSION)
+				throw new IOException(String.Format("Telemetry MCU firmware mismatch. " +
+					"Expected: {0:D} Received: {1:D}", SW_VERSION, fw));
 			// Column guide
-			return "FIX_1,LAT_1,LON_1,ALT_1,VEL_1,HDG_1,FIX_2,LAT_2,LON_2,ALT_2,VEL_2,HDG_2";
+			return COLS;
 		}
 		public override async Task<String> Sample(I2cDevice device, object gsl) {
 			// NOTE This routine reads and reports both GPSes in the log. It should be trivial
 			// to select which one you really want in post processing. Even at 2 Hz with 256
 			// characters per line and a 20 hour flight, the total file size will be a very
 			// manageable 20 MB.
-			string result;
+			byte[] data = new byte[4];
+			GPSData venus, copernicus;
 			lock (gsl) {
-				GPSData venus = GPSFetch(device, 0);
-				GPSData copernicus = GPSFetch(device, 1);
-				result = venus.ToString() + "," + copernicus.ToString();
-            }
+				venus = GPSFetch(device, 0);
+				copernicus = GPSFetch(device, 1);
+				// Temperature and voltage
+				device.WriteRead(new byte[] { 0x04 }, data);
+			}
+			// Equation for temperature on p. 813 of TM4C123GHPM datasheet
+			int tempRaw = BitConverter.ToUInt16(data, 0) & 0xFFFF;
+			float temp;
+			if (tempRaw > 0)
+				// For a few points on startup tempRaw == 0. This is obviously implausible
+				// so avoid reporting "147.5" when this occurs.
+				temp = 147.5F - 75F * 3.3F * tempRaw / 4096F;
+			else
+				temp = 0.0F;
+			// Voltage is in mV
+			float voltage = BitConverter.ToUInt16(data, 2) * 1E-3F;
 			// Give up VS!
 			await Task.Delay(0);
-			return result;
+			return String.Format("{0},{1},{2:F1},{3:F3}", venus, copernicus, temp, voltage);
 		}
 	}
 

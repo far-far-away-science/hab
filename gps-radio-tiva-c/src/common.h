@@ -11,6 +11,7 @@
 #endif
 
 #define RADIO_MCU_MESSAGE_SENDING_INTERVAL_SECONDS 30
+#define RADIO_MCU_MESSAGE_DITHER 3
 
 typedef enum GpsDataSource_t
 {

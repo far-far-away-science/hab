@@ -72,7 +72,7 @@ namespace HABService {
 		/// <param name="toDo">The sensors to be initialized</param>
 		/// <param name="log">The log file</param>
 		/// <returns>true if all sensors were brought up, or false otherwise</returns>
-		private async Task<bool> InitSensors(ToDoList toDo, StreamWriter log) {
+		private bool InitSensors(ToDoList toDo, StreamWriter log) {
 			// Bring up the sensors
 			bool ok, allPass = true;
 			foreach (SensorSchedule sensor in toDo) {
@@ -80,12 +80,11 @@ namespace HABService {
 				for (int i = 0; i < 3 && !ok; i++)
 					// 3 attempts
 					try {
-						await log.Log(sensor.Prefix, sensor.Sensor.Init(sensor.Device));
+						log.Log(sensor.Prefix, sensor.Sensor.Init(sensor.Device));
 						ok = true;
 					} catch (Exception e) {
 						// Error when bringing up
-						await log.Log(sensor.Prefix, "Exception when initializing: " +
-							e.ToDebug());
+						log.Log(sensor.Prefix, "Exception when initializing: " + e.ToDebug());
 					}
 				// Uh oh!
 				if (!ok) allPass = false;
@@ -112,7 +111,7 @@ namespace HABService {
 				} catch (Exception e) {
 					// Do not move to finally block, device must remain open if success!
 					device.Dispose();
-					await log.Log(sensor.Prefix, "Exception when opening: " + e.ToDebug());
+					log.Log(sensor.Prefix, "Exception when opening: " + e.ToDebug());
 				}
 			}
 			return toDo;
@@ -149,30 +148,31 @@ namespace HABService {
 		}
 		public async void Run(IBackgroundTaskInstance taskInstance) {
 			// Get a deferral to stop us from quitting immediately
+			BackgroundTaskDeferral deferral = taskInstance.GetDeferral();
 			List<I2CSensor> sensors = new List<I2CSensor>();
+			// Dig up the I2C controller ID
 			FindI2CID(I2C_CONTROLLER);
 			#region Sensor Configuration
 			sensors.Add(new TelemetryI2CSensor());
-			sensors.Add(new HTU21I2CSensor());
+			sensors.Add(new TMP102I2CSensor());
 			#endregion
-			BackgroundTaskDeferral deferral = taskInstance.GetDeferral();
 			try {
 				using (StreamWriter log = await OpenLog()) {
 					// Header
 					var ver = Package.Current.Id.Version;
-					await log.Log(String.Format("HABService Version {0:D}.{1:D}.{2:D}.{3:D}",
+					log.Log(String.Format("HABService Version {0:D}.{1:D}.{2:D}.{3:D}",
 						ver.Major, ver.Minor, ver.Build, ver.Revision));
-					await log.Log("Log opened " + DateTime.Now.ToString());
+					log.Log("Log opened " + DateTime.Now.ToString());
 					ToDoList toDo = await OpenAllSensors(sensors, log);
 					try {
-						if (await InitSensors(toDo, log))
+						if (InitSensors(toDo, log))
 							await SensorWorker(toDo, log);
 						else
-							await log.Log("Failed to initialize some sensors, bailing out!");
+							log.Log("Failed to initialize some sensors, bailing out!");
 					} catch (Exception e) {
 						// Log the fatal exception -- everything that makes it through at this
 						// point is a bug and needs to be seen
-						await log.Log("Unhandled exception: " + e.ToDebug());
+						log.Log("Unhandled exception: " + e.ToDebug());
 					} finally {
 						// Be a good citizen and clean up
 						CloseAllSensors(toDo);
@@ -193,7 +193,11 @@ namespace HABService {
 			elapsed.Start();
 #endif
 			try {
-				await log.Log(sensor.Prefix, await sensor.SampleSensor(gsl));
+#if NOLOG
+				await sensor.SampleSensor(gsl);
+#else
+				log.Log(sensor.Prefix, await sensor.SampleSensor(gsl));
+#endif
 			} catch (Exception e) {
 				// Error!
 				string message;
@@ -203,7 +207,7 @@ namespace HABService {
 #else
 				message = "Exception when sampling: " + e.ToDebug();
 #endif
-				await log.Log(sensor.Prefix, message);
+				log.Log(sensor.Prefix, message);
 			}
 		}
 		/// <summary>
@@ -322,8 +326,8 @@ namespace HABService {
 		/// </summary>
 		/// <param name="log">The log file (this)</param>
 		/// <param name="message">The message to log</param>
-		public static async Task Log(this StreamWriter log, string message) {
-			await log.Log("SYS", message);
+		public static void Log(this StreamWriter log, string message) {
+			log.Log("SYS", message);
 		}
 		/// <summary>
 		/// Logs a sensor message.
@@ -331,15 +335,17 @@ namespace HABService {
 		/// <param name="log">The log file (this)</param>
 		/// <param name="prefix">The source generating the message</param>
 		/// <param name="message">The message to log</param>
-		public static async Task Log(this StreamWriter log, string prefix, string message) {
-			await log.WriteLineAsync(String.Format("{0:" + DATE_FORMAT + "},{1},{2}",
-				DateTime.Now, prefix, message));
-			await log.FlushAsync();
+		public static void Log(this StreamWriter log, string prefix, string message) {
+			lock (log) {
+				log.WriteLine(String.Format("{0:" + DATE_FORMAT + "},{1},{2}", DateTime.Now,
+					prefix, message));
+				log.Flush();
+			}
 		}
 		/// <summary>
 		/// Creates a short, succinct, yet useful string representation of an exception.
 		/// </summary>
-		/// <param name="src">The exception to log</param>
+		/// <param name="src">The exception to log (this)</param>
 		/// <returns>A short but useful form of the exception</returns>
 		public static string ToDebug(this Exception src) {
 			Exception e = src;

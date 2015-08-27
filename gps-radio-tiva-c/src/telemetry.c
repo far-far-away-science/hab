@@ -34,7 +34,13 @@ void getTelemetry(Telemetry* pTelemetry)
     if (pTelemetry)
     {
         pTelemetry->cpuTemperature = result[0];
-        pTelemetry->voltage = result[1];
+        // 470K:180K voltage divider
+        // Vadc = Vin * 18 / 65
+        // result[1] = Vadc * 4096 / 3.3
+        // Vin = (result[1] * 3.3 / 4096) * 65 / 18 = result[1] * 2145 / 737280
+        // Vin [mV] = result[1] * 2145000 / 737280 = 17875 / 6144
+        //  Cannot overflow, the maximum ADC reading yields numerator of ~17000000
+        pTelemetry->voltage = (result[1] & 0xFFFU) * 17875U / 6144U;
     }
     ADCSequenceDisable(ADC0_BASE, 2);
 }

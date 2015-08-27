@@ -349,8 +349,8 @@
           </ArmAdsMisc>
           <Cads>
             <interw>1</interw>
-            <Optim>1</Optim>
-            <oTime>1</oTime>
+            <Optim>3</Optim>
+            <oTime>0</oTime>
             <SplitLS>0</SplitLS>
             <OneElfS>1</OneElfS>
             <Strict>0</Strict>
@@ -428,9 +428,29 @@
               <FilePath>.\src\common.h</FilePath>
             </File>
             <File>
+              <FileName>eeprom.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\eeprom.h</FilePath>
+            </File>
+            <File>
+              <FileName>eeprom.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\eeprom.c</FilePath>
+            </File>
+            <File>
               <FileName>faults.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\faults.c</FilePath>
+            </File>
+            <File>
+              <FileName>i2c.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\i2c.h</FilePath>
+            </File>
+            <File>
+              <FileName>i2c.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\i2c.c</FilePath>
             </File>
             <File>
               <FileName>nmea_messages.h</FileName>
@@ -511,16 +531,6 @@
               <FileName>uart_write.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\uart_write.c</FilePath>
-            </File>
-            <File>
-              <FileName>i2c.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\i2c.c</FilePath>
-            </File>
-            <File>
-              <FileName>i2c.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\src\i2c.h</FilePath>
             </File>
           </Files>
         </Group>

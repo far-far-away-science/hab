@@ -6,11 +6,52 @@
 #include "telemetry.h"
 #include "aprs_board.h"
 #include "i2c.h"
+#include "eeprom.h"
 
 #include <string.h>
 
 #include <driverlib/rom.h>
 #include <driverlib/systick.h>
+
+// Reduce stack usage by main() and get a "free" zero initialization!
+static GpsData venusGpsData;
+static GpsData copernicusGpsData;
+static Message venusGpsMessage;
+static Message copernicusGpsMessage;
+static Telemetry telemetry;
+
+// EEPROM recording buffer
+static uint32_t eepromBuffer;
+
+// AIR mode for Copernicus:
+// 0x10 DLE
+// 0xBB Set GPS Processing Options
+// 0x03 Query Mode
+// 0x00 Auto 2D/3D
+// 0x00 Reserved
+// 0x03 Dynamics Mode AIR
+// 0x00 Reserved
+//  0x3db2b8c2 = 5 degrees in radians little endian (0.087266), Copernicus is big endian
+// 0xC2 Lowest satellite elevation angle for fix
+// 0xB8
+// 0xB2
+// 0x3D
+//  0x3f19999a = 0.6 little endian
+// 0x9A Minimum signal level for fix
+// 0x99
+// 0x19
+// 0x3F
+// 0x00 * 27 (4 + 4 + 1 + 18) Reserved
+// 0x10 DLE
+// 0x03 ETX
+static const Message airMode = {
+    42, {
+        0x10, 0xBB, 0x03, 0x00, 0x00, 0x03, 0x00, 0xC2, 0xB8, 0xB2, 0x3D, 0x9A, 0x99, 0x19,
+        0x3F, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00, 0x00,
+        0x10, 0x03
+    }
+};
 
 int main()
 {
@@ -18,9 +59,13 @@ int main()
     initializeAprs();
     initializeTimer();
     initializeUart();
-    initializeI2C();
     initializeSignals();
     initializeTelemetry();
+    // If button 1 is held down during power up/reset, then EEPROM recording will be activated
+    uint32_t record = isUserButton1() ? 0U : 0xFFFFFFFFU;
+    initializeEEPROM(record == 0U);
+    eepromBuffer = 0U;
+    initializeI2C();
 
     bool r = true;
 
@@ -30,6 +75,7 @@ int main()
     r &= initializeUartChannel(CHANNEL_DEBUG, UART_0, 115200, CPU_SPEED, UART_FLAGS_SEND);
 #endif
 
+    r &= writeMessage(CHANNEL_COPERNICUS_GPS, &airMode);
     if (r)
     {
         signalSuccess();
@@ -39,17 +85,10 @@ int main()
         signalError();
     }
 
-    GpsData venusGpsData = { 0 };
-    GpsData copernicusGpsData = { 0 };
-
-    Message venusGpsMessage = { 0 };
-    Message copernicusGpsMessage = { 0 };
-
-    Telemetry telemetry;
-
     bool shouldSendVenusDataToAprs = true;
 
-    uint32_t lastRadioSentTime = getSecondsSinceStart();
+    uint32_t nextRadioSendTime = 0;
+    startWatchdog();
     
     while (true)
     {
@@ -100,9 +139,10 @@ int main()
 
         uint32_t currentTime = getSecondsSinceStart();
 
-        if (currentTime - lastRadioSentTime >= RADIO_MCU_MESSAGE_SENDING_INTERVAL_SECONDS)
+        if (currentTime >= nextRadioSendTime)
         {
             getTelemetry(&telemetry);
+            submitI2CTelemetry(&telemetry);
             
             if (shouldSendVenusDataToAprs && venusGpsData.isValid)
             {
@@ -116,10 +156,39 @@ int main()
             }
 
             shouldSendVenusDataToAprs = !shouldSendVenusDataToAprs;
-            lastRadioSentTime = currentTime;
+            uint32_t dither;
+#if defined(RADIO_MCU_MESSAGE_DITHER) && (RADIO_MCU_MESSAGE_DITHER > 0)
+            dither = (currentTime % RADIO_MCU_MESSAGE_DITHER);
+#else
+            dither = 0U;
+#endif
+            nextRadioSendTime = currentTime + RADIO_MCU_MESSAGE_SENDING_INTERVAL_SECONDS + dither;
+            // Every 30 seconds, write stats to EEPROM
+            if (record < 2048U)
+            {
+                // Compose 16-bit EEPROM word = [LSB] one byte temp, [MSB] one byte voltage
+                // Voltage = (mV - 4990) / 20
+                // Temperature = (raw reading - 1595) / 10
+                uint32_t result = ((telemetry.cpuTemperature - 1595U) / 10U) & 0xFFU;
+                result |= (((telemetry.voltage - 4990U) / 20U) & 0xFFU) << 8;
+                if (record & 2U)
+                {
+                    eepromBuffer |= (result << 16U);
+                    // Finish up the buffer, and write the word at the base address
+                    eepromWrite(record & 0x7FC, &eepromBuffer);
+                }
+                else
+                    // Write first half of the buffer value
+                    eepromBuffer = result;
+                record += 2U;
+            }
         }
-
-        // TODO if 60 seconds expired write stats to EPPROM
+        // Blink green light to let everyone know that we are still running
+        if (currentTime & 1)
+            signalHeartbeatOff();
+        else
+            signalHeartbeatOn();
+        feedWatchdog();
 
         // Enter low power mode
         ROM_SysCtlSleep();
