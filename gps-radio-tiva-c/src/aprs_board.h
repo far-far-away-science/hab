@@ -10,7 +10,8 @@ typedef struct Callsign_t
 } Callsign;
 
 extern const Callsign CALLSIGN_SOURCE;
-extern const Callsign CALLSIGN_DESTINATION;
+extern const Callsign CALLSIGN_DESTINATION_1;
+extern const Callsign CALLSIGN_DESTINATION_2;
 
 void initializeAprs(void);
 bool sendAprsMessage(const GpsData* pGpsData, const Telemetry* pTelemetry);
