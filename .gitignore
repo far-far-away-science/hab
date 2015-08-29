@@ -214,6 +214,9 @@ ModelManifest.xml
 *.pdf
 *.zip
 
+# HAB logs
+*.log
+
 # Keil files
 *.bin
 *.iex
