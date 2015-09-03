@@ -2,6 +2,7 @@
 
 #include <stdbool.h>
 
+#include <inc/hw_ints.h>
 #include <inc/hw_memmap.h>
 
 #include <driverlib/pwm.h>
@@ -17,7 +18,7 @@
 // Configures the PWM generator to the right values
 #define PWM_GEN_CONFIGURE(_gen) do {\
     MAP_PWMGenConfigure(PWM1_BASE, (_gen), PWM_GEN_MODE_NO_SYNC | PWM_GEN_MODE_UP_DOWN |\
-        PWM_GEN_MODE_DBG_RUN | PWM_GEN_MODE_GEN_NO_SYNC);\
+        PWM_GEN_MODE_DBG_RUN | PWM_GEN_MODE_GEN_NO_SYNC | PWM_GEN_MODE_FAULT_UNLATCHED);\
     MAP_PWMGenPeriodSet(PWM1_BASE, (_gen), 0xFFFFU);\
     MAP_PWMGenEnable(PWM1_BASE, (_gen));\
 } while (0)
@@ -44,8 +45,15 @@ void initializeSignals(void)
 #endif
     signalOff();
     // Button setup (PF4 = SW1, PF0 = SW2)
-    MAP_GPIOPadConfigSet(GPIO_PORTF_BASE, GPIO_PIN_0 | GPIO_PIN_4, GPIO_STRENGTH_8MA, GPIO_PIN_TYPE_STD_WPU);
-    MAP_GPIOPinTypeGPIOInput(GPIO_PORTF_BASE, GPIO_PIN_0 | GPIO_PIN_4);
+    // PF0 is locked by default! Why, TI, did you put the button on this pin?
+    MAP_GPIOPinTypeGPIOInput(GPIO_PORTF_BASE, GPIO_PIN_4);
+    MAP_GPIOPadConfigSet(GPIO_PORTF_BASE, GPIO_PIN_4, GPIO_STRENGTH_8MA, GPIO_PIN_TYPE_STD_WPU);
+    // The buttons have the lowest priority interrupt since the ISR is blank!
+    MAP_GPIOIntTypeSet(GPIO_PORTF_BASE, GPIO_INT_PIN_4, GPIO_FALLING_EDGE);
+    MAP_GPIOIntEnable(GPIO_PORTF_BASE, GPIO_INT_PIN_4);
+    MAP_IntPrioritySet(INT_GPIOF, 0xE0);
+    MAP_GPIOIntClear(GPIO_PORTF_BASE, GPIO_INT_PIN_4);
+    MAP_IntEnable(INT_GPIOF);
 }
 
 // The rest of these functions should be self explanatory
@@ -126,16 +134,17 @@ void signalHeartbeatOff(void)
 #endif
 }
 
-void signalI2CDataRequested()
+void signalI2CDataRequested(void)
 {
 #ifdef PWM_OUTPUT
-    signalBlue(0xFFFFU);
+    // Only goes to 0xFFFD?
+    signalBlue(4096);
 #else
     MAP_GPIOPinWrite(GPIO_PORTF_BASE, GPIO_PIN_2, GPIO_PIN_2);
 #endif
 }
 
-void clearI2CDataRequested()
+void clearI2CDataRequested(void)
 {
 #ifdef PWM_OUTPUT
     signalBlue(0U);
@@ -144,14 +153,15 @@ void clearI2CDataRequested()
 #endif
 }
 
-bool isUserButton1()
+bool isUserButton1(void)
 {
     // Active LOW, weak pull up
-    return GPIOPinRead(GPIO_PORTF_BASE, GPIO_PIN_4) == 0;
+    return MAP_GPIOPinRead(GPIO_PORTF_BASE, GPIO_PIN_4) == 0;
 }
 
-bool isUserButton2()
+void PortFHandler(void)
 {
-    // Active LOW, weak pull up
-    return GPIOPinRead(GPIO_PORTF_BASE, GPIO_PIN_0) == 0;
+    // This ISR does nothing but clear the interrupt
+    // It exists only to wake up the MCU from sleep on button push
+    MAP_GPIOIntClear(GPIO_PORTF_BASE, GPIO_INT_PIN_4);
 }

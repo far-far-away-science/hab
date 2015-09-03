@@ -89,6 +89,7 @@ __heap_limit
         EXTERN  I2cSlaveHandler
         EXTERN  MyFaultISR
         EXTERN  WatchdogHandler
+        EXTERN  PortFHandler
 
 ;******************************************************************************
 ;
@@ -144,7 +145,7 @@ __Vectors
         DCD     IntDefaultHandler           ; Analog Comparator 2
         DCD     IntDefaultHandler           ; System Control (PLL, OSC, BO)
         DCD     IntDefaultHandler           ; FLASH Control
-        DCD     IntDefaultHandler           ; GPIO Port F
+        DCD     PortFHandler                ; GPIO Port F
         DCD     IntDefaultHandler           ; GPIO Port G
         DCD     IntDefaultHandler           ; GPIO Port H
         DCD     Uart2IntHandler             ; UART2 Rx and Tx

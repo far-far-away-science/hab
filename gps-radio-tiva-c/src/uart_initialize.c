@@ -143,8 +143,10 @@ bool initializeUartChannel(uint8_t channel,
         MAP_UARTIntEnable(uartBase, UART_INT_TX);
     }
 
-    MAP_IntEnable(uartInterruptId);
     MAP_UARTEnable(uartBase);
+    // UART interrupt has lower priority than I2C and PWM because of the FIFO
+    MAP_IntPrioritySet(uartInterruptId, 0x40);
+    MAP_IntEnable(uartInterruptId);
 
     uartChannelData[channel].base = uartBase;
     uartChannelData[channel].interruptId = uartInterruptId;

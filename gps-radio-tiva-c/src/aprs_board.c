@@ -11,11 +11,13 @@
 #include <driverlib/gpio.h>
 #include <driverlib/uart.h>
 #include <driverlib/sysctl.h>
+#include <driverlib/rom_map.h>
 #include <driverlib/pin_map.h>
 
 #include "uart.h"
 #include "timer.h"
 #include "common.h"
+#include "signals.h"
 
 #define PREFIX_FLAGS_COUNT 1
 #define SUFFIX_FLAGS_COUNT 3
@@ -143,18 +145,22 @@ bool createAprsMessage(const GpsData* pGpsData, const Telemetry* pTelemetry);
 
 void initializeAprs(void)
 {
-    SysCtlPWMClockSet(SYSCTL_PWMDIV_1);
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_PWM0);
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
-    GPIOPinConfigure(GPIO_PB6_M0PWM0);
-    GPIOPinTypePWM(GPIO_PORTB_BASE, GPIO_PIN_6);
-    PWMGenConfigure(PWM0_BASE, PWM_GEN_0, PWM_GEN_MODE_UP_DOWN | PWM_GEN_MODE_NO_SYNC);
-    PWMGenPeriodSet(PWM0_BASE, PWM_GEN_0, PWM_PERIOD);
-    PWMPulseWidthSet(PWM0_BASE, PWM_OUT_0, PWM_MIN_PULSE_WIDTH);
+    MAP_SysCtlPWMClockSet(SYSCTL_PWMDIV_1);
+    MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_PWM0);
+    MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
+    MAP_GPIOPinConfigure(GPIO_PB6_M0PWM0);
+    MAP_GPIOPinTypePWM(GPIO_PORTB_BASE, GPIO_PIN_6);
+    MAP_PWMGenConfigure(PWM0_BASE, PWM_GEN_0, PWM_GEN_MODE_UP_DOWN | PWM_GEN_MODE_NO_SYNC);
+    MAP_PWMGenPeriodSet(PWM0_BASE, PWM_GEN_0, PWM_PERIOD);
+    MAP_PWMPulseWidthSet(PWM0_BASE, PWM_OUT_0, PWM_MIN_PULSE_WIDTH);
+    // Set APRS interrupt to the highest priority. It matters more than most interrupts
+    // including I2C and user buttons.
+    MAP_IntPrioritySet(INT_PWM0_0, 0x00);
     
     // used to enable/disable HX1
-    SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOC);
-    GPIOPinTypeGPIOOutput(GPIO_PORTC_BASE, GPIO_PIN_4);
+    MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOC);
+    MAP_GPIOPadConfigSet(GPIO_PORTC_BASE, GPIO_PIN_4, GPIO_STRENGTH_8MA, GPIO_PIN_TYPE_OD);
+    MAP_GPIOPinTypeGPIOOutputOD(GPIO_PORTC_BASE, GPIO_PIN_4);
 }
 
 bool sendAprsMessage(const GpsData* pGpsData, const Telemetry* pTelemetry)
@@ -416,30 +422,32 @@ bool createAprsMessage(const GpsData* pGpsData, const Telemetry* pTelemetry)
 
 void enablePwm(void)
 {
-    ROM_PWMIntEnable(PWM0_BASE, PWM_INT_GEN_0);
-    PWMGenIntTrigEnable(PWM0_BASE, PWM_GEN_0, PWM_INT_CNT_ZERO);
-    ROM_IntEnable(INT_PWM0_0);
-    PWMOutputState(PWM0_BASE, PWM_OUT_0_BIT, true);
-    PWMGenEnable(PWM0_BASE, PWM_GEN_0);
+    MAP_PWMIntEnable(PWM0_BASE, PWM_INT_GEN_0);
+    MAP_PWMGenIntTrigEnable(PWM0_BASE, PWM_GEN_0, PWM_INT_CNT_ZERO);
+    MAP_IntEnable(INT_PWM0_0);
+    MAP_PWMOutputState(PWM0_BASE, PWM_OUT_0_BIT, true);
+    MAP_PWMGenEnable(PWM0_BASE, PWM_GEN_0);
 }
 
 void disablePwm(void)
 {
-    ROM_PWMIntDisable(PWM0_BASE, PWM_INT_GEN_0);
-    PWMGenIntTrigDisable(PWM0_BASE, PWM_GEN_0, PWM_INT_CNT_ZERO);
-    ROM_IntDisable(INT_PWM0_0);
-    PWMOutputState(PWM0_BASE, PWM_OUT_0_BIT, false);
-    PWMGenDisable(PWM0_BASE, PWM_GEN_0);
+    MAP_PWMIntDisable(PWM0_BASE, PWM_INT_GEN_0);
+    MAP_PWMGenIntTrigDisable(PWM0_BASE, PWM_GEN_0, PWM_INT_CNT_ZERO);
+    MAP_IntDisable(INT_PWM0_0);
+    MAP_PWMOutputState(PWM0_BASE, PWM_OUT_0_BIT, false);
+    MAP_PWMGenDisable(PWM0_BASE, PWM_GEN_0);
 }
 
 void enableHx1(void)
 {
-    GPIOPinWrite(GPIO_PORTC_BASE, GPIO_PIN_4, GPIO_PIN_4);
+    MAP_GPIOPinWrite(GPIO_PORTC_BASE, GPIO_PIN_4, GPIO_PIN_4);
+    signalI2CDataRequested();
 }
 
 void disableHx1(void)
 {
-    GPIOPinWrite(GPIO_PORTC_BASE, GPIO_PIN_4, 0);
+    MAP_GPIOPinWrite(GPIO_PORTC_BASE, GPIO_PIN_4, 0);
+    clearI2CDataRequested();
 }
 
 float normalizePulseWidth(float width)
@@ -457,7 +465,7 @@ float normalizePulseWidth(float width)
 
 void Pwm10Handler(void)
 {
-    PWMGenIntClear(PWM0_BASE, PWM_GEN_0, PWM_INT_CNT_ZERO);
+    MAP_PWMGenIntClear(PWM0_BASE, PWM_GEN_0, PWM_INT_CNT_ZERO);
     
     if (g_currentSymbolPulsesCount >= F1200_PWM_PULSES_COUNT_PER_SYMBOL)
     {
@@ -468,7 +476,7 @@ void Pwm10Handler(void)
         {
             disablePwm();
             disableHx1();
-            PWMPulseWidthSet(PWM0_BASE, PWM_OUT_0, PWM_MIN_PULSE_WIDTH);
+            MAP_PWMPulseWidthSet(PWM0_BASE, PWM_OUT_0, PWM_MIN_PULSE_WIDTH);
             g_sendingMessage = false;
             return;
         }
@@ -529,14 +537,14 @@ void Pwm10Handler(void)
 
     if (g_leadingMidSignalLeft)
     {
-        PWMPulseWidthSet(PWM0_BASE, PWM_OUT_0, AMPLITUDE_SHIFT_UINT);
+        MAP_PWMPulseWidthSet(PWM0_BASE, PWM_OUT_0, AMPLITUDE_SHIFT_UINT);
     }
     else
     {
         if (g_currentFrequencyIsF1200)
         {
             const uint32_t pulseWidth = (uint32_t) (AMPLITUDE_SHIFT_UINT + AMPLITUDE_SCALER * sinf(ANGULAR_FREQUENCY_F1200 * g_currentF1200Frame));
-            PWMPulseWidthSet(PWM0_BASE, PWM_OUT_0, pulseWidth);
+            MAP_PWMPulseWidthSet(PWM0_BASE, PWM_OUT_0, pulseWidth);
             g_currentF1200Frame += PWM_STEP_SIZE;
             
             if (g_currentF1200Frame >= F1200_PWM_PULSES_COUNT_PER_SYMBOL)
@@ -547,7 +555,7 @@ void Pwm10Handler(void)
         else
         {
             const uint32_t pulseWidth = (uint32_t) (AMPLITUDE_SHIFT_UINT + AMPLITUDE_SCALER * sinf(ANGULAR_FREQUENCY_F2200 * g_currentF2200Frame));
-            PWMPulseWidthSet(PWM0_BASE, PWM_OUT_0, pulseWidth);
+            MAP_PWMPulseWidthSet(PWM0_BASE, PWM_OUT_0, pulseWidth);
             g_currentF2200Frame += PWM_STEP_SIZE;
             if (g_currentF2200Frame >= F2200_PWM_PULSES_COUNT_PER_SYMBOL)
             {

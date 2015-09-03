@@ -26,9 +26,7 @@ void getTelemetry(Telemetry* pTelemetry)
     ADCSequenceEnable(ADC0_BASE, 2);
     ADCIntClear(ADC0_BASE, 2);
     ADCProcessorTrigger(ADC0_BASE, 2);
-    while(!ADCIntStatus(ADC0_BASE, 2, false))
-    {
-    }
+    while(!ADCIntStatus(ADC0_BASE, 2, false));
     ADCIntClear(ADC0_BASE, 2);
     ADCSequenceDataGet(ADC0_BASE, 2, result);
     if (pTelemetry)

@@ -22,12 +22,14 @@ void initializeTimer(void)
     MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_TIMER0);
     MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_WDOG0);
     MAP_TimerConfigure(TIMER0_BASE, TIMER_CFG_PERIODIC);
-    // invoke timer once a second
+    // Invoke timer once a second at lowest priority
     MAP_TimerLoadSet(TIMER0_BASE, TIMER_A, MAP_SysCtlClockGet());
-    MAP_IntEnable(INT_TIMER0A);
+    MAP_IntPrioritySet(INT_TIMER0A, 0xE0);
     MAP_TimerIntEnable(TIMER0_BASE, TIMER_TIMA_TIMEOUT);
     MAP_TimerEnable(TIMER0_BASE, TIMER_A);
+    MAP_IntEnable(INT_TIMER0A);
     // Prepare the watchdog, use WDG0 as WDG1 was locking up
+    MAP_IntPrioritySet(INT_WATCHDOG, 0x00);
     MAP_WatchdogUnlock(WATCHDOG0_BASE);
     MAP_WatchdogReloadSet(WATCHDOG0_BASE, WATCHDOG_RELOAD);
     MAP_WatchdogResetEnable(WATCHDOG0_BASE);

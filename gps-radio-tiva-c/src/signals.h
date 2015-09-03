@@ -22,4 +22,3 @@ void signalBlue(const uint32_t value);
 
 // User button checking
 bool isUserButton1(void);
-bool isUserButton2(void);

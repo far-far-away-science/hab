@@ -87,7 +87,7 @@ int main()
 
     bool shouldSendVenusDataToAprs = true;
 
-    uint32_t nextRadioSendTime = 0;
+    uint32_t nextRadioSendTime = 5U;
     startWatchdog();
     
     while (true)
@@ -139,6 +139,10 @@ int main()
 
         uint32_t currentTime = getSecondsSinceStart();
 
+        // If user button 1 is down, send APRS message "now"
+        if (isUserButton1())
+            nextRadioSendTime = currentTime + 1U;
+            
         if (currentTime >= nextRadioSendTime)
         {
             getTelemetry(&telemetry);

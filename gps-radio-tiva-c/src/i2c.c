@@ -198,11 +198,11 @@ void initializeI2C(void) {
     MAP_GPIOPinTypeI2C(GPIO_PORTA_BASE, GPIO_PIN_7);
     MAP_GPIOPinTypeI2CSCL(GPIO_PORTA_BASE, GPIO_PIN_6);
     // Register IRQ and clear spurious conditions
-    MAP_IntEnable(INT_I2C1);
+    MAP_IntPrioritySet(INT_I2C1, 0x20);
     MAP_I2CSlaveIntClear(I2C_MODULE);
     MAP_I2CSlaveIntEnableEx(I2C_MODULE, I2C_SLAVE_INT_DATA);
+    MAP_IntEnable(INT_I2C1);
     // Set up in slave mode with correct address
-    // NOTE TM4C123 does not have slave functions in its ROM, do not try, you will be sad
     MAP_I2CMasterDisable(I2C_MODULE);
     MAP_I2CSlaveEnable(I2C_MODULE);
     MAP_I2CSlaveInit(I2C_MODULE, I2C_ADDRESS);
