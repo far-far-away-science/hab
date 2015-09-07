@@ -1,6 +1,6 @@
 <?xml version="1.0" encoding="utf-8"?>
 <!DOCTYPE eagle SYSTEM "eagle.dtd">
-<eagle version="7.3.0">
+<eagle version="7.4.0">
 <drawing>
 <settings>
 <setting alwaysvectorfont="no"/>
@@ -2134,8 +2134,8 @@ Radiometrix HX1</description>
 <wire x1="0.9" y1="-1.524" x2="0.9" y2="1.524" width="0.127" layer="51"/>
 <wire x1="-1" y1="-0.4" x2="-1" y2="0.4" width="0.127" layer="21"/>
 <wire x1="1" y1="-0.4" x2="1" y2="0.4" width="0.127" layer="21"/>
-<smd name="1" x="0" y="1.8796" dx="1.7526" dy="1.2192" layer="1"/>
-<smd name="2" x="0" y="-1.8796" dx="1.7526" dy="1.2192" layer="1"/>
+<smd name="1" x="0" y="1.27" dx="1.7526" dy="1.2192" layer="1"/>
+<smd name="2" x="0" y="-1.27" dx="1.7526" dy="1.2192" layer="1"/>
 <text x="-1" y="2.667" size="0.4064" layer="25">&gt;NAME</text>
 <text x="-1" y="-3.0988" size="0.4064" layer="27">&gt;VALUE</text>
 </package>
