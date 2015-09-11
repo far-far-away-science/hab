@@ -20,7 +20,7 @@
 #include "signals.h"
 
 #define PREFIX_FLAGS_COUNT 1
-#define SUFFIX_FLAGS_COUNT 3
+#define SUFFIX_FLAGS_COUNT 23
 
 #define APRS_BITSTREAM_MAX_LEN 386 // bitstream will have extra bits in it so it must be larger than message buffer
                                    // in worst case we will insert extra 0 for every 5 bits
@@ -51,8 +51,10 @@
 
 #define F1200_PWM_PULSES_COUNT_PER_SYMBOL 64
 
-#define LEADING_MID_AMPLITUDE_DC_PULSES_COUNT 600
-#define LEADING_ONES_COUNT_TO_CANCEL_PREVIOUS_PACKET 32
+// should be around 0.5ms for HX-1 warmup
+#define LEADING_WARMUP_AMPLITUDE_DC_PULSES_COUNT 20
+// to abord previous frame send at least 15 ones without any stuffing (putting zeroes in between)
+#define LEADING_ONES_COUNT_TO_CANCEL_PREVIOUS_PACKET 64
 
 /*
  * those values are calculated from prevous ones
@@ -64,7 +66,6 @@
 #define RECIPROCAL_AMPLITUDE_SCALER (1.0f / AMPLITUDE_SCALER)
 
 #define AMPLITUDE_SHIFT ((float) (AMPLITUDE_SCALER + 1.0f))
-#define AMPLITUDE_SHIFT_UINT (AMPLITUDE_SHIFT + 0.5f)
 
 #define HALF_PERIOD_F1200 (F1200_PWM_PULSES_COUNT_PER_SYMBOL / 2.0f)
 #define HALF_PERIOD_F2200 (F2200_PWM_PULSES_COUNT_PER_SYMBOL / 2.0f)
@@ -128,7 +129,7 @@ const Callsign CALLSIGN_DESTINATION_2 =
 bool g_sendingMessage = false;
 
 uint16_t g_leadingOnesLeft = 0;
-uint16_t g_leadingMidSignalLeft = 0;
+uint16_t g_leadingWarmUpLeft = 0;
 BitstreamPos g_currentBitstreamPos = { 0 };
 BitstreamPos g_currentBitstreamSize = { 0 };
 uint8_t g_currentBitstream[APRS_BITSTREAM_MAX_LEN] = { 0 };
@@ -159,8 +160,8 @@ void initializeAprs(void)
     
     // used to enable/disable HX1
     MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOC);
-    MAP_GPIOPadConfigSet(GPIO_PORTC_BASE, GPIO_PIN_4, GPIO_STRENGTH_8MA, GPIO_PIN_TYPE_OD);
-    MAP_GPIOPinTypeGPIOOutputOD(GPIO_PORTC_BASE, GPIO_PIN_4);
+    MAP_GPIOPadConfigSet(GPIO_PORTC_BASE, GPIO_PIN_7, GPIO_STRENGTH_8MA, GPIO_PIN_TYPE_OD);
+    MAP_GPIOPinTypeGPIOOutputOD(GPIO_PORTC_BASE, GPIO_PIN_7);
 }
 
 bool sendAprsMessage(const GpsData* pGpsData, const Telemetry* pTelemetry)
@@ -391,7 +392,7 @@ bool generateMessage(const Callsign* pCallsignSource,
 bool createAprsMessage(const GpsData* pGpsData, const Telemetry* pTelemetry)
 {
     g_leadingOnesLeft = LEADING_ONES_COUNT_TO_CANCEL_PREVIOUS_PACKET;
-    g_leadingMidSignalLeft = LEADING_MID_AMPLITUDE_DC_PULSES_COUNT;
+    g_leadingWarmUpLeft = LEADING_WARMUP_AMPLITUDE_DC_PULSES_COUNT;
     
     g_currentBitstreamSize.bitstreamCharIdx = 0;
     g_currentBitstreamSize.bitstreamCharBitIdx = 0;
@@ -440,13 +441,13 @@ void disablePwm(void)
 
 void enableHx1(void)
 {
-    MAP_GPIOPinWrite(GPIO_PORTC_BASE, GPIO_PIN_4, GPIO_PIN_4);
+    MAP_GPIOPinWrite(GPIO_PORTC_BASE, GPIO_PIN_7, GPIO_PIN_7);
     signalI2CDataRequested();
 }
 
 void disableHx1(void)
 {
-    MAP_GPIOPinWrite(GPIO_PORTC_BASE, GPIO_PIN_4, 0);
+    MAP_GPIOPinWrite(GPIO_PORTC_BASE, GPIO_PIN_7, 0);
     clearI2CDataRequested();
 }
 
@@ -481,9 +482,9 @@ void Pwm10Handler(void)
             return;
         }
 
-        if (g_leadingMidSignalLeft > 0)
+        if (g_leadingWarmUpLeft > 0)
         {
-            --g_leadingMidSignalLeft;
+            --g_leadingWarmUpLeft;
         }
         else if (g_leadingOnesLeft > 0)
         {
@@ -535,15 +536,15 @@ void Pwm10Handler(void)
         }
     }
 
-    if (g_leadingMidSignalLeft)
+    if (g_leadingWarmUpLeft)
     {
-        MAP_PWMPulseWidthSet(PWM0_BASE, PWM_OUT_0, AMPLITUDE_SHIFT_UINT);
+        MAP_PWMPulseWidthSet(PWM0_BASE, PWM_OUT_0, PWM_MIN_PULSE_WIDTH);
     }
     else
     {
         if (g_currentFrequencyIsF1200)
         {
-            const uint32_t pulseWidth = (uint32_t) (AMPLITUDE_SHIFT_UINT + AMPLITUDE_SCALER * sinf(ANGULAR_FREQUENCY_F1200 * g_currentF1200Frame));
+            const uint32_t pulseWidth = (uint32_t) (AMPLITUDE_SHIFT + AMPLITUDE_SCALER * sinf(ANGULAR_FREQUENCY_F1200 * g_currentF1200Frame));
             MAP_PWMPulseWidthSet(PWM0_BASE, PWM_OUT_0, pulseWidth);
             g_currentF1200Frame += PWM_STEP_SIZE;
             
@@ -554,7 +555,7 @@ void Pwm10Handler(void)
         }
         else
         {
-            const uint32_t pulseWidth = (uint32_t) (AMPLITUDE_SHIFT_UINT + AMPLITUDE_SCALER * sinf(ANGULAR_FREQUENCY_F2200 * g_currentF2200Frame));
+            const uint32_t pulseWidth = (uint32_t) (AMPLITUDE_SHIFT + AMPLITUDE_SCALER * sinf(ANGULAR_FREQUENCY_F2200 * g_currentF2200Frame));
             MAP_PWMPulseWidthSet(PWM0_BASE, PWM_OUT_0, pulseWidth);
             g_currentF2200Frame += PWM_STEP_SIZE;
             if (g_currentF2200Frame >= F2200_PWM_PULSES_COUNT_PER_SYMBOL)
