@@ -3,7 +3,6 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-
 typedef struct Telemetry_t
 {
     uint32_t voltage;

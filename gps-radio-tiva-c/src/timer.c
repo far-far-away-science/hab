@@ -43,7 +43,9 @@ uint32_t getSecondsSinceStart(void)
 
 void startWatchdog(void)
 {
+#ifndef DEBUG
     MAP_WatchdogEnable(WATCHDOG0_BASE);
+#endif
 }
 
 void feedWatchdog(void)

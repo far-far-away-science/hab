@@ -18,6 +18,7 @@
 #include "timer.h"
 #include "common.h"
 #include "signals.h"
+#include "generated_trig_data.h"
 
 #define PREFIX_FLAGS_COUNT 1
 #define SUFFIX_FLAGS_COUNT 23
@@ -51,10 +52,10 @@
 
 #define F1200_PWM_PULSES_COUNT_PER_SYMBOL 64
 
-// should be around 0.5ms for HX-1 warmup
-#define LEADING_WARMUP_AMPLITUDE_DC_PULSES_COUNT 20
+// should be around 0.5ms for HX-1 warmup (10 / 1200 = 8ms)
+#define LEADING_WARMUP_AMPLITUDE_DC_PULSES_COUNT 10
 // to abord previous frame send at least 15 ones without any stuffing (putting zeroes in between)
-#define LEADING_ONES_COUNT_TO_CANCEL_PREVIOUS_PACKET 64
+#define LEADING_ONES_COUNT_TO_CANCEL_PREVIOUS_PACKET 48
 
 /*
  * those values are calculated from prevous ones
@@ -75,6 +76,39 @@
 
 #define RECIPROCAL_ANGULAR_FREQUENCY_F1200 (1.0f / ANGULAR_FREQUENCY_F1200) 
 #define RECIPROCAL_ANGULAR_FREQUENCY_F2200 (1.0f / ANGULAR_FREQUENCY_F2200) 
+
+#ifdef TRIG_SLOW
+    #define SINE(v)         sinf(v)
+    #define COSINE(v)       cosf(v)
+    #define INVERSE_SINE(v) asinf(v)
+#else
+    #define TRIG_FLOAT_TO_INT(value) \
+        (int) ((value) * TRIG_MULTIPLIER + 0.5f)
+            
+    #define COS_SHIFT TRIG_FLOAT_TO_INT(PI / 2.0f)
+        
+    #define INVERSE_TRIG_FLOAT_TO_INT(value) \
+        (INVERSE_TRIG_MULTIPLIER + (int) ((value) * INVERSE_TRIG_MULTIPLIER + 0.5f))
+
+    // this complication is due to the fact that mVision has a 32K limit for code
+    // need to try to compile this stuff using Ubuntu/gcc and use normal table for cosine
+    float cosine(int idx)
+    {
+        idx += COS_SHIFT;
+        if (idx < TRIG_COUNT)
+        {
+            return SIN[idx];
+        }
+        else
+        {
+            return SIN[idx - TRIG_COUNT];
+        }
+    }
+        
+    #define SINE(v)         SIN[TRIG_FLOAT_TO_INT(v)]
+    #define COSINE(v)       cosine(TRIG_FLOAT_TO_INT(v))
+    #define INVERSE_SINE(v) ASIN[INVERSE_TRIG_FLOAT_TO_INT(v)]
+#endif
 
 typedef enum FCS_TYPE_t
 {
@@ -464,11 +498,18 @@ float normalizePulseWidth(float width)
     return width;
 }
 
+char buffer[128];
+
 void Pwm10Handler(void)
 {
     MAP_PWMGenIntClear(PWM0_BASE, PWM_GEN_0, PWM_INT_CNT_ZERO);
     
-    if (g_currentSymbolPulsesCount >= F1200_PWM_PULSES_COUNT_PER_SYMBOL)
+    if (g_leadingWarmUpLeft > 0)
+    {
+        --g_leadingWarmUpLeft;
+        g_currentSymbolPulsesCount = 0;
+    }
+    else if (g_currentSymbolPulsesCount >= F1200_PWM_PULSES_COUNT_PER_SYMBOL)
     {
         g_currentSymbolPulsesCount = 0;
 
@@ -482,12 +523,9 @@ void Pwm10Handler(void)
             return;
         }
 
-        if (g_leadingWarmUpLeft > 0)
-        {
-            --g_leadingWarmUpLeft;
-        }
         else if (g_leadingOnesLeft > 0)
         {
+            g_currentFrequencyIsF1200 = true;
             --g_leadingOnesLeft;
         }
         else
@@ -499,34 +537,44 @@ void Pwm10Handler(void)
             if (!isOne && g_currentFrequencyIsF1200)
             {
                 const float trigaArg = ANGULAR_FREQUENCY_F1200 * g_currentF1200Frame;
-                const float pulseWidth1200 = normalizePulseWidth(AMPLITUDE_SHIFT + AMPLITUDE_SCALER * sinf(trigaArg));
-                const float pulseDirection1200 = cosf(trigaArg);
+                const float pulseWidth1200 = normalizePulseWidth(AMPLITUDE_SHIFT + AMPLITUDE_SCALER * SINE(trigaArg));
+                const float pulseDirection1200 = COSINE(trigaArg);
 
                 if (pulseDirection1200 >= 0)
                 {
-                    g_currentF2200Frame = RECIPROCAL_ANGULAR_FREQUENCY_F2200 * asinf(RECIPROCAL_AMPLITUDE_SCALER * (pulseWidth1200 - AMPLITUDE_SHIFT));
+                    g_currentF2200Frame = RECIPROCAL_ANGULAR_FREQUENCY_F2200 * INVERSE_SINE(RECIPROCAL_AMPLITUDE_SCALER * (pulseWidth1200 - AMPLITUDE_SHIFT));
                 }
                 else
                 {
-                    g_currentF2200Frame = HALF_PERIOD_F2200 - RECIPROCAL_ANGULAR_FREQUENCY_F2200 * asinf(RECIPROCAL_AMPLITUDE_SCALER * (pulseWidth1200 - AMPLITUDE_SHIFT));
+                    g_currentF2200Frame = HALF_PERIOD_F2200 - RECIPROCAL_ANGULAR_FREQUENCY_F2200 * INVERSE_SINE(RECIPROCAL_AMPLITUDE_SCALER * (pulseWidth1200 - AMPLITUDE_SHIFT));
                 }
                 
+                if (g_currentF2200Frame < 0)
+                {
+                    g_currentF2200Frame += F2200_PWM_PULSES_COUNT_PER_SYMBOL;
+                }
+
                 g_currentFrequencyIsF1200 = false;
             }
             // one
             else if (isOne && !g_currentFrequencyIsF1200)
             {
                 const float trigArg = ANGULAR_FREQUENCY_F2200 * g_currentF2200Frame;
-                const float pulseWidth2200 = normalizePulseWidth(AMPLITUDE_SHIFT + AMPLITUDE_SCALER * sinf(trigArg));
-                const float pulseDirection2200 = cosf(trigArg);
-
+                const float pulseWidth2200 = normalizePulseWidth(AMPLITUDE_SHIFT + AMPLITUDE_SCALER * SINE(trigArg));
+                const float pulseDirection2200 = COSINE(trigArg);
+                
                 if (pulseDirection2200 >= 0)
                 {
-                    g_currentF1200Frame = RECIPROCAL_ANGULAR_FREQUENCY_F1200 * asinf(RECIPROCAL_AMPLITUDE_SCALER * (pulseWidth2200 - AMPLITUDE_SHIFT));
+                    g_currentF1200Frame = RECIPROCAL_ANGULAR_FREQUENCY_F1200 * INVERSE_SINE(RECIPROCAL_AMPLITUDE_SCALER * (pulseWidth2200 - AMPLITUDE_SHIFT));
                 }
                 else
                 {
-                    g_currentF1200Frame = HALF_PERIOD_F1200 - RECIPROCAL_ANGULAR_FREQUENCY_F1200 * asinf(RECIPROCAL_AMPLITUDE_SCALER * (pulseWidth2200 - AMPLITUDE_SHIFT));
+                    g_currentF1200Frame = HALF_PERIOD_F1200 - RECIPROCAL_ANGULAR_FREQUENCY_F1200 * INVERSE_SINE(RECIPROCAL_AMPLITUDE_SCALER * (pulseWidth2200 - AMPLITUDE_SHIFT));
+                }
+
+                if (g_currentF1200Frame < 0)
+                {
+                    g_currentF1200Frame += F1200_PWM_PULSES_COUNT_PER_SYMBOL;
                 }
 
                 g_currentFrequencyIsF1200 = true;
@@ -544,7 +592,7 @@ void Pwm10Handler(void)
     {
         if (g_currentFrequencyIsF1200)
         {
-            const uint32_t pulseWidth = (uint32_t) (AMPLITUDE_SHIFT + AMPLITUDE_SCALER * sinf(ANGULAR_FREQUENCY_F1200 * g_currentF1200Frame));
+            const uint32_t pulseWidth = (uint32_t) (AMPLITUDE_SHIFT + AMPLITUDE_SCALER * SINE(ANGULAR_FREQUENCY_F1200 * g_currentF1200Frame));
             MAP_PWMPulseWidthSet(PWM0_BASE, PWM_OUT_0, pulseWidth);
             g_currentF1200Frame += PWM_STEP_SIZE;
             
@@ -555,7 +603,7 @@ void Pwm10Handler(void)
         }
         else
         {
-            const uint32_t pulseWidth = (uint32_t) (AMPLITUDE_SHIFT + AMPLITUDE_SCALER * sinf(ANGULAR_FREQUENCY_F2200 * g_currentF2200Frame));
+            const uint32_t pulseWidth = (uint32_t) (AMPLITUDE_SHIFT + AMPLITUDE_SCALER * SINE(ANGULAR_FREQUENCY_F2200 * g_currentF2200Frame));
             MAP_PWMPulseWidthSet(PWM0_BASE, PWM_OUT_0, pulseWidth);
             g_currentF2200Frame += PWM_STEP_SIZE;
             if (g_currentF2200Frame >= F2200_PWM_PULSES_COUNT_PER_SYMBOL)
