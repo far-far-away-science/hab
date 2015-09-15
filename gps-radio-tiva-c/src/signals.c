@@ -134,7 +134,7 @@ void signalHeartbeatOff(void)
 #endif
 }
 
-void signalI2CDataRequested(void)
+void signalHx1Enabled(void)
 {
 #ifdef PWM_OUTPUT
     // Only goes to 0xFFFD?
@@ -144,7 +144,7 @@ void signalI2CDataRequested(void)
 #endif
 }
 
-void clearI2CDataRequested(void)
+void signalHx1Disabled(void)
 {
 #ifdef PWM_OUTPUT
     signalBlue(0U);

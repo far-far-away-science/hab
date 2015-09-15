@@ -12,8 +12,8 @@ void signalFaultInterrupt(void);
 void signalHeartbeatOn(void);
 void signalHeartbeatOff(void);
 
-void signalI2CDataRequested(void);
-void clearI2CDataRequested(void);
+void signalHx1Enabled(void);
+void signalHx1Disabled(void);
 
 // PWM mode only!
 void signalRed(const uint32_t value);

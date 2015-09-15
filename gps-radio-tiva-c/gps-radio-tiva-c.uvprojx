@@ -542,6 +542,11 @@
               <FileType>1</FileType>
               <FilePath>.\src\uart_write.c</FilePath>
             </File>
+            <File>
+              <FileName>readme.txt</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\readme.txt</FilePath>
+            </File>
           </Files>
         </Group>
         <Group>

@@ -4,20 +4,10 @@
 #include <string.h>
 #include <cstdio>
 
-#include <inc/hw_ints.h>
-#include <inc/hw_memmap.h>
-#include <driverlib/rom.h>
-#include <driverlib/pwm.h>
-#include <driverlib/gpio.h>
-#include <driverlib/uart.h>
-#include <driverlib/sysctl.h>
-#include <driverlib/rom_map.h>
-#include <driverlib/pin_map.h>
-
 #include "uart.h"
 #include "timer.h"
+#include "tiva_c.h"
 #include "common.h"
-#include "signals.h"
 #include "generated_trig_data.h"
 
 #define PREFIX_FLAGS_COUNT 1
@@ -174,28 +164,11 @@ float g_currentF1200Frame = 0;
 float g_currentF2200Frame = 0;
 uint8_t g_currentSymbolPulsesCount = 0;
 
-void enableHx1(void);
-void enablePwm(void);
 bool createAprsMessage(const GpsData* pGpsData, const Telemetry* pTelemetry);
 
 void initializeAprs(void)
 {
-    MAP_SysCtlPWMClockSet(SYSCTL_PWMDIV_1);
-    MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_PWM0);
-    MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOB);
-    MAP_GPIOPinConfigure(GPIO_PB6_M0PWM0);
-    MAP_GPIOPinTypePWM(GPIO_PORTB_BASE, GPIO_PIN_6);
-    MAP_PWMGenConfigure(PWM0_BASE, PWM_GEN_0, PWM_GEN_MODE_UP_DOWN | PWM_GEN_MODE_NO_SYNC);
-    MAP_PWMGenPeriodSet(PWM0_BASE, PWM_GEN_0, PWM_PERIOD);
-    MAP_PWMPulseWidthSet(PWM0_BASE, PWM_OUT_0, PWM_MIN_PULSE_WIDTH);
-    // Set APRS interrupt to the highest priority. It matters more than most interrupts
-    // including I2C and user buttons.
-    MAP_IntPrioritySet(INT_PWM0_0, 0x00);
-    
-    // used to enable/disable HX1
-    MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOC);
-    MAP_GPIOPadConfigSet(GPIO_PORTC_BASE, GPIO_PIN_7, GPIO_STRENGTH_8MA, GPIO_PIN_TYPE_OD);
-    MAP_GPIOPinTypeGPIOOutputOD(GPIO_PORTC_BASE, GPIO_PIN_7);
+    initializeAprsHardware(PWM_PERIOD, PWM_MIN_PULSE_WIDTH);
 }
 
 bool sendAprsMessage(const GpsData* pGpsData, const Telemetry* pTelemetry)
@@ -209,7 +182,7 @@ bool sendAprsMessage(const GpsData* pGpsData, const Telemetry* pTelemetry)
         return false;
     }
     enableHx1();
-    enablePwm();
+    enableAprsPwm();
     return true;
 }
 
@@ -400,10 +373,8 @@ bool generateMessage(const Callsign* pCallsignSource,
     //
     //
 
-    encodeAndAppendBits(bitstreamBuffer, maxBitstreamBufferLen, &encodingData, (const uint8_t*) "\xF0", 1, PERFORM_STUFFING, CALCULATE_FCS, NO_SHIFT_ONE_LEFT);
-
     // fcs
-    
+
     encodingData.fcs ^= FCS_POST_PROCESSING_XOR_VALUE;
     uint8_t fcsByte = encodingData.fcs & 0x00FF; // get low byte
     encodeAndAppendBits(bitstreamBuffer, maxBitstreamBufferLen, &encodingData, &fcsByte, 1, PERFORM_STUFFING, NO_FCS, NO_SHIFT_ONE_LEFT);
@@ -411,14 +382,14 @@ bool generateMessage(const Callsign* pCallsignSource,
     encodeAndAppendBits(bitstreamBuffer, maxBitstreamBufferLen, &encodingData, &fcsByte, 1, PERFORM_STUFFING, NO_FCS, NO_SHIFT_ONE_LEFT);
 
     // sufix flags
-    
+
     for (uint8_t i = 0; i < SUFFIX_FLAGS_COUNT; ++i)
     {
         encodeAndAppendBits(bitstreamBuffer, maxBitstreamBufferLen, &encodingData, (const uint8_t*) "\x7E", 1, NO_STUFFING, NO_FCS, NO_SHIFT_ONE_LEFT);
     }
 
     *pBitstreamSize = encodingData.bitstreamSize;
-    
+
     return true;
 }
 
@@ -455,36 +426,6 @@ bool createAprsMessage(const GpsData* pGpsData, const Telemetry* pTelemetry)
     }
 }
 
-void enablePwm(void)
-{
-    MAP_PWMIntEnable(PWM0_BASE, PWM_INT_GEN_0);
-    MAP_PWMGenIntTrigEnable(PWM0_BASE, PWM_GEN_0, PWM_INT_CNT_ZERO);
-    MAP_IntEnable(INT_PWM0_0);
-    MAP_PWMOutputState(PWM0_BASE, PWM_OUT_0_BIT, true);
-    MAP_PWMGenEnable(PWM0_BASE, PWM_GEN_0);
-}
-
-void disablePwm(void)
-{
-    MAP_PWMIntDisable(PWM0_BASE, PWM_INT_GEN_0);
-    MAP_PWMGenIntTrigDisable(PWM0_BASE, PWM_GEN_0, PWM_INT_CNT_ZERO);
-    MAP_IntDisable(INT_PWM0_0);
-    MAP_PWMOutputState(PWM0_BASE, PWM_OUT_0_BIT, false);
-    MAP_PWMGenDisable(PWM0_BASE, PWM_GEN_0);
-}
-
-void enableHx1(void)
-{
-    MAP_GPIOPinWrite(GPIO_PORTC_BASE, GPIO_PIN_7, GPIO_PIN_7);
-    signalI2CDataRequested();
-}
-
-void disableHx1(void)
-{
-    MAP_GPIOPinWrite(GPIO_PORTC_BASE, GPIO_PIN_7, 0);
-    clearI2CDataRequested();
-}
-
 float normalizePulseWidth(float width)
 {
     if (width < PWM_MIN_PULSE_WIDTH)
@@ -502,100 +443,96 @@ char buffer[128];
 
 void Pwm10Handler(void)
 {
-    MAP_PWMGenIntClear(PWM0_BASE, PWM_GEN_0, PWM_INT_CNT_ZERO);
+    clearAprsPwmInterrupt();
     
-    if (g_leadingWarmUpLeft > 0)
-    {
-        --g_leadingWarmUpLeft;
-        g_currentSymbolPulsesCount = 0;
-    }
-    else if (g_currentSymbolPulsesCount >= F1200_PWM_PULSES_COUNT_PER_SYMBOL)
-    {
-        g_currentSymbolPulsesCount = 0;
-
-        if (!g_sendingMessage || (g_currentBitstreamPos.bitstreamCharIdx >= g_currentBitstreamSize.bitstreamCharIdx && 
-                                  g_currentBitstreamPos.bitstreamCharBitIdx >= g_currentBitstreamSize.bitstreamCharBitIdx))
-        {
-            disablePwm();
-            disableHx1();
-            MAP_PWMPulseWidthSet(PWM0_BASE, PWM_OUT_0, PWM_MIN_PULSE_WIDTH);
-            g_sendingMessage = false;
-            return;
-        }
-
-        else if (g_leadingOnesLeft > 0)
-        {
-            g_currentFrequencyIsF1200 = true;
-            --g_leadingOnesLeft;
-        }
-        else
-        {
-            // bit stream is already AFSK encoded so we simply send ones and zeroes as is
-            const bool isOne = g_currentBitstream[g_currentBitstreamPos.bitstreamCharIdx] & (1 << g_currentBitstreamPos.bitstreamCharBitIdx);
-
-            // zero
-            if (!isOne && g_currentFrequencyIsF1200)
-            {
-                const float trigaArg = ANGULAR_FREQUENCY_F1200 * g_currentF1200Frame;
-                const float pulseWidth1200 = normalizePulseWidth(AMPLITUDE_SHIFT + AMPLITUDE_SCALER * SINE(trigaArg));
-                const float pulseDirection1200 = COSINE(trigaArg);
-
-                if (pulseDirection1200 >= 0)
-                {
-                    g_currentF2200Frame = RECIPROCAL_ANGULAR_FREQUENCY_F2200 * INVERSE_SINE(RECIPROCAL_AMPLITUDE_SCALER * (pulseWidth1200 - AMPLITUDE_SHIFT));
-                }
-                else
-                {
-                    g_currentF2200Frame = HALF_PERIOD_F2200 - RECIPROCAL_ANGULAR_FREQUENCY_F2200 * INVERSE_SINE(RECIPROCAL_AMPLITUDE_SCALER * (pulseWidth1200 - AMPLITUDE_SHIFT));
-                }
-                
-                if (g_currentF2200Frame < 0)
-                {
-                    g_currentF2200Frame += F2200_PWM_PULSES_COUNT_PER_SYMBOL;
-                }
-
-                g_currentFrequencyIsF1200 = false;
-            }
-            // one
-            else if (isOne && !g_currentFrequencyIsF1200)
-            {
-                const float trigArg = ANGULAR_FREQUENCY_F2200 * g_currentF2200Frame;
-                const float pulseWidth2200 = normalizePulseWidth(AMPLITUDE_SHIFT + AMPLITUDE_SCALER * SINE(trigArg));
-                const float pulseDirection2200 = COSINE(trigArg);
-                
-                if (pulseDirection2200 >= 0)
-                {
-                    g_currentF1200Frame = RECIPROCAL_ANGULAR_FREQUENCY_F1200 * INVERSE_SINE(RECIPROCAL_AMPLITUDE_SCALER * (pulseWidth2200 - AMPLITUDE_SHIFT));
-                }
-                else
-                {
-                    g_currentF1200Frame = HALF_PERIOD_F1200 - RECIPROCAL_ANGULAR_FREQUENCY_F1200 * INVERSE_SINE(RECIPROCAL_AMPLITUDE_SCALER * (pulseWidth2200 - AMPLITUDE_SHIFT));
-                }
-
-                if (g_currentF1200Frame < 0)
-                {
-                    g_currentF1200Frame += F1200_PWM_PULSES_COUNT_PER_SYMBOL;
-                }
-
-                g_currentFrequencyIsF1200 = true;
-            }
-            
-            advanceBitstreamBit(&g_currentBitstreamPos);
-        }
-    }
-
     if (g_leadingWarmUpLeft)
     {
-        MAP_PWMPulseWidthSet(PWM0_BASE, PWM_OUT_0, PWM_MIN_PULSE_WIDTH);
+        // make sure HX1 has a chance to warm up
+        setAprsPwmPulseWidth(PWM_MIN_PULSE_WIDTH);
+        --g_leadingWarmUpLeft;
     }
     else
     {
+        if (g_currentSymbolPulsesCount >= F1200_PWM_PULSES_COUNT_PER_SYMBOL)
+        {
+            g_currentSymbolPulsesCount = 0;
+
+            if (!g_sendingMessage || (g_currentBitstreamPos.bitstreamCharIdx >= g_currentBitstreamSize.bitstreamCharIdx && 
+                                      g_currentBitstreamPos.bitstreamCharBitIdx >= g_currentBitstreamSize.bitstreamCharBitIdx))
+            {
+                disableAprsPwm();
+                disableHx1();
+                setAprsPwmPulseWidth(PWM_MIN_PULSE_WIDTH);
+                g_sendingMessage = false;
+                return;
+            }
+            else if (g_leadingOnesLeft > 0)
+            {
+                // send ones to stabilize HX1 and cancel any previosuly not-fully received APRS packets
+                g_currentFrequencyIsF1200 = true;
+                --g_leadingOnesLeft;
+            }
+            else
+            {
+                // bit stream is already AFSK encoded so we simply send ones and zeroes as is
+                const bool isOne = g_currentBitstream[g_currentBitstreamPos.bitstreamCharIdx] & (1 << g_currentBitstreamPos.bitstreamCharBitIdx);
+
+                // make sure new zero bit frequency is 2200
+                if (!isOne && g_currentFrequencyIsF1200)
+                {
+                    const float trigaArg = ANGULAR_FREQUENCY_F1200 * g_currentF1200Frame;
+                    const float pulseWidth1200 = normalizePulseWidth(AMPLITUDE_SHIFT + AMPLITUDE_SCALER * SINE(trigaArg));
+                    const float pulseDirection1200 = COSINE(trigaArg);
+
+                    if (pulseDirection1200 >= 0)
+                    {
+                        g_currentF2200Frame = RECIPROCAL_ANGULAR_FREQUENCY_F2200 * INVERSE_SINE(RECIPROCAL_AMPLITUDE_SCALER * (pulseWidth1200 - AMPLITUDE_SHIFT));
+                    }
+                    else
+                    {
+                        g_currentF2200Frame = HALF_PERIOD_F2200 - RECIPROCAL_ANGULAR_FREQUENCY_F2200 * INVERSE_SINE(RECIPROCAL_AMPLITUDE_SCALER * (pulseWidth1200 - AMPLITUDE_SHIFT));
+                    }
+                    
+                    if (g_currentF2200Frame < 0)
+                    {
+                        g_currentF2200Frame += F2200_PWM_PULSES_COUNT_PER_SYMBOL;
+                    }
+
+                    g_currentFrequencyIsF1200 = false;
+                }
+                // make sure new one bit frequency is 1200
+                else if (isOne && !g_currentFrequencyIsF1200)
+                {
+                    const float trigArg = ANGULAR_FREQUENCY_F2200 * g_currentF2200Frame;
+                    const float pulseWidth2200 = normalizePulseWidth(AMPLITUDE_SHIFT + AMPLITUDE_SCALER * SINE(trigArg));
+                    const float pulseDirection2200 = COSINE(trigArg);
+                    
+                    if (pulseDirection2200 >= 0)
+                    {
+                        g_currentF1200Frame = RECIPROCAL_ANGULAR_FREQUENCY_F1200 * INVERSE_SINE(RECIPROCAL_AMPLITUDE_SCALER * (pulseWidth2200 - AMPLITUDE_SHIFT));
+                    }
+                    else
+                    {
+                        g_currentF1200Frame = HALF_PERIOD_F1200 - RECIPROCAL_ANGULAR_FREQUENCY_F1200 * INVERSE_SINE(RECIPROCAL_AMPLITUDE_SCALER * (pulseWidth2200 - AMPLITUDE_SHIFT));
+                    }
+
+                    if (g_currentF1200Frame < 0)
+                    {
+                        g_currentF1200Frame += F1200_PWM_PULSES_COUNT_PER_SYMBOL;
+                    }
+
+                    g_currentFrequencyIsF1200 = true;
+                }
+                
+                advanceBitstreamBit(&g_currentBitstreamPos);
+            }
+        }
+
         if (g_currentFrequencyIsF1200)
         {
             const uint32_t pulseWidth = (uint32_t) (AMPLITUDE_SHIFT + AMPLITUDE_SCALER * SINE(ANGULAR_FREQUENCY_F1200 * g_currentF1200Frame));
-            MAP_PWMPulseWidthSet(PWM0_BASE, PWM_OUT_0, pulseWidth);
+            setAprsPwmPulseWidth(pulseWidth);
             g_currentF1200Frame += PWM_STEP_SIZE;
-            
             if (g_currentF1200Frame >= F1200_PWM_PULSES_COUNT_PER_SYMBOL)
             {
                 g_currentF1200Frame -= F1200_PWM_PULSES_COUNT_PER_SYMBOL;
@@ -604,14 +541,14 @@ void Pwm10Handler(void)
         else
         {
             const uint32_t pulseWidth = (uint32_t) (AMPLITUDE_SHIFT + AMPLITUDE_SCALER * SINE(ANGULAR_FREQUENCY_F2200 * g_currentF2200Frame));
-            MAP_PWMPulseWidthSet(PWM0_BASE, PWM_OUT_0, pulseWidth);
+            setAprsPwmPulseWidth(pulseWidth);
             g_currentF2200Frame += PWM_STEP_SIZE;
             if (g_currentF2200Frame >= F2200_PWM_PULSES_COUNT_PER_SYMBOL)
             {
                 g_currentF2200Frame -= F2200_PWM_PULSES_COUNT_PER_SYMBOL;
             }
         }
+        
+        ++g_currentSymbolPulsesCount;
     }
-    
-    ++g_currentSymbolPulsesCount;
 }
