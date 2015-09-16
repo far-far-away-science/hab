@@ -11,7 +11,7 @@
 #include "generated_trig_data.h"
 
 #define PREFIX_FLAGS_COUNT 1
-#define SUFFIX_FLAGS_COUNT 23
+#define SUFFIX_FLAGS_COUNT 10
 
 #define APRS_BITSTREAM_MAX_LEN 386 // bitstream will have extra bits in it so it must be larger than message buffer
                                    // in worst case we will insert extra 0 for every 5 bits
@@ -135,19 +135,19 @@ typedef struct EncodingData_t
 const Callsign CALLSIGN_SOURCE = 
 {
     {"HABHAB"},
-    0x61
+    '\xF6'
 };
 
 const Callsign CALLSIGN_DESTINATION_1 = 
 {
-    {"WIDE1-"},
-    '1'
+    {"WIDE1 "},
+    '\xE2'
 };
 
 const Callsign CALLSIGN_DESTINATION_2 = 
 {
-    {"WIDE2-"},
-    '2'
+    {"WIDE2 "},
+    '\xE5'
 };
 
 bool g_sendingMessage = false;
@@ -352,11 +352,11 @@ bool generateMessage(const Callsign* pCallsignSource,
     // addresses to and from
     
     encodeAndAppendBits(bitstreamBuffer, maxBitstreamBufferLen, &encodingData, CALLSIGN_DESTINATION_1.callsign, 6, PERFORM_STUFFING, CALCULATE_FCS, SHIFT_ONE_LEFT);
-    encodeAndAppendBits(bitstreamBuffer, maxBitstreamBufferLen, &encodingData, &CALLSIGN_DESTINATION_1.ssid, 1, PERFORM_STUFFING, CALCULATE_FCS, SHIFT_ONE_LEFT);
+    encodeAndAppendBits(bitstreamBuffer, maxBitstreamBufferLen, &encodingData, &CALLSIGN_DESTINATION_1.ssid, 1, PERFORM_STUFFING, CALCULATE_FCS, NO_SHIFT_ONE_LEFT);
     encodeAndAppendBits(bitstreamBuffer, maxBitstreamBufferLen, &encodingData, pCallsignSource->callsign, 6, PERFORM_STUFFING, CALCULATE_FCS, SHIFT_ONE_LEFT);
-    encodeAndAppendBits(bitstreamBuffer, maxBitstreamBufferLen, &encodingData, &pCallsignSource->ssid, 1, PERFORM_STUFFING, CALCULATE_FCS, SHIFT_ONE_LEFT);
+    encodeAndAppendBits(bitstreamBuffer, maxBitstreamBufferLen, &encodingData, &pCallsignSource->ssid, 1, PERFORM_STUFFING, CALCULATE_FCS, NO_SHIFT_ONE_LEFT);
     encodeAndAppendBits(bitstreamBuffer, maxBitstreamBufferLen, &encodingData, CALLSIGN_DESTINATION_2.callsign, 6, PERFORM_STUFFING, CALCULATE_FCS, SHIFT_ONE_LEFT);
-    encodeAndAppendBits(bitstreamBuffer, maxBitstreamBufferLen, &encodingData, &CALLSIGN_DESTINATION_2.ssid, 1, PERFORM_STUFFING, CALCULATE_FCS, SHIFT_ONE_LEFT);
+    encodeAndAppendBits(bitstreamBuffer, maxBitstreamBufferLen, &encodingData, &CALLSIGN_DESTINATION_2.ssid, 1, PERFORM_STUFFING, CALCULATE_FCS, NO_SHIFT_ONE_LEFT);
 
     // control bytes
     
@@ -466,7 +466,7 @@ void Pwm10Handler(void)
                 g_sendingMessage = false;
                 return;
             }
-            else if (g_leadingOnesLeft > 0)
+            else if (g_leadingOnesLeft)
             {
                 // send ones to stabilize HX1 and cancel any previosuly not-fully received APRS packets
                 g_currentFrequencyIsF1200 = true;
