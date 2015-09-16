@@ -68,36 +68,37 @@
 #define RECIPROCAL_ANGULAR_FREQUENCY_F2200 (1.0f / ANGULAR_FREQUENCY_F2200) 
 
 #ifdef TRIG_SLOW
-    #define SINE(v)         sinf(v)
-    #define COSINE(v)       cosf(v)
-    #define INVERSE_SINE(v) asinf(v)
+    #define SINE(v)            sinf(v)
+    #define COSINE_G_THAN_0(v) (cosf(v) >= 0)
+    #define INVERSE_SINE(v)    asinf(v)
 #else
     #define TRIG_FLOAT_TO_INT(value) \
         (int) ((value) * TRIG_MULTIPLIER + 0.5f)
             
-    #define COS_SHIFT TRIG_FLOAT_TO_INT(PI / 2.0f)
+    #define COS_0A TRIG_FLOAT_TO_INT(PI / 2.0f)
+    #define COS_0B TRIG_FLOAT_TO_INT(3.0f * PI / 2.0f)
         
     #define INVERSE_TRIG_FLOAT_TO_INT(value) \
         (INVERSE_TRIG_MULTIPLIER + (int) ((value) * INVERSE_TRIG_MULTIPLIER + 0.5f))
 
     // this complication is due to the fact that mVision has a 32K limit for code
     // need to try to compile this stuff using Ubuntu/gcc and use normal table for cosine
-    float cosine(int idx)
+    inline float cosineSign(int idx)
     {
-        idx += COS_SHIFT;
-        if (idx < TRIG_COUNT)
+        if ((idx >= 0 && idx <= COS_0A) ||
+            (idx >= COS_0B))
         {
-            return SIN[idx];
+            return true;
         }
         else
         {
-            return SIN[idx - TRIG_COUNT];
+            return false;
         }
     }
-        
-    #define SINE(v)         SIN[TRIG_FLOAT_TO_INT(v)]
-    #define COSINE(v)       cosine(TRIG_FLOAT_TO_INT(v))
-    #define INVERSE_SINE(v) ASIN[INVERSE_TRIG_FLOAT_TO_INT(v)]
+
+    #define SINE(v)            SIN[TRIG_FLOAT_TO_INT(v)]
+    #define COSINE_G_THAN_0(v) cosineSign(TRIG_FLOAT_TO_INT(v))
+    #define INVERSE_SINE(v)    ASIN[INVERSE_TRIG_FLOAT_TO_INT(v)]
 #endif
 
 typedef enum FCS_TYPE_t
@@ -135,19 +136,28 @@ typedef struct EncodingData_t
 const Callsign CALLSIGN_SOURCE = 
 {
     {"HABHAB"},
-    '\xF6'
+    '\xF6' // 111 1011 0
+           //          ^ not a last address
+           //     ^^^^ SSID (11 - balloon)
+           // ^^^ some reserved values and command/response
 };
 
 const Callsign CALLSIGN_DESTINATION_1 = 
 {
     {"WIDE1 "},
-    '\xE2'
+    '\xE2' // 111 0001 0
+           //          ^ not a last address
+           //     ^^^^ SSID (1 - wide1-1)
+           // ^^^ some reserved values and command/response
 };
 
 const Callsign CALLSIGN_DESTINATION_2 = 
 {
     {"WIDE2 "},
-    '\xE5'
+    '\xE5' // 111 0010 1
+           //          ^ last address
+           //     ^^^^ SSID (2 - wide2-2)
+           // ^^^ some reserved values and command/response
 };
 
 bool g_sendingMessage = false;
@@ -480,11 +490,11 @@ void Pwm10Handler(void)
                 // make sure new zero bit frequency is 2200
                 if (!isOne && g_currentFrequencyIsF1200)
                 {
-                    const float trigaArg = ANGULAR_FREQUENCY_F1200 * g_currentF1200Frame;
-                    const float pulseWidth1200 = normalizePulseWidth(AMPLITUDE_SHIFT + AMPLITUDE_SCALER * SINE(trigaArg));
-                    const float pulseDirection1200 = COSINE(trigaArg);
+                    const float triagArg = ANGULAR_FREQUENCY_F1200 * g_currentF1200Frame;
+                    const float pulseWidth1200 = normalizePulseWidth(AMPLITUDE_SHIFT + AMPLITUDE_SCALER * SINE(triagArg));
+                    const bool pulse1200Positive = COSINE_G_THAN_0(triagArg);
 
-                    if (pulseDirection1200 >= 0)
+                    if (pulse1200Positive)
                     {
                         g_currentF2200Frame = RECIPROCAL_ANGULAR_FREQUENCY_F2200 * INVERSE_SINE(RECIPROCAL_AMPLITUDE_SCALER * (pulseWidth1200 - AMPLITUDE_SHIFT));
                     }
@@ -505,9 +515,9 @@ void Pwm10Handler(void)
                 {
                     const float trigArg = ANGULAR_FREQUENCY_F2200 * g_currentF2200Frame;
                     const float pulseWidth2200 = normalizePulseWidth(AMPLITUDE_SHIFT + AMPLITUDE_SCALER * SINE(trigArg));
-                    const float pulseDirection2200 = COSINE(trigArg);
+                    const bool pulse2200Positive = COSINE_G_THAN_0(trigArg);
                     
-                    if (pulseDirection2200 >= 0)
+                    if (pulse2200Positive)
                     {
                         g_currentF1200Frame = RECIPROCAL_ANGULAR_FREQUENCY_F1200 * INVERSE_SINE(RECIPROCAL_AMPLITUDE_SCALER * (pulseWidth2200 - AMPLITUDE_SHIFT));
                     }
