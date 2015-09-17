@@ -3,7 +3,7 @@
 #include <stdint.h>
 #include <stdbool.h>
 
-#ifdef DEBUG
+#ifdef DUMP_DATA_TO_UART0
     #define UART_NUMBER_OF_CHANNELS 3
 #else
     #define UART_NUMBER_OF_CHANNELS 2

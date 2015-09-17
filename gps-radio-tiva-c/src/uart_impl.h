@@ -6,7 +6,7 @@
 typedef struct ReadBuffer_t
 {
     bool isFull;
-    bool waitUntilNextCRLF;
+    bool waitUntilNextMessage;
     bool previousCharWasCR;
     uint8_t startIdx;
     uint8_t endIdx;

@@ -50,7 +50,7 @@ bool initializeUartChannel(uint8_t channel,
 
     switch (uartPort)
     {
-#ifdef DEBUG
+#ifdef DUMP_DATA_TO_UART0
         case UART_0:
         {
             uartBase = UART0_BASE;

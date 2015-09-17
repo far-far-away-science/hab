@@ -8,6 +8,7 @@
 #include "i2c.h"
 #include "eeprom.h"
 
+#include <stdio.h>
 #include <string.h>
 
 #include <driverlib/rom.h>
@@ -72,7 +73,7 @@ int main()
     r &= initializeUartChannel(CHANNEL_VENUS_GPS, UART_1, 9600, CPU_SPEED, UART_FLAGS_RECEIVE);
     r &= initializeUartChannel(CHANNEL_COPERNICUS_GPS, UART_2, 4800, CPU_SPEED, UART_FLAGS_RECEIVE);
 #ifdef DEBUG
-    r &= initializeUartChannel(CHANNEL_DEBUG, UART_0, 115200, CPU_SPEED, UART_FLAGS_SEND);
+    r &= initializeUartChannel(CHANNEL_OUTPUT, UART_0, 115200, CPU_SPEED, UART_FLAGS_SEND);
 #endif
 
     r &= writeMessage(CHANNEL_COPERNICUS_GPS, &airMode);
@@ -94,6 +95,9 @@ int main()
     {
         if (readMessage(CHANNEL_VENUS_GPS, &venusGpsMessage) && venusGpsMessage.size > 6)
         {
+#ifdef DUMP_DATA_TO_UART0
+            writeMessage(CHANNEL_OUTPUT, &venusGpsMessage);
+#endif
             if (memcmp(venusGpsMessage.message, "$GP", 3) == 0)
             {
                 bool update = false;
@@ -117,6 +121,9 @@ int main()
 
         if (readMessage(CHANNEL_COPERNICUS_GPS, &copernicusGpsMessage) && copernicusGpsMessage.size > 6)
         {
+#ifdef DUMP_DATA_TO_UART0
+            writeMessage(CHANNEL_OUTPUT, &copernicusGpsMessage);
+#endif
             if (memcmp(copernicusGpsMessage.message, "$GP", 3) == 0)
             {
                 bool update = false;
@@ -141,13 +148,21 @@ int main()
 
         // If user button 1 is down, send APRS message "now"
         if (isUserButton1())
+        {
             nextRadioSendTime = currentTime + 1U;
-            
+        }
+
         if (currentTime >= nextRadioSendTime)
         {
             getTelemetry(&telemetry);
             submitI2CTelemetry(&telemetry);
             
+#ifdef DUMP_DATA_TO_UART0
+            static Message telemetryMessage;
+            telemetryMessage.size = sprintf((char*) telemetryMessage.message, "temp=%u, vcc=%u\r\n", telemetry.cpuTemperature, telemetry.voltage);
+            writeMessage(CHANNEL_OUTPUT, &telemetryMessage);
+#endif
+
             if (shouldSendVenusDataToAprs && venusGpsData.isValid)
             {
                 sendAprsMessage(&venusGpsData, &telemetry);
@@ -182,16 +197,22 @@ int main()
                     eepromWrite(record & 0x7FC, &eepromBuffer);
                 }
                 else
+                {
                     // Write first half of the buffer value
                     eepromBuffer = result;
+                }
                 record += 2U;
             }
         }
         // Blink green light to let everyone know that we are still running
         if (currentTime & 1)
+        {
             signalHeartbeatOff();
+        }
         else
+        {
             signalHeartbeatOn();
+        }
         feedWatchdog();
 
         // Enter low power mode

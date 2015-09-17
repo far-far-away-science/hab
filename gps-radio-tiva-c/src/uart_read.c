@@ -53,22 +53,32 @@ void uartReadIntHandler(UartChannelData* pChannelData)
             pChannelData->readBuffer.isFull = false;
         }
 
-        if (!pChannelData->readBuffer.isFull && !pChannelData->readBuffer.waitUntilNextCRLF)
+        if (!pChannelData->readBuffer.isFull && !pChannelData->readBuffer.waitUntilNextMessage)
         {
             const uint8_t charWriteIdx = pChannelData->readBuffer.buffer[pChannelData->readBuffer.endIdx].size;
             const bool thereIsSpaceForNewCharacter = charWriteIdx < UART_MESSAGE_MAX_LEN;
 
-            if (thereIsSpaceForNewCharacter)
+            bool moveToNewMessage = false;
+            bool placeCurrentCharToNewMessage = false;
+            
+            if (!thereIsSpaceForNewCharacter)
+            {
+                moveToNewMessage = true;
+                pChannelData->readBuffer.waitUntilNextMessage = true; // message buffer overflow, skip until next message
+            }
+            else if (decodedChar == '$' && charWriteIdx != 0)
+            {
+                moveToNewMessage = true;
+                placeCurrentCharToNewMessage = true;
+                pChannelData->readBuffer.waitUntilNextMessage = false; // we already at the beginning of next message
+            }                
+            else
             {
                 pChannelData->readBuffer.buffer[pChannelData->readBuffer.endIdx].message[charWriteIdx] = decodedChar;
                 ++pChannelData->readBuffer.buffer[pChannelData->readBuffer.endIdx].size;
             }
-            else
-            {
-                pChannelData->readBuffer.waitUntilNextCRLF = true; // message buffer overflow, skip until next CRLF sequence
-            }
-
-            if (!thereIsSpaceForNewCharacter || (pChannelData->readBuffer.previousCharWasCR && decodedChar == '\x0A'))
+            
+            if (moveToNewMessage)
             {
                 // start index can only get away and cannot get past end index so we are fine here
                 pChannelData->readBuffer.endIdx = advanceUint8Index(pChannelData->readBuffer.endIdx, UART_READ_BUFFER_MAX_MESSAGES_LEN);
@@ -79,7 +89,15 @@ void uartReadIntHandler(UartChannelData* pChannelData)
                 }
                 else
                 {
-                    pChannelData->readBuffer.buffer[pChannelData->readBuffer.endIdx].size = 0;
+                    if (placeCurrentCharToNewMessage)
+                    {
+                        pChannelData->readBuffer.buffer[pChannelData->readBuffer.endIdx].message[0] = decodedChar;
+                        pChannelData->readBuffer.buffer[pChannelData->readBuffer.endIdx].size = 1;
+                    }
+                    else
+                    {
+                        pChannelData->readBuffer.buffer[pChannelData->readBuffer.endIdx].size = 0;
+                    }
                 }
             }
         }
@@ -88,9 +106,9 @@ void uartReadIntHandler(UartChannelData* pChannelData)
             // put some code below to test full buffer scenarios
         }
 
-        if (pChannelData->readBuffer.waitUntilNextCRLF && (pChannelData->readBuffer.previousCharWasCR && decodedChar == '\x0A'))
+        if (pChannelData->readBuffer.waitUntilNextMessage && (pChannelData->readBuffer.previousCharWasCR && decodedChar == '\x0A'))
         {
-            pChannelData->readBuffer.waitUntilNextCRLF = false;
+            pChannelData->readBuffer.waitUntilNextMessage = false;
         }
 
         if (decodedChar == '\x0D')
