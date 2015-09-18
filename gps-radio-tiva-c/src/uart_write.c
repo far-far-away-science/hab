@@ -55,6 +55,28 @@ void uartTransmit(UartChannelData* pChannelData)
     MAP_UARTIntEnable(pChannelData->base, UART_INT_TX);
 }
 
+bool writeString(uint8_t channel, char* szData)
+{
+    UartChannelData* const pChannelData = &uartChannelData[channel];
+
+    // interrupt can only make buffer emptier so we are fine no matter where interrupt kicks in
+    if ((!pChannelData->writeBuffer.isEmpty && pChannelData->writeBuffer.startIdx == pChannelData->writeBuffer.endIdx) ||
+        getBufferCapacity(&pChannelData->writeBuffer, UART_WRITE_BUFFER_MAX_CHARS_LEN) < 1)
+    {
+        return false;
+    }
+
+    for (uint8_t i = 0; szData[i] != 0; ++i)
+    {
+        pChannelData->writeBuffer.buffer[pChannelData->writeBuffer.endIdx] = szData[i];
+        pChannelData->writeBuffer.endIdx = advanceUint16Index(pChannelData->writeBuffer.endIdx, UART_WRITE_BUFFER_MAX_CHARS_LEN);
+    }
+        
+    uartTransmit(pChannelData);
+        
+    return true;
+}
+
 bool write(uint8_t channel, uint8_t character)
 {
     UartChannelData* const pChannelData = &uartChannelData[channel];

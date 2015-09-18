@@ -72,7 +72,7 @@ int main()
 
     r &= initializeUartChannel(CHANNEL_VENUS_GPS, UART_1, 9600, CPU_SPEED, UART_FLAGS_RECEIVE);
     r &= initializeUartChannel(CHANNEL_COPERNICUS_GPS, UART_2, 4800, CPU_SPEED, UART_FLAGS_RECEIVE);
-#ifdef DEBUG
+#ifdef DUMP_DATA_TO_UART0
     r &= initializeUartChannel(CHANNEL_OUTPUT, UART_0, 115200, CPU_SPEED, UART_FLAGS_SEND);
 #endif
 
@@ -96,6 +96,7 @@ int main()
         if (readMessage(CHANNEL_VENUS_GPS, &venusGpsMessage) && venusGpsMessage.size > 6)
         {
 #ifdef DUMP_DATA_TO_UART0
+            writeString(CHANNEL_OUTPUT, "vns - ");
             writeMessage(CHANNEL_OUTPUT, &venusGpsMessage);
 #endif
             if (memcmp(venusGpsMessage.message, "$GP", 3) == 0)
@@ -122,6 +123,7 @@ int main()
         if (readMessage(CHANNEL_COPERNICUS_GPS, &copernicusGpsMessage) && copernicusGpsMessage.size > 6)
         {
 #ifdef DUMP_DATA_TO_UART0
+            writeString(CHANNEL_OUTPUT, "cpr - ");
             writeMessage(CHANNEL_OUTPUT, &copernicusGpsMessage);
 #endif
             if (memcmp(copernicusGpsMessage.message, "$GP", 3) == 0)
@@ -159,7 +161,7 @@ int main()
             
 #ifdef DUMP_DATA_TO_UART0
             static Message telemetryMessage;
-            telemetryMessage.size = sprintf((char*) telemetryMessage.message, "temp=%u, vcc=%u\r\n", telemetry.cpuTemperature, telemetry.voltage);
+            telemetryMessage.size = sprintf((char*) telemetryMessage.message, "tel - temp=%u, vcc=%u\r\n", telemetry.cpuTemperature, telemetry.voltage);
             writeMessage(CHANNEL_OUTPUT, &telemetryMessage);
 #endif
 

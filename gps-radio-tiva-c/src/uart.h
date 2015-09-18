@@ -41,5 +41,6 @@ bool initializeUartChannel(uint8_t channel,
 // if you use them from other interrupts (higher priority than UART ones
 // behaviour is undefined).
 bool readMessage(uint8_t channel, Message* pResultBuffer);
+bool writeString(uint8_t channel, char* szData);
 bool write(uint8_t channel, uint8_t character);
 bool writeMessage(uint8_t channel, const Message* pMessage);
