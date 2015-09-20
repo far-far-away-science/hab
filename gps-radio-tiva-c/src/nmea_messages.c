@@ -73,7 +73,7 @@ float parseFloat(const Message* pGpggaMessage, uint32_t tokenStartIdx, uint32_t 
         {
             if (i == tokenStartIdx)
             {
-                return false; // not a number!
+                return NAN; // not a number!
             }
             break;
         }
