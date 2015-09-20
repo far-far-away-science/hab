@@ -57,22 +57,27 @@ namespace nmea_messages_test
             Assert::AreEqual((uint8_t) 0, result.numberOfSattelitesInUse);
         }
 
+        TEST_METHOD(ShouldParseManualInputMode)
+        {
+            GpsData result = { 0 };
+            ::parseGpggaMessageIfValid(MAKE_MESSAGE("$GPGGA,062801.835,4732.7089,N,12201.0455,W,7,03,3.5,179.6,M,-18.1,M,,0000*64"), &result);
+            Assert::IsTrue(result.isValid);
+        }
+
         TEST_METHOD(ShouldIgnoreNoFixMessage)
         {
             GpsData result = { 0 };
-            ::parseGpggaMessageIfValid(MAKE_MESSAGE("$GPGGA,062801.835,,N,12201.0455,W,0,03,3.5,179.6,M,-18.1,M,,0000*64"), &result);
+            ::parseGpggaMessageIfValid(MAKE_MESSAGE("$GPGGA,062801.835,4732.7089,N,12201.0455,W,0,03,3.5,179.6,M,-18.1,M,,0000*64"), &result);
             Assert::IsFalse(result.isValid);
-            ::parseGpggaMessageIfValid(MAKE_MESSAGE("$GPGGA,062801.835,,N,12201.0455,W,3,03,3.5,179.6,M,-18.1,M,,0000*64"), &result);
+            ::parseGpggaMessageIfValid(MAKE_MESSAGE("$GPGGA,062801.835,4732.7089,N,12201.0455,W,3,03,3.5,179.6,M,-18.1,M,,0000*64"), &result);
             Assert::IsFalse(result.isValid);
-            ::parseGpggaMessageIfValid(MAKE_MESSAGE("$GPGGA,062801.835,,N,12201.0455,W,4,03,3.5,179.6,M,-18.1,M,,0000*64"), &result);
+            ::parseGpggaMessageIfValid(MAKE_MESSAGE("$GPGGA,062801.835,4732.7089,N,12201.0455,W,4,03,3.5,179.6,M,-18.1,M,,0000*64"), &result);
             Assert::IsFalse(result.isValid);
-            ::parseGpggaMessageIfValid(MAKE_MESSAGE("$GPGGA,062801.835,,N,12201.0455,W,5,03,3.5,179.6,M,-18.1,M,,0000*64"), &result);
+            ::parseGpggaMessageIfValid(MAKE_MESSAGE("$GPGGA,062801.835,4732.7089,N,12201.0455,W,5,03,3.5,179.6,M,-18.1,M,,0000*64"), &result);
             Assert::IsFalse(result.isValid);
-            ::parseGpggaMessageIfValid(MAKE_MESSAGE("$GPGGA,062801.835,,N,12201.0455,W,6,03,3.5,179.6,M,-18.1,M,,0000*64"), &result);
+            ::parseGpggaMessageIfValid(MAKE_MESSAGE("$GPGGA,062801.835,4732.7089,N,12201.0455,W,6,03,3.5,179.6,M,-18.1,M,,0000*64"), &result);
             Assert::IsFalse(result.isValid);
-            ::parseGpggaMessageIfValid(MAKE_MESSAGE("$GPGGA,062801.835,,N,12201.0455,W,7,03,3.5,179.6,M,-18.1,M,,0000*64"), &result);
-            Assert::IsFalse(result.isValid);
-            ::parseGpggaMessageIfValid(MAKE_MESSAGE("$GPGGA,062801.835,,N,12201.0455,W,8,03,3.5,179.6,M,-18.1,M,,0000*64"), &result);
+            ::parseGpggaMessageIfValid(MAKE_MESSAGE("$GPGGA,062801.835,4732.7089,N,12201.0455,W,8,03,3.5,179.6,M,-18.1,M,,0000*64"), &result);
             Assert::IsFalse(result.isValid);
         }
 

@@ -14,7 +14,7 @@ int32_t floatLatToInt32(float lat)
     int32_t r = (int32_t) lat;
     lat -= r;
     r *= 10000;
-    r += 100 * lat * 60;
+    r += (int32_t) (100 * lat * 60);
     return r;
 }
 
@@ -23,7 +23,7 @@ int32_t floatLonToInt32(float lon)
     int32_t r = (int32_t) lon;
     lon -= r;
     r *= 10000;
-    r += 100 * lon * 60;
+    r += (int32_t) (100 * lon * 60);
     return r;
 }
 
