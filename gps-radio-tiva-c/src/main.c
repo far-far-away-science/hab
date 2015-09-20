@@ -122,7 +122,7 @@ int main()
                     parseGpvtgMessageIfValid(&venusGpsMessage, &venusGpsData);
                     update = true;
                 }
-                if (update && venusGpsData.isValid)
+                if (update)
                 {
                     // The Venus can be set up to disable all the other messages in theory
                     submitI2CData(0, &venusGpsData);
@@ -149,7 +149,7 @@ int main()
                     parseGpvtgMessageIfValid(&copernicusGpsMessage, &copernicusGpsData);
                     update = true;
                 }
-                if (update && copernicusGpsData.isValid)
+                if (update)
                 {
                     submitI2CData(1, &copernicusGpsData);
                 }
@@ -175,15 +175,15 @@ int main()
 
             submitI2CTelemetry(&telemetry);
 
-            if (shouldSendVenusDataToAprs && venusGpsData.isValid)
+            if (shouldSendVenusDataToAprs && venusGpsData.latitude.isValid && venusGpsData.longitude.isValid)
             {
-                sendAprsMessage(&venusGpsData, &telemetry);
+                sendAprsMessage(VENUS_GPS_ID, &venusGpsData, &telemetry);
             }
             else
             {
                 // higher chance that copernicus will work more reliably
                 // so we will use it as a default fallback
-                sendAprsMessage(&copernicusGpsData, &telemetry);
+                sendAprsMessage(COPERNICUS_GPS_ID, &copernicusGpsData, &telemetry);
             }
             shouldSendVenusDataToAprs = !shouldSendVenusDataToAprs;
             

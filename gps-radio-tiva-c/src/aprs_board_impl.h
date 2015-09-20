@@ -91,4 +91,4 @@ typedef struct EncodingData_t
     BitstreamPos bitstreamSize;
 } EncodingData;
 
-bool createAprsMessage(const GpsData* pGpsData, const Telemetry* pTelemetry);
+bool createAprsMessage(GpsDataSource gpsDataSource, const GpsData* pGpsData, const Telemetry* pTelemetry);

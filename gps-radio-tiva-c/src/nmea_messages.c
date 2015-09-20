@@ -9,22 +9,19 @@
     (tokenOneAfterEndIdx) = findDivider((pMessage), (tokenStartIdx)); \
     if ((tokenOneAfterEndIdx) >= (pMessage)->size) { return; };
 
-int32_t floatLatToInt32(float lat)
+int32_t floatAngularCoordinateToInt32_DDMMFF(AngularCoordinate lat)
 {
-    int32_t r = (int32_t) lat;
-    lat -= r;
-    r *= 10000;
-    r += (int32_t) (100 * lat * 60);
-    return r;
-}
-
-int32_t floatLonToInt32(float lon)
-{
-    int32_t r = (int32_t) lon;
-    lon -= r;
-    r *= 10000;
-    r += (int32_t) (100 * lon * 60);
-    return r;
+    if (lat.isValid)
+    {
+        int32_t r = lat.degrees;
+        r *= 10000;
+        r += (int32_t) (100 * lat.minutes * 60);
+        return r;
+    }
+    else
+    {
+        return 0;
+    }
 }
 
 uint32_t findDivider(const Message* pGpggaMessage, uint32_t startIdx)
@@ -42,7 +39,7 @@ uint32_t minimal(uint32_t a, uint32_t b)
 }
 
 // https://en.wikipedia.org/wiki/Floating_point
-float parseFloat(Message* pGpggaMessage, uint32_t tokenStartIdx, uint32_t tokenOneAfterEndIdx)
+float parseFloat(const Message* pGpggaMessage, uint32_t tokenStartIdx, uint32_t tokenOneAfterEndIdx)
 {
     if (!pGpggaMessage || tokenStartIdx >= tokenOneAfterEndIdx)
     {
@@ -54,8 +51,11 @@ float parseFloat(Message* pGpggaMessage, uint32_t tokenStartIdx, uint32_t tokenO
     uint32_t fDivisor = 1;
     bool pointEncountered = false;
 
+    // for some reason atof/strtof are crashing tiva.
+
     // max number of digits plus dot is 9
-    for (uint32_t i = tokenStartIdx; i < minimal(tokenOneAfterEndIdx, tokenStartIdx + 9); ++i)
+    const uint32_t lastIdxPlusOne = minimal(tokenOneAfterEndIdx, tokenStartIdx + 9);
+    for (uint32_t i = tokenStartIdx; i < lastIdxPlusOne; ++i)
     {
         if (pGpggaMessage->message[i] == '.')
         {
@@ -71,7 +71,11 @@ float parseFloat(Message* pGpggaMessage, uint32_t tokenStartIdx, uint32_t tokenO
         }
         else if (!isdigit(pGpggaMessage->message[i]))
         {
-            return NAN;
+            if (i == tokenStartIdx)
+            {
+                return false; // not a number!
+            }
+            break;
         }
         if (pointEncountered)
         {
@@ -87,20 +91,26 @@ float parseFloat(Message* pGpggaMessage, uint32_t tokenStartIdx, uint32_t tokenO
     return (float) w + (float) f / (float) fDivisor;
 }
 
-bool parseUInt8(Message* pGpggaMessage, uint32_t tokenStartIdx, uint32_t tokenOneAfterEndIdx, uint8_t* pResult)
+bool parseUInt8(const Message* pGpggaMessage, uint32_t tokenStartIdx, uint32_t tokenOneAfterEndIdx, uint8_t* pResult)
 {
-    if (!pResult || !pGpggaMessage || tokenStartIdx >= tokenOneAfterEndIdx || tokenOneAfterEndIdx - tokenStartIdx > 3)
+    if (!pResult || !pGpggaMessage || tokenStartIdx >= tokenOneAfterEndIdx)
     {
         return false;
     }
 
     uint32_t r = 0;
-    
-    for (uint32_t i = tokenStartIdx; i < tokenOneAfterEndIdx; ++i)
+
+    // max number of digits is 4
+    const uint32_t lastIdxPlusOne = minimal(tokenOneAfterEndIdx, tokenStartIdx + 4);
+    for (uint32_t i = tokenStartIdx; i < lastIdxPlusOne; ++i)
     {
         if (!isdigit(pGpggaMessage->message[i]))
         {
-            return false;
+            if (i == tokenStartIdx)
+            {
+                return false; // not a number!
+            }
+            break;
         }
         r = r * 10 + (pGpggaMessage->message[i] - '0');
     }
@@ -117,32 +127,47 @@ bool parseUInt8(Message* pGpggaMessage, uint32_t tokenStartIdx, uint32_t tokenOn
     }
 }
 
-float parseLatLong(uint8_t numberOfDigitsInDegrees, Message* pGpggaMessage, uint32_t tokenStartIdx, uint32_t tokenOneAfterEndIdx)
+void parseLatLong(uint8_t numberOfDigitsInDegrees,
+                  const Message* pGpggaMessage,
+                  uint32_t tokenStartIdx,
+                  uint32_t tokenOneAfterEndIdx,
+                  AngularCoordinate* pCoordinate)
 {
+    if (!pCoordinate)
+    {
+        return;
+    }        
+
+    pCoordinate->isValid = false;
+    
     if (!pGpggaMessage || tokenStartIdx >= tokenOneAfterEndIdx)
     {
-        return NAN;
+        return;
     }
 
     uint8_t degrees;
 
     if (!parseUInt8(pGpggaMessage, tokenStartIdx, minimal(tokenOneAfterEndIdx, tokenStartIdx + numberOfDigitsInDegrees), &degrees))
     {
-        return NAN;
+        return;
     }
 
+    float minutes = 0.0f;
+    
     if (tokenStartIdx + numberOfDigitsInDegrees < tokenOneAfterEndIdx)
     {
-        const float minutes = parseFloat(pGpggaMessage, tokenStartIdx + numberOfDigitsInDegrees, tokenOneAfterEndIdx);
-        return (float) degrees + minutes / 60.0f;
+        minutes = parseFloat(pGpggaMessage, tokenStartIdx + numberOfDigitsInDegrees, tokenOneAfterEndIdx);
     }
-    else
+    
+    if (minutes == 0.0f || isnormal(minutes))
     {
-        return degrees;
+        pCoordinate->isValid = true;
+        pCoordinate->degrees = degrees;
+        pCoordinate->minutes = minutes;
     }
 }
 
-void parseGpsTime(GpsTime* pTime, Message* pGpggaMessage, uint32_t tokenStartIdx, uint32_t tokenOneAfterEndIdx)
+void parseGpsTime(const Message* pGpggaMessage, uint32_t tokenStartIdx, uint32_t tokenOneAfterEndIdx, GpsTime* pTime)
 {
     if (!pTime || !pGpggaMessage)
     {
@@ -179,7 +204,7 @@ void parseGpsTime(GpsTime* pTime, Message* pGpggaMessage, uint32_t tokenStartIdx
     return;
 }
 
-LATITUDE_HEMISPHERE parseLatitudeHemisphere(Message* pGpggaMessage, uint32_t tokenStartIdx, uint32_t tokenOneAfterEndIdx)
+LATITUDE_HEMISPHERE parseLatitudeHemisphere(const Message* pGpggaMessage, uint32_t tokenStartIdx, uint32_t tokenOneAfterEndIdx)
 {
     if (!pGpggaMessage || tokenStartIdx >= tokenOneAfterEndIdx)
     {
@@ -201,7 +226,7 @@ LATITUDE_HEMISPHERE parseLatitudeHemisphere(Message* pGpggaMessage, uint32_t tok
     return LATH_UNKNOWN;
 }
 
-LONGITUDE_HEMISPHERE parseLongitudeHemisphere(Message* pGpggaMessage, uint32_t tokenStartIdx, uint32_t tokenOneAfterEndIdx)
+LONGITUDE_HEMISPHERE parseLongitudeHemisphere(const Message* pGpggaMessage, uint32_t tokenStartIdx, uint32_t tokenOneAfterEndIdx)
 {
     if (!pGpggaMessage || tokenStartIdx >= tokenOneAfterEndIdx)
     {
@@ -223,8 +248,13 @@ LONGITUDE_HEMISPHERE parseLongitudeHemisphere(Message* pGpggaMessage, uint32_t t
     return LONH_UNKNOWN;
 }
 
-void parseGpggaMessageIfValid(Message* pGpggaMessage, GpsData* pResult)
+void parseGpggaMessageIfValid(const Message* pGpggaMessage, GpsData* pResult)
 {
+    if (!pGpggaMessage || !pResult)
+    {
+        return;
+    }
+
     uint8_t gpsQuality;
     uint8_t numberOfSattelitesInUse;
     
@@ -238,16 +268,18 @@ void parseGpggaMessageIfValid(Message* pGpggaMessage, GpsData* pResult)
     // time utc
     MOVE_TO_NEXT_RETURN_IF_END_OF_STRING_REACHED(pGpggaMessage, tokenStartIdx, tokenOneAfterEndIdx);
     GpsTime utcTime;
-    parseGpsTime(&utcTime, pGpggaMessage, tokenStartIdx, tokenOneAfterEndIdx);
+    parseGpsTime(pGpggaMessage, tokenStartIdx, tokenOneAfterEndIdx, &utcTime);
     // latitude
     MOVE_TO_NEXT_RETURN_IF_END_OF_STRING_REACHED(pGpggaMessage, tokenStartIdx, tokenOneAfterEndIdx);
-    const float latitudeDegrees = parseLatLong(2, pGpggaMessage, tokenStartIdx, tokenOneAfterEndIdx);
+    AngularCoordinate latitude;
+    parseLatLong(2, pGpggaMessage, tokenStartIdx, tokenOneAfterEndIdx, &latitude);
     // latitude hemisphere N/S
     MOVE_TO_NEXT_RETURN_IF_END_OF_STRING_REACHED(pGpggaMessage, tokenStartIdx, tokenOneAfterEndIdx);
     const LATITUDE_HEMISPHERE latitudeHemisphereNS = parseLatitudeHemisphere(pGpggaMessage, tokenStartIdx, tokenOneAfterEndIdx);
     // longitude
     MOVE_TO_NEXT_RETURN_IF_END_OF_STRING_REACHED(pGpggaMessage, tokenStartIdx, tokenOneAfterEndIdx);
-    const float longitudeDegrees = parseLatLong(3, pGpggaMessage, tokenStartIdx, tokenOneAfterEndIdx);
+    AngularCoordinate longitude;
+    parseLatLong(3, pGpggaMessage, tokenStartIdx, tokenOneAfterEndIdx, &longitude);
     // longitude hemisphere E/W
     MOVE_TO_NEXT_RETURN_IF_END_OF_STRING_REACHED(pGpggaMessage, tokenStartIdx, tokenOneAfterEndIdx);
     const LONGITUDE_HEMISPHERE longitudeHemisphereEW = parseLongitudeHemisphere(pGpggaMessage, tokenStartIdx, tokenOneAfterEndIdx);
@@ -272,14 +304,13 @@ void parseGpggaMessageIfValid(Message* pGpggaMessage, GpsData* pResult)
     const GPS_FIX_TYPE fixType = (GPS_FIX_TYPE) gpsQuality;
 
     if ((fixType == GPSFT_GPS || fixType == GPSFT_DGPS || fixType == GPSFT_MANUAL_INPUT_MODE) && 
-        isnormal(latitudeDegrees) && 
-        isnormal(longitudeDegrees))
+        isnormal(latitude.isValid) && 
+        isnormal(longitude.isValid))
     {
-        pResult->isValid = true;
         pResult->utcTime = utcTime;
-        pResult->latitudeDegrees = latitudeDegrees;
+        pResult->latitude = latitude;
         pResult->latitudeHemisphere = latitudeHemisphereNS;
-        pResult->longitudeDegrees = longitudeDegrees;
+        pResult->longitude = longitude;
         pResult->longitudeHemisphere = longitudeHemisphereEW;
         pResult->fixType = fixType;
         pResult->altitudeMslMeters = altitudeMslMeters;
@@ -287,7 +318,7 @@ void parseGpggaMessageIfValid(Message* pGpggaMessage, GpsData* pResult)
     }
 }
 
-void parseGpvtgMessageIfValid(Message* pGpvtgMessage, GpsData* pResult)
+void parseGpvtgMessageIfValid(const Message* pGpvtgMessage, GpsData* pResult)
 {
     // header
     uint32_t tokenStartIdx = 0;

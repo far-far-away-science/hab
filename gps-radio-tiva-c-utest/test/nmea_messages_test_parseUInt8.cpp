@@ -18,45 +18,51 @@ namespace nmea_messages_test
             return &message;
         }
 
-        TEST_METHOD(ShouldReturn0IfEmptyString)
+        TEST_METHOD(ShouldFailIfEmptyString)
         {
             uint8_t result;
             Assert::IsFalse(::parseUInt8(MAKE_MESSAGE("12"), 0, 0, &result));
         }
 
-        TEST_METHOD(ShouldReturn0IfNullMessage)
+        TEST_METHOD(ShouldFailIfStartIsAfterEnd)
+        {
+            uint8_t result;
+            Assert::IsFalse(::parseUInt8(MAKE_MESSAGE("12"), 1, 0, &result));
+        }
+
+        TEST_METHOD(ShouldFailIfNullMessage)
         {
             uint8_t result;
             Assert::IsFalse(::parseUInt8(nullptr, 0, 2, &result));
         }
 
-        TEST_METHOD(ShouldReturn0IfNullResult)
+        TEST_METHOD(ShouldFailIfNullResult)
         {
             Assert::IsFalse(::parseUInt8(MAKE_MESSAGE("12"), 0, 2, nullptr));
         }
 
-        TEST_METHOD(ShouldReturn0IfNumberIsTooLarge)
-        {
-            Assert::IsFalse(::parseUInt8(MAKE_MESSAGE("999"), 0, 3, nullptr));
-        }
-
-        TEST_METHOD(ShouldAbortOnWhiteSpace)
+        TEST_METHOD(ShouldFailIfNumberIsTooLarge)
         {
             uint8_t result;
-            Assert::IsFalse(::parseUInt8(MAKE_MESSAGE(" 10"), 0, 3, &result));
-        }
-
-        TEST_METHOD(ShouldAbortIfNumberIsTooLarge)
-        {
-            uint8_t result;
+            Assert::IsFalse(::parseUInt8(MAKE_MESSAGE("999"), 0, 3, &result));
             Assert::IsFalse(::parseUInt8(MAKE_MESSAGE("1101"), 0, 4, &result));
         }
 
-        TEST_METHOD(ShouldAbortAtNonDigit)
+        TEST_METHOD(ShouldFaileOnLeadingNonDigitCharacter)
         {
             uint8_t result;
-            Assert::IsFalse(::parseUInt8(MAKE_MESSAGE("12  10a"), 4, 7, &result));
-            Assert::IsFalse(::parseUInt8(MAKE_MESSAGE("12  10 "), 4, 7, &result));
+            Assert::IsFalse(::parseUInt8(MAKE_MESSAGE(" 10"), 0, 3, &result));
+            Assert::IsFalse(::parseUInt8(MAKE_MESSAGE("12  a10"), 4, 7, &result));
+            Assert::IsFalse(::parseUInt8(MAKE_MESSAGE("12   10"), 4, 7, &result));
+        }
+
+        TEST_METHOD(ShouldIgnoreTrailingNonDigitAndParseNumberCorrectly)
+        {
+            uint8_t result;
+            Assert::IsTrue(::parseUInt8(MAKE_MESSAGE("12  10 "), 4, 7, &result));
+            Assert::AreEqual((uint8_t) 10, result);
+            Assert::IsTrue(::parseUInt8(MAKE_MESSAGE("12  10a1"), 4, 8, &result));
+            Assert::AreEqual((uint8_t) 10, result);
         }
 
         TEST_METHOD(ShouldParseNormalDigits)

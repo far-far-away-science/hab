@@ -93,13 +93,13 @@ void initializeAprs(void)
     initializeAprsHardware(PWM_PERIOD, PWM_MIN_PULSE_WIDTH);
 }
 
-bool sendAprsMessage(const GpsData* pGpsData, const Telemetry* pTelemetry)
+bool sendAprsMessage(GpsDataSource gpsDataSource, const GpsData* pGpsData, const Telemetry* pTelemetry)
 {
     if (g_sendingMessage)
     {
         return false;
     }
-    if (!createAprsMessage(pGpsData, pTelemetry))
+    if (!createAprsMessage(gpsDataSource, pGpsData, pTelemetry))
     {
         return false;
     }
@@ -250,34 +250,87 @@ bool encodeAndAppendBits(uint8_t* pBitstreamBuffer,
     return true;
 }
 
-uint8_t createPacketPayload(const GpsData* pGpsData, const Telemetry* pTelemetry, uint8_t* pBuffer, uint8_t bufferSize)
+uint8_t createPacketPayload(GpsDataSource gpsDataSource, const GpsData* pGpsData, const Telemetry* pTelemetry, uint8_t* pBuffer, uint8_t bufferSize)
 {
     uint8_t bufferStartIdx = 0;
-
-    if (pGpsData->isValid)
+    
+    if (pGpsData->latitude.isValid && pGpsData->longitude.isValid)
     {
         if (pGpsData->utcTime.isValid)
         {
+            if (bufferStartIdx + 8 > bufferSize)
+            {
+                return 0;
+            }
+            
             bufferStartIdx += sprintf((char*) &pBuffer[bufferStartIdx],
-                                      "@%02i%02i%02iz",
+                                      "@%02u%02u%02uz",
                                       pGpsData->utcTime.hours,
                                       pGpsData->utcTime.minutes,
                                       (int) pGpsData->utcTime.seconds);
         }
         else
         {
+            if (bufferStartIdx + 1 > bufferSize)
+            {
+                return 0;
+            }
+
             pBuffer[bufferStartIdx++] = '!';
         }
+
+        // tiva seem to be crashing when I try to feed float to sprintf
+        // need to investigate later on
         
-        // TODO add lat/long/course/etc
+        const uint32_t latMinutesWhole = (uint32_t) pGpsData->latitude.minutes;
+        const uint32_t latMinutesFraction = (uint32_t) ((pGpsData->latitude.minutes - latMinutesWhole) * 100.0f);
+
+        const uint32_t lonMinutesWhole = (uint32_t) pGpsData->longitude.minutes;
+        const uint32_t lonMinutesFraction = (uint32_t) ((pGpsData->longitude.minutes - lonMinutesWhole) * 100.0f);
+
+        if (bufferStartIdx + 19 > bufferSize)
+        {
+            return 0;
+        }
+
+        bufferStartIdx += sprintf((char*) &pBuffer[bufferStartIdx],
+                                  "%02u%02u.%02u%1c/%03u%02u.%02u%1c>",
+                                  pGpsData->latitude.degrees,
+                                  latMinutesWhole,
+                                  latMinutesFraction,
+                                  pGpsData->latitudeHemisphere,
+                                  pGpsData->longitude.degrees,
+                                  lonMinutesWhole,
+                                  lonMinutesFraction,
+                                  pGpsData->longitudeHemisphere);
+
+        if ((pGpsData->trueCourseDegrees == 0 || isnormal(pGpsData->trueCourseDegrees)) ||
+            (pGpsData->speedKnots == 0 || isnormal(pGpsData->speedKnots)))
+        {
+            if (bufferStartIdx + 7 > bufferSize)
+            {
+                return 0;
+            }
+            
+            bufferStartIdx += sprintf((char*) &pBuffer[bufferStartIdx],
+                                      "%03u/%03u",
+                                      (uint32_t) (isnan(pGpsData->trueCourseDegrees) ? 0.0f : pGpsData->trueCourseDegrees),
+                                      (uint32_t) (isnan(pGpsData->speedKnots) ? 0.0f : pGpsData->speedKnots));
+        }
     }
 
-    bufferStartIdx += sprintf((char*) &pBuffer[bufferStartIdx], "T#%03u,%03u", pTelemetry->cpuTemperature / 10, pTelemetry->voltage / 10);
+    if (bufferStartIdx + 13 > bufferSize)
+    {
+        return 0;
+    }
+    
+    bufferStartIdx += sprintf((char*) &pBuffer[bufferStartIdx], "T#%03u,%03u,%03u", gpsDataSource, pTelemetry->cpuTemperature / 10, pTelemetry->voltage / 10);
     
     return bufferStartIdx;
 }
 
 bool generateMessage(const Callsign* pCallsignSource,
+                     GpsDataSource gpsDataSource,
                      const GpsData* pGpsData,
                      const Telemetry* pTelemetry,
                      uint8_t* bitstreamBuffer,
@@ -314,7 +367,7 @@ bool generateMessage(const Callsign* pCallsignSource,
 
     // packet contents
     
-    const uint8_t bufferSize = createPacketPayload(pGpsData, pTelemetry, g_aprsPayloadBuffer, APRS_PAYLOAD_LEN);
+    const uint8_t bufferSize = createPacketPayload(gpsDataSource, pGpsData, pTelemetry, g_aprsPayloadBuffer, APRS_PAYLOAD_LEN);
     if (bufferSize == 0)
     {
         return false;
@@ -349,8 +402,7 @@ bool generateMessage(const Callsign* pCallsignSource,
     return true;
 }
 
-
-bool createAprsMessage(const GpsData* pGpsData, const Telemetry* pTelemetry)
+bool createAprsMessage(GpsDataSource gpsDataSource, const GpsData* pGpsData, const Telemetry* pTelemetry)
 {
     g_leadingOnesLeft = LEADING_ONES_COUNT_TO_CANCEL_PREVIOUS_PACKET;
     g_leadingWarmUpLeft = LEADING_WARMUP_AMPLITUDE_DC_PULSES_COUNT;
@@ -367,6 +419,7 @@ bool createAprsMessage(const GpsData* pGpsData, const Telemetry* pTelemetry)
     g_currentSymbolPulsesCount = F1200_PWM_PULSES_COUNT_PER_SYMBOL;
 
     if (generateMessage(&CALLSIGN_SOURCE,
+                        gpsDataSource,
                         pGpsData,
                         pTelemetry,
                         g_currentBitstream,

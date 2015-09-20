@@ -18,6 +18,8 @@ namespace nmea_messages_test
             return &message;
         }
 
+        // TODO
+
         private:
             Message message;
     };
