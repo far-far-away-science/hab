@@ -3,9 +3,6 @@
 
 #include <string.h>
 
-#include <driverlib/uart.h>
-#include <driverlib/rom_map.h>
-
 uint8_t advanceUint8Index(uint8_t currentValue, uint8_t maxLen)
 {
     ++currentValue;
@@ -18,6 +15,11 @@ uint8_t advanceUint8Index(uint8_t currentValue, uint8_t maxLen)
 
 bool readMessage(uint8_t channel, Message* pResultBuffer)
 {
+    if (!pResultBuffer)
+    {
+        return false;
+    }
+    
     UartChannelData* const pChannelData = &uartChannelData[channel];
 
     // if buffer is empty and interrupt kicks in after we check '!pChannelData->readBuffer.isFull' we are still fine
@@ -33,7 +35,7 @@ bool readMessage(uint8_t channel, Message* pResultBuffer)
     pChannelData->readBuffer.buffer[pChannelData->readBuffer.startIdx].size = 0;
     pChannelData->readBuffer.startIdx = advanceUint8Index(pChannelData->readBuffer.startIdx, UART_READ_BUFFER_MAX_MESSAGES_LEN);
 
-    return true;
+    return pResultBuffer->size > 0;
 }
 
 void uartReadIntHandler(UartChannelData* pChannelData)
@@ -41,9 +43,9 @@ void uartReadIntHandler(UartChannelData* pChannelData)
     int32_t encodedChar;
     uint8_t decodedChar;
 
-    while(MAP_UARTCharsAvail(pChannelData->base))
+    while(UARTCharactersAvailable(pChannelData))
     {
-        encodedChar = MAP_UARTCharGetNonBlocking(pChannelData->base);
+        encodedChar = UARTGetCharNonBlocking(pChannelData);
         decodedChar = (uint8_t) (encodedChar & 0xFF);
 
         if (pChannelData->readBuffer.isFull && pChannelData->readBuffer.startIdx != pChannelData->readBuffer.endIdx)

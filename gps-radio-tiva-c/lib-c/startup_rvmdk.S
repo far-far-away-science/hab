@@ -87,9 +87,12 @@ __heap_limit
         EXTERN  Timer0IntHandler
         EXTERN  Pwm10Handler
         EXTERN  I2cSlaveHandler
-        EXTERN  MyFaultISR
         EXTERN  WatchdogHandler
         EXTERN  PortFHandler
+        EXTERN  HardFaultISR
+        EXTERN  MpuFaultISR
+        EXTERN  BusFaultISR
+        EXTERN  UsageFaultISR
 
 ;******************************************************************************
 ;
@@ -102,10 +105,10 @@ __Vectors
         DCD     StackMem + Stack            ; Top of Stack
         DCD     Reset_Handler               ; Reset Handler
         DCD     NmiSR                       ; NMI Handler
-        DCD     FaultISR                    ; Hard Fault Handler
-        DCD     FaultISR                    ; The MPU fault handler
-        DCD     FaultISR                    ; The bus fault handler
-        DCD     FaultISR                    ; The usage fault handler
+        DCD     HardFaultISR                ; Hard Fault Handler
+        DCD     MpuFaultISR                 ; The MPU fault handler
+        DCD     BusFaultISR                 ; The bus fault handler
+        DCD     UsageFaultISR               ; The usage fault handler
         DCD     0                           ; Reserved
         DCD     0                           ; Reserved
         DCD     0                           ; Reserved
@@ -297,16 +300,6 @@ Reset_Handler
 ;******************************************************************************
 NmiSR
         B       NmiSR
-
-;******************************************************************************
-;
-; This is the code that gets called when the processor receives a fault
-; interrupt.  This simply enters an infinite loop, preserving the system state
-; for examination by a debugger.
-;
-;******************************************************************************
-FaultISR
-        B       MyFaultISR
 
 ;******************************************************************************
 ;

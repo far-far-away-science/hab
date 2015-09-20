@@ -21,8 +21,14 @@ static Message venusGpsMessage;
 static Message copernicusGpsMessage;
 static Telemetry telemetry;
 
-// EEPROM recording buffer
-static uint32_t eepromBuffer;
+#ifdef DUMP_DATA_TO_UART0
+    static Message telemetryMessage;
+#endif
+
+#ifdef EEPROM_ENABLED            
+    // EEPROM recording buffer
+    static uint32_t eepromBuffer;
+#endif
 
 // AIR mode for Copernicus:
 // 0x10 DLE
@@ -57,15 +63,19 @@ static const Message airMode = {
 int main()
 {
     initializeTivaC();
+    initializeSignals();
     initializeAprs();
     initializeTimer();
     initializeUart();
-    initializeSignals();
     initializeTelemetry();
+
+#ifdef EEPROM_ENABLED            
     // If button 1 is held down during power up/reset, then EEPROM recording will be activated
     uint32_t record = isUserButton1() ? 0U : 0xFFFFFFFFU;
     initializeEEPROM(record == 0U);
     eepromBuffer = 0U;
+#endif
+
     initializeI2C();
 
     bool r = true;
@@ -96,7 +106,7 @@ int main()
         if (readMessage(CHANNEL_VENUS_GPS, &venusGpsMessage) && venusGpsMessage.size > 6)
         {
 #ifdef DUMP_DATA_TO_UART0
-            writeString(CHANNEL_OUTPUT, "vns - ");
+            writeString(CHANNEL_OUTPUT, "vens - ");
             writeMessage(CHANNEL_OUTPUT, &venusGpsMessage);
 #endif
             if (memcmp(venusGpsMessage.message, "$GP", 3) == 0)
@@ -112,7 +122,7 @@ int main()
                     parseGpvtgMessageIfValid(&venusGpsMessage, &venusGpsData);
                     update = true;
                 }
-                if (update)
+                if (update && venusGpsData.isValid)
                 {
                     // The Venus can be set up to disable all the other messages in theory
                     submitI2CData(0, &venusGpsData);
@@ -123,7 +133,7 @@ int main()
         if (readMessage(CHANNEL_COPERNICUS_GPS, &copernicusGpsMessage) && copernicusGpsMessage.size > 6)
         {
 #ifdef DUMP_DATA_TO_UART0
-            writeString(CHANNEL_OUTPUT, "cpr - ");
+            writeString(CHANNEL_OUTPUT, "copr - ");
             writeMessage(CHANNEL_OUTPUT, &copernicusGpsMessage);
 #endif
             if (memcmp(copernicusGpsMessage.message, "$GP", 3) == 0)
@@ -139,7 +149,7 @@ int main()
                     parseGpvtgMessageIfValid(&copernicusGpsMessage, &copernicusGpsData);
                     update = true;
                 }
-                if (update)
+                if (update && copernicusGpsData.isValid)
                 {
                     submitI2CData(1, &copernicusGpsData);
                 }
@@ -157,13 +167,13 @@ int main()
         if (currentTime >= nextRadioSendTime)
         {
             getTelemetry(&telemetry);
-            submitI2CTelemetry(&telemetry);
             
 #ifdef DUMP_DATA_TO_UART0
-            static Message telemetryMessage;
-            telemetryMessage.size = sprintf((char*) telemetryMessage.message, "tel - temp=%u, vcc=%u\r\n", telemetry.cpuTemperature, telemetry.voltage);
+            telemetryMessage.size = sprintf((char*) telemetryMessage.message, "tele - temp=%u, vcc=%u\r\n", telemetry.cpuTemperature, telemetry.voltage);
             writeMessage(CHANNEL_OUTPUT, &telemetryMessage);
 #endif
+
+            submitI2CTelemetry(&telemetry);
 
             if (shouldSendVenusDataToAprs && venusGpsData.isValid)
             {
@@ -175,8 +185,8 @@ int main()
                 // so we will use it as a default fallback
                 sendAprsMessage(&copernicusGpsData, &telemetry);
             }
-
             shouldSendVenusDataToAprs = !shouldSendVenusDataToAprs;
+            
             uint32_t dither;
 #if defined(RADIO_MCU_MESSAGE_DITHER) && (RADIO_MCU_MESSAGE_DITHER > 0)
             dither = (currentTime % RADIO_MCU_MESSAGE_DITHER);
@@ -184,6 +194,8 @@ int main()
             dither = 0U;
 #endif
             nextRadioSendTime = currentTime + RADIO_MCU_MESSAGE_SENDING_INTERVAL_SECONDS + dither;
+            
+#ifdef EEPROM_ENABLED            
             // Every 30 seconds, write stats to EEPROM
             if (record < 2048U)
             {
@@ -205,7 +217,9 @@ int main()
                 }
                 record += 2U;
             }
+#endif
         }
+        
         // Blink green light to let everyone know that we are still running
         if (currentTime & 1)
         {
@@ -215,8 +229,9 @@ int main()
         {
             signalHeartbeatOn();
         }
+        
         feedWatchdog();
-
+        
         // Enter low power mode
         ROM_SysCtlSleep();
     }

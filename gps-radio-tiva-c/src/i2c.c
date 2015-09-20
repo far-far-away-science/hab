@@ -63,67 +63,71 @@ static struct {
 } i2cData;
 
 static void updateI2CEEPROM() {
+#ifdef EEPROM_ENABLED            
     // Update the EEDATA register, up to 512 words (0x200) are accessible
     uint32_t address = (uint32_t)i2cData.regs[REG_EEADDR_0];
     address |= ((uint32_t)i2cData.regs[REG_EEADDR_1]) << 8;
     // Read data and load
     uint32_t data = eepromRead((address & 0x1FF) << 2U);
     *((uint32_t *)(&(i2cData.regs[REG_EEDATA_0]))) = data;
+#endif
 }
 
-void I2cSlaveHandler(void) {
+void I2cSlaveHandler(void)
+{
     const uint32_t action = MAP_I2CSlaveStatus(I2C_MODULE);
     bool ack = false;
     // Shut off the alarm clock to prevent us from being called again
     MAP_I2CSlaveIntClear(I2C_MODULE);
-    switch (action) {
-    case I2C_SLAVE_ACT_RREQ_FBR:
-    {
-        // This is the address
-        uint32_t newAddress = MAP_I2CSlaveDataGet(I2C_MODULE);
-        if (newAddress >= I2C_NUM_REGS)
-            // Prevent array access out of bounds
-            newAddress = I2C_NUM_REGS - 1U;
-        i2cData.address = (uint8_t)newAddress;
-        ack = true;
-        break;
-    }
-    case I2C_SLAVE_ACT_RREQ:
-    {
-        // Always ACK, but only allow changes to the EEADDR register
-        uint32_t data = MAP_I2CSlaveDataGet(I2C_MODULE), address = (uint32_t)i2cData.address;
-        if (address == REG_EEADDR_0 || address == REG_EEADDR_1)
+   switch (action)
+   {
+        case I2C_SLAVE_ACT_RREQ_FBR:
         {
-            i2cData.regs[address] = (uint8_t)data;
-            updateI2CEEPROM();
+            // This is the address
+            uint32_t newAddress = MAP_I2CSlaveDataGet(I2C_MODULE);
+            if (newAddress >= I2C_NUM_REGS)
+                // Prevent array access out of bounds
+                newAddress = I2C_NUM_REGS - 1U;
+            i2cData.address = (uint8_t)newAddress;
+            ack = true;
+            break;
         }
-        address++;
-        if (address >= I2C_NUM_REGS)
-            // Prevent array access out of bounds
-            address = 0U;
-        i2cData.address = (uint8_t)address;
-        ack = true;
-        break;
-    }
-    case I2C_SLAVE_ACT_TREQ:
-    {
-        // Data has been requested from us
-        uint32_t address = (uint32_t)i2cData.address;
-        // Clear data available flag if necessary
-        if (address >= REG_LON_0 && address <= REG_HDG_1)
-            i2cData.regs[REG_DATA_AVAILABLE] = 0U;
-        // Store data with auto increment
-        MAP_I2CSlaveDataPut(I2C_MODULE, i2cData.regs[address++]);
-        if (address >= I2C_NUM_REGS)
-            // Prevent array access out of bounds
-            address = 0U;
-        i2cData.address = (uint8_t)address;
-        ack = true;
-        break;
-    }
-    default:
-        // No action, or an invalid action (No QCMD, 2nd address on this device)
-        break;
+        case I2C_SLAVE_ACT_RREQ:
+        {
+            // Always ACK, but only allow changes to the EEADDR register
+            uint32_t data = MAP_I2CSlaveDataGet(I2C_MODULE), address = (uint32_t)i2cData.address;
+            if (address == REG_EEADDR_0 || address == REG_EEADDR_1)
+            {
+                i2cData.regs[address] = (uint8_t)data;
+                updateI2CEEPROM();
+            }
+            address++;
+            if (address >= I2C_NUM_REGS)
+                // Prevent array access out of bounds
+                address = 0U;
+            i2cData.address = (uint8_t)address;
+            ack = true;
+            break;
+        }
+        case I2C_SLAVE_ACT_TREQ:
+        {
+            // Data has been requested from us
+            uint32_t address = (uint32_t)i2cData.address;
+            // Clear data available flag if necessary
+            if (address >= REG_LON_0 && address <= REG_HDG_1)
+                i2cData.regs[REG_DATA_AVAILABLE] = 0U;
+            // Store data with auto increment
+            MAP_I2CSlaveDataPut(I2C_MODULE, i2cData.regs[address++]);
+            if (address >= I2C_NUM_REGS)
+                // Prevent array access out of bounds
+                address = 0U;
+            i2cData.address = (uint8_t)address;
+            ack = true;
+            break;
+        }
+        default:
+            // No action, or an invalid action (No QCMD, 2nd address on this device)
+            break;
     }
     // Send ACK/NACK
     MAP_I2CSlaveACKValueSet(I2C_MODULE, ack);
@@ -140,29 +144,31 @@ void submitI2CData(uint32_t index, GpsData *data) {
         uint16_t hword;
     } data16;
     // Find the correct location
-    uint8_t *ptr = &i2cData.regs[REG_BANK_1];
-    if (index > 0U)
-        ptr += REG_BANK_2;
+    uint8_t *ptr;
+    if (index == 0)
+        ptr = &i2cData.regs[REG_BANK_1];
+    else
+        ptr = &i2cData.regs[REG_BANK_2];
     // Mask I2C interrupts while we update
     MAP_I2CSlaveIntDisable(I2C_MODULE);
     // Latitude update
-    data32.word = data->latitude;
+    data32.word = floatLatToInt32(data->latitudeDegrees);
     memcpy(ptr + REG_LAT_0, data32.bytes, sizeof(data32.bytes));
     // Longitude update
-    data32.word = data->longitude;
+    data32.word = floatLonToInt32(data->longitudeDegrees);
     memcpy(ptr + REG_LON_0, data32.bytes, sizeof(data32.bytes));
     // Altitude update
-    data32.word = data->altitudeMeters;
+    data32.word = (int32_t) data->altitudeMslMeters * 10;
     memcpy(ptr + REG_ALT_0, data32.bytes, sizeof(data32.bytes));
     // Velocity update
-    data16.hword = data->speedKmh;
+    data16.hword = (int32_t) data->speedKph * 10;
     memcpy(ptr + REG_VEL_0, data16.bytes, sizeof(data16.bytes));
     // Heading update
-    data16.hword = data->trueCourseDegrees;
+    data16.hword = (int32_t) data->trueCourseDegrees * 10;
     memcpy(ptr + REG_HDG_0, data16.bytes, sizeof(data16.bytes));
     // Satellites update
-    if (data->gpsQualityIndicator)
-        ptr[REG_SAT] = data->numberOfSatellites;
+    if (data->isValid)
+        ptr[REG_SAT] = data->numberOfSattelitesInUse;
     else
         ptr[REG_SAT] = 0U;
     // Data is available

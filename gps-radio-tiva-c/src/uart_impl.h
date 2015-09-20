@@ -3,6 +3,19 @@
 #include <stdint.h>
 #include <stdbool.h>
 
+#include <driverlib/uart.h>
+#include <driverlib/rom_map.h>
+#include <driverlib/interrupt.h>
+
+#define UARTTxInterruptEnable(pChannelData) MAP_UARTIntEnable((pChannelData)->base, UART_INT_TX)
+#define UARTTxInterruptDisable(pChannelData) MAP_UARTIntDisable((pChannelData)->base, UART_INT_TX)
+
+#define UARTSpaceAvailable(pChannelData) MAP_UARTSpaceAvail((pChannelData)->base)
+#define UARTPutCharNonBlocking(pChannelData, byte) MAP_UARTCharPutNonBlocking((pChannelData)->base, (byte))
+
+#define UARTCharactersAvailable(pChannelData) MAP_UARTCharsAvail((pChannelData)->base)
+#define UARTGetCharNonBlocking(pChannelData) MAP_UARTCharGetNonBlocking((pChannelData)->base)
+
 typedef struct ReadBuffer_t
 {
     bool isFull;

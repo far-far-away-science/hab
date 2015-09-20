@@ -50,6 +50,7 @@ void initializeAprsHardware(uint32_t pwmPeriod, uint32_t pwmInitialValue)
     MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOC);
     MAP_GPIOPadConfigSet(GPIO_PORTC_BASE, GPIO_PIN_7, GPIO_STRENGTH_8MA, GPIO_PIN_TYPE_OD);
     MAP_GPIOPinTypeGPIOOutputOD(GPIO_PORTC_BASE, GPIO_PIN_7);
+    disableHx1();
 }
 
 void enableAprsPwm(void)
@@ -80,14 +81,4 @@ void disableHx1(void)
 {
     MAP_GPIOPinWrite(GPIO_PORTC_BASE, GPIO_PIN_7, 0);
     signalHx1Disabled();
-}
-
-void setAprsPwmPulseWidth(uint32_t pulseWidth)
-{
-    MAP_PWMPulseWidthSet(PWM0_BASE, PWM_OUT_0, pulseWidth);
-}
-
-void clearAprsPwmInterrupt(void)
-{
-    MAP_PWMGenIntClear(PWM0_BASE, PWM_GEN_0, PWM_INT_CNT_ZERO);
 }

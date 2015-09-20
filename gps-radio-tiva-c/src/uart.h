@@ -11,7 +11,7 @@
 
 #define UART_READ_BUFFER_MAX_MESSAGES_LEN 3
 #define UART_WRITE_BUFFER_MAX_CHARS_LEN   512
-#define UART_MESSAGE_MAX_LEN              128
+#define UART_MESSAGE_MAX_LEN              255
 
 typedef struct Message_t
 {
@@ -41,6 +41,8 @@ bool initializeUartChannel(uint8_t channel,
 // if you use them from other interrupts (higher priority than UART ones
 // behaviour is undefined).
 bool readMessage(uint8_t channel, Message* pResultBuffer);
-bool writeString(uint8_t channel, char* szData);
+
 bool write(uint8_t channel, uint8_t character);
+bool writeString(uint8_t channel, char* szData);
+bool writeMessageBuffer(uint8_t channel, const uint8_t* pBuffer, uint8_t size);
 bool writeMessage(uint8_t channel, const Message* pMessage);

@@ -3,10 +3,6 @@
 
 #include <string.h>
 
-#include <driverlib/uart.h>
-#include <driverlib/rom_map.h>
-#include <driverlib/interrupt.h>
-
 uint16_t advanceUint16Index(uint16_t currentValue, uint16_t maxLen)
 {
     ++currentValue;
@@ -23,28 +19,35 @@ uint16_t getBufferCapacity(const WriteBuffer* pWriteBuffer, uint16_t maxLen)
     const uint16_t start = pWriteBuffer->startIdx;
     const uint16_t end = pWriteBuffer->endIdx;
     
-    if (isEmpty && start == end)
+    if (start == end)
     {
-        return maxLen;
+        if (isEmpty)
+        {
+            return maxLen;
+        }
+        else
+        {
+            return 0;
+        }
     }
-    else if (end >= start)
+    else if (end > start)
     {
-        return end - start;
+        return maxLen - (end - start);
     }
     else
     {
-        return maxLen - start + end;
+        return end - start;
     }
 }
 
 void uartTransmit(UartChannelData* pChannelData)
 {
-    MAP_UARTIntDisable(pChannelData->base, UART_INT_TX);
+    UARTTxInterruptDisable(pChannelData);
     
-    while(MAP_UARTSpaceAvail(pChannelData->base) && 
+    while(UARTSpaceAvailable(pChannelData) && 
           (pChannelData->writeBuffer.endIdx != pChannelData->writeBuffer.startIdx || !pChannelData->writeBuffer.isEmpty))
     {
-        MAP_UARTCharPutNonBlocking(pChannelData->base, pChannelData->writeBuffer.buffer[pChannelData->writeBuffer.startIdx]);
+        UARTPutCharNonBlocking(pChannelData, pChannelData->writeBuffer.buffer[pChannelData->writeBuffer.startIdx]);
         pChannelData->writeBuffer.startIdx = advanceUint16Index(pChannelData->writeBuffer.startIdx, UART_WRITE_BUFFER_MAX_CHARS_LEN);
         if (pChannelData->writeBuffer.startIdx == pChannelData->writeBuffer.endIdx) 
         {
@@ -52,29 +55,13 @@ void uartTransmit(UartChannelData* pChannelData)
         }
     }
 
-    MAP_UARTIntEnable(pChannelData->base, UART_INT_TX);
+    UARTTxInterruptEnable(pChannelData);
 }
 
 bool writeString(uint8_t channel, char* szData)
 {
-    UartChannelData* const pChannelData = &uartChannelData[channel];
-
-    // interrupt can only make buffer emptier so we are fine no matter where interrupt kicks in
-    if ((!pChannelData->writeBuffer.isEmpty && pChannelData->writeBuffer.startIdx == pChannelData->writeBuffer.endIdx) ||
-        getBufferCapacity(&pChannelData->writeBuffer, UART_WRITE_BUFFER_MAX_CHARS_LEN) < 1)
-    {
-        return false;
-    }
-
-    for (uint8_t i = 0; szData[i] != 0; ++i)
-    {
-        pChannelData->writeBuffer.buffer[pChannelData->writeBuffer.endIdx] = szData[i];
-        pChannelData->writeBuffer.endIdx = advanceUint16Index(pChannelData->writeBuffer.endIdx, UART_WRITE_BUFFER_MAX_CHARS_LEN);
-    }
-        
-    uartTransmit(pChannelData);
-        
-    return true;
+    uint8_t size = strlen(szData);
+    return writeMessageBuffer(channel, (uint8_t*) szData, size);
 }
 
 bool write(uint8_t channel, uint8_t character)
@@ -98,18 +85,23 @@ bool write(uint8_t channel, uint8_t character)
 
 bool writeMessage(uint8_t channel, const Message* pMessage)
 {
+    return writeMessageBuffer(channel, pMessage->message, pMessage->size);
+}
+
+bool writeMessageBuffer(uint8_t channel, const uint8_t* pBuffer, uint8_t size)
+{
     UartChannelData* const pChannelData = &uartChannelData[channel];
 
     // interrupt can only make buffer emptier so we are fine no matter where interrupt kicks in
     if ((!pChannelData->writeBuffer.isEmpty && pChannelData->writeBuffer.startIdx == pChannelData->writeBuffer.endIdx) ||
-        getBufferCapacity(&pChannelData->writeBuffer, UART_WRITE_BUFFER_MAX_CHARS_LEN) < pMessage->size)
+        getBufferCapacity(&pChannelData->writeBuffer, UART_WRITE_BUFFER_MAX_CHARS_LEN) < size)
     {
         return false;
     }
 
-    for (uint8_t i = 0; i < pMessage->size; ++i)
+    for (uint8_t i = 0; i < size; ++i)
     {
-        pChannelData->writeBuffer.buffer[pChannelData->writeBuffer.endIdx] = pMessage->message[i];
+        pChannelData->writeBuffer.buffer[pChannelData->writeBuffer.endIdx] = pBuffer[i];
         pChannelData->writeBuffer.endIdx = advanceUint16Index(pChannelData->writeBuffer.endIdx, UART_WRITE_BUFFER_MAX_CHARS_LEN);
     }
         
@@ -139,6 +131,6 @@ void uartWriteIntHandler(UartChannelData* pChannelData)
     {
         // user shouldn't call writeMessage from interrupt handlers
         // so nobody can write message without enabling this interrupt
-        MAP_UARTIntDisable(pChannelData->base, UART_INT_TX);
+        UARTTxInterruptDisable(pChannelData);
     }
 }

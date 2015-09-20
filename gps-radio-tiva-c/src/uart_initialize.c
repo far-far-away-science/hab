@@ -159,79 +159,94 @@ bool initializeUartChannel(uint8_t channel,
 void Uart0IntHandler(void)
 {
     UartChannelData* const pChannelData = uart2UartChannelData[UART_0];
-    const uint32_t status = MAP_UARTIntStatus(pChannelData->base, true);
-    MAP_UARTIntClear(pChannelData->base, status);
+    if (pChannelData)
+    {
+        const uint32_t status = MAP_UARTIntStatus(pChannelData->base, true);
+        MAP_UARTIntClear(pChannelData->base, status);
 
-    if (status & (UART_INT_RX | UART_INT_RT))
-    {
-        uartReadIntHandler(pChannelData);
-    }
-    if (status & UART_INT_TX)
-    {
-        uartWriteIntHandler(pChannelData);
+        if (status & (UART_INT_RX | UART_INT_RT))
+        {
+            uartReadIntHandler(pChannelData);
+        }
+        if (status & UART_INT_TX)
+        {
+            uartWriteIntHandler(pChannelData);
+        }
     }
 }
 
 void Uart1IntHandler(void)
 {
     UartChannelData* const pChannelData = uart2UartChannelData[UART_1];
-    const uint32_t status = MAP_UARTIntStatus(pChannelData->base, true);
-    MAP_UARTIntClear(pChannelData->base, status);
+    if (pChannelData)
+    {
+        const uint32_t status = MAP_UARTIntStatus(pChannelData->base, true);
+        MAP_UARTIntClear(pChannelData->base, status);
 
-    if (status & (UART_INT_RX | UART_INT_RT))
-    {
-        uartReadIntHandler(pChannelData);
-    }
-    if (status & UART_INT_TX)
-    {
-        uartWriteIntHandler(pChannelData);
+        if (status & (UART_INT_RX | UART_INT_RT))
+        {
+            uartReadIntHandler(pChannelData);
+        }
+        if (status & UART_INT_TX)
+        {
+            uartWriteIntHandler(pChannelData);
+        }
     }
 }
 
 void Uart2IntHandler(void)
 {
     UartChannelData* const pChannelData = uart2UartChannelData[UART_2];
-    const uint32_t status = MAP_UARTIntStatus(pChannelData->base, true);
-    MAP_UARTIntClear(pChannelData->base, status);
+    if (pChannelData)
+    {
+        const uint32_t status = MAP_UARTIntStatus(pChannelData->base, true);
+        MAP_UARTIntClear(pChannelData->base, status);
 
-    if (status & (UART_INT_RX | UART_INT_RT))
-    {
-        uartReadIntHandler(pChannelData);
-    }
-    if (status & UART_INT_TX)
-    {
-        uartWriteIntHandler(pChannelData);
+        if (status & (UART_INT_RX | UART_INT_RT))
+        {
+            uartReadIntHandler(pChannelData);
+        }
+        if (status & UART_INT_TX)
+        {
+            uartWriteIntHandler(pChannelData);
+        }
     }
 }
 
 void Uart3IntHandler(void)
 {
     UartChannelData* const pChannelData = uart2UartChannelData[UART_3];
-    const uint32_t status = MAP_UARTIntStatus(pChannelData->base, true);
-    MAP_UARTIntClear(pChannelData->base, status);
+    if (pChannelData)
+    {
+        const uint32_t status = MAP_UARTIntStatus(pChannelData->base, true);
+        MAP_UARTIntClear(pChannelData->base, status);
 
-    if (status & (UART_INT_RX | UART_INT_RT))
-    {
-        uartReadIntHandler(pChannelData);
-    }
-    if (status & UART_INT_TX)
-    {
-        uartWriteIntHandler(pChannelData);
+        if (status & (UART_INT_RX | UART_INT_RT))
+        {
+            uartReadIntHandler(pChannelData);
+        }
+        if (status & UART_INT_TX)
+        {
+            uartWriteIntHandler(pChannelData);
+        }
     }
 }
 
 void Uart4IntHandler(void)
 {
     UartChannelData* const pChannelData = uart2UartChannelData[UART_4];
-    const uint32_t status = MAP_UARTIntStatus(pChannelData->base, true);
-    MAP_UARTIntClear(pChannelData->base, status);
+    if (pChannelData)
+    {
+        const uint32_t status = MAP_UARTIntStatus(pChannelData->base, true);
+        MAP_UARTIntClear(pChannelData->base, status);
 
-    if (status & (UART_INT_RX | UART_INT_RT))
-    {
-        uartReadIntHandler(pChannelData);
-    }
-    if (status & UART_INT_TX)
-    {
-        uartWriteIntHandler(pChannelData);
+        if (status & (UART_INT_RX | UART_INT_RT))
+        {
+            uartReadIntHandler(pChannelData);
+        }
+        if (status & UART_INT_TX)
+        {
+            uartWriteIntHandler(pChannelData);
+        }
     }
 }
