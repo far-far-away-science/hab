@@ -86,7 +86,8 @@ float g_currentF1200Frame = 0;
 float g_currentF2200Frame = 0;
 uint8_t g_currentSymbolPulsesCount = 0;
 
-static uint8_t g_aprsPayloadBuffer[APRS_PAYLOAD_LEN];
+uint16_t g_aprsMessageId = 0;
+uint8_t g_aprsPayloadBuffer[APRS_PAYLOAD_LEN];
 
 void initializeAprs(void)
 {
@@ -319,12 +320,17 @@ uint8_t createPacketPayload(GpsDataSource gpsDataSource, const GpsData* pGpsData
         }
     }
 
-    if (bufferStartIdx + 13 > bufferSize)
+    if (bufferStartIdx + 17 > bufferSize)
     {
         return 0;
     }
     
-    bufferStartIdx += sprintf((char*) &pBuffer[bufferStartIdx], "T#%03u,%03u,%03u", gpsDataSource, pTelemetry->cpuTemperature / 10, pTelemetry->voltage / 10);
+    bufferStartIdx += sprintf((char*) &pBuffer[bufferStartIdx],
+                              "T#%03u,%03u,%03u,%03u",
+                              g_aprsMessageId++, 
+                              gpsDataSource,
+                              pTelemetry->cpuTemperature / 10,
+                              pTelemetry->voltage / 10);
     
     return bufferStartIdx;
 }
