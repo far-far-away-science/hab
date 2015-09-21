@@ -14,6 +14,10 @@ namespace HABService {
 		/// </summary>
 		public abstract int Address { get; }
 		/// <summary>
+		/// Returns true if the sensor is running (init OK), or false otherwise.
+		/// </summary>
+		public bool InitOK { get; set; }
+		/// <summary>
 		/// Report the interval, in milliseconds, that this sensor should be logged. This
 		/// value may be dynamic; it is checked again on each reschedule.
 		/// </summary>
