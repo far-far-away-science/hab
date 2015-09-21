@@ -88,6 +88,7 @@ namespace HABService {
 					}
 				// Uh oh!
 				if (!ok) allPass = false;
+				sensor.Sensor.InitOK = ok;
 			}
 			return allPass;
 		}
@@ -165,10 +166,9 @@ namespace HABService {
 					log.Log("Log opened " + DateTime.Now.ToString());
 					ToDoList toDo = await OpenAllSensors(sensors, log);
 					try {
-						if (InitSensors(toDo, log))
-							await SensorWorker(toDo, log);
-						else
-							log.Log("Failed to initialize some sensors, bailing out!");
+						// Now go on even if init fails on some sensors
+						InitSensors(toDo, log);
+						await SensorWorker(toDo, log);
 					} catch (Exception e) {
 						// Log the fatal exception -- everything that makes it through at this
 						// point is a bug and needs to be seen
@@ -224,23 +224,25 @@ namespace HABService {
 				SensorSchedule task = toDo.First.Value;
 				toDo.RemoveFirst();
 				I2CSensor sensor = task.Sensor;
-				// Wait the difference
-				if (task.At > now)
-					await Task.Delay((int)(task.At - now));
-				now = task.At;
-				// Do it
-				SampleOneSensor(task, log);
-				// Reschedule for next time
-				task.At += sensor.LogInterval;
-				// Inject into the right place
-				var ptr = toDo.First;
-				while (ptr != null && ptr.Value.At < task.At)
-					ptr = ptr.Next;
-				if (ptr == null)
-					// The list had only one element, or the element belongs at the end
-					toDo.AddLast(task);
-				else
-					toDo.AddBefore(ptr, task);
+				if (sensor.InitOK) {
+					// Wait the difference
+					if (task.At > now)
+						await Task.Delay((int)(task.At - now));
+					now = task.At;
+					// Do it
+					SampleOneSensor(task, log);
+					// Reschedule for next time
+					task.At += sensor.LogInterval;
+					// Inject into the right place
+					var ptr = toDo.First;
+					while (ptr != null && ptr.Value.At < task.At)
+						ptr = ptr.Next;
+					if (ptr == null)
+						// The list had only one element, or the element belongs at the end
+						toDo.AddLast(task);
+					else
+						toDo.AddBefore(ptr, task);
+				}
 			}
 		}
 	}
