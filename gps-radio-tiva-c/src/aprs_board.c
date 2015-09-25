@@ -47,7 +47,7 @@
 
 const Callsign CALLSIGN_SOURCE = 
 {
-    {"KG7WFN"},
+    {"HABHAB"},
     '\xF6' // 111 1011 0
            //          ^ not a last address
            //     ^^^^ SSID (11 - balloon)
