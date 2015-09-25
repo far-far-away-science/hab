@@ -47,7 +47,7 @@
 
 const Callsign CALLSIGN_SOURCE = 
 {
-    {"HABHAB"},
+    {"KG7WFN"},
     '\xF6' // 111 1011 0
            //          ^ not a last address
            //     ^^^^ SSID (11 - balloon)
@@ -146,12 +146,12 @@ bool encodeAndAppendBits(uint8_t* pBitstreamBuffer,
     for (uint16_t iByte = 0; iByte < messageDataSize; ++iByte)
     {
         uint8_t currentByte = pMessageData[iByte];
-        
+
         if (shiftOneLeftType == SHIFT_ONE_LEFT)
         {
             currentByte <<= 1;
         }
-        
+
         for (uint8_t iBit = 0; iBit < 8; ++iBit)
         {
             const uint8_t currentBit = currentByte & (1 << iBit);
@@ -295,7 +295,7 @@ uint8_t createPacketPayload(GpsDataSource gpsDataSource, const GpsData* pGpsData
         }
 
         bufferStartIdx += sprintf((char*) &pBuffer[bufferStartIdx],
-                                  "%02u%02u.%02u%1c/%03u%02u.%02u%1c>",
+                                  "%02u%02u.%02u%1c/%03u%02u.%02u%1c",
                                   pGpsData->latitude.degrees,
                                   latMinutesWhole,
                                   latMinutesFraction,
@@ -314,24 +314,25 @@ uint8_t createPacketPayload(GpsDataSource gpsDataSource, const GpsData* pGpsData
             }
             
             bufferStartIdx += sprintf((char*) &pBuffer[bufferStartIdx],
-                                      "%03u/%03u",
+                                      ">%03u/%03u",
                                       (uint32_t) (isnan(pGpsData->trueCourseDegrees) ? 0.0f : pGpsData->trueCourseDegrees),
                                       (uint32_t) (isnan(pGpsData->speedKnots) ? 0.0f : pGpsData->speedKnots));
         }
     }
 
-    if (bufferStartIdx + 17 > bufferSize)
+    if (bufferStartIdx + 42 > bufferSize)
     {
         return 0;
     }
-    
+
     bufferStartIdx += sprintf((char*) &pBuffer[bufferStartIdx],
-                              "T#%03u,%03u,%03u,%03u",
+                              "T#%03u,%03u,%03u,%03u,000,000,00000000 a=%05u",
                               g_aprsMessageId++, 
                               gpsDataSource,
                               pTelemetry->cpuTemperature / 10,
-                              pTelemetry->voltage / 10);
-    
+                              pTelemetry->voltage / 10,
+                              (uint32_t) pGpsData->altitudeMslMeters);
+
     return bufferStartIdx;
 }
 
