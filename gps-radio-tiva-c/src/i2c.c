@@ -152,10 +152,10 @@ void submitI2CData(uint32_t index, GpsData *data) {
     // Mask I2C interrupts while we update
     MAP_I2CSlaveIntDisable(I2C_MODULE);
     // Latitude update
-    data32.word = floatAngularCoordinateToInt32_DDMMFF(data->latitude);
+    data32.word = floatAngularCoordinateToInt32Degrees(data->latitude);
     memcpy(ptr + REG_LAT_0, data32.bytes, sizeof(data32.bytes));
     // Longitude update
-    data32.word = floatAngularCoordinateToInt32_DDMMFF(data->longitude);
+    data32.word = floatAngularCoordinateToInt32Degrees(data->longitude);
     memcpy(ptr + REG_LON_0, data32.bytes, sizeof(data32.bytes));
     // Altitude update
     data32.word = (int32_t) data->altitudeMslMeters * 10;

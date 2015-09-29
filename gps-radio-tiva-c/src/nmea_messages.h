@@ -66,7 +66,7 @@ typedef struct GpsData_t
 // D - degree digit
 // M - whole minute digit
 // F - minute fraction digit
-int32_t floatAngularCoordinateToInt32_DDMMFF(AngularCoordinate lat);
+int32_t floatAngularCoordinateToInt32Degrees(AngularCoordinate lat);
 
 void parseGpggaMessageIfValid(const Message* pGpggaMessage, GpsData* pResult);
 

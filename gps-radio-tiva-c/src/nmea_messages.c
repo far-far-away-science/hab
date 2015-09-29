@@ -9,14 +9,11 @@
     (tokenOneAfterEndIdx) = findDivider((pMessage), (tokenStartIdx)); \
     if ((tokenOneAfterEndIdx) >= (pMessage)->size) { return; };
 
-int32_t floatAngularCoordinateToInt32_DDMMFF(AngularCoordinate lat)
+int32_t floatAngularCoordinateToInt32Degrees(AngularCoordinate lat)
 {
     if (lat.isValid)
     {
-        int32_t r = lat.degrees;
-        r *= 10000;
-        r += (int32_t) (100 * lat.minutes * 60);
-        return r;
+        return (int32_t) (1000000.0f * (lat.degrees + lat.minutes / 60.0f));
     }
     else
     {
