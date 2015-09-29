@@ -330,7 +330,7 @@ uint8_t createPacketPayload(GpsDataSource gpsDataSource, const GpsData* pGpsData
                               g_aprsMessageId++, 
                               gpsDataSource,
                               pTelemetry->cpuTemperature / 10,
-                              pTelemetry->voltage / 10,
+                              pTelemetry->voltage / 100 /* values are from 0 to 255 */,
                               (uint32_t) pGpsData->altitudeMslMeters);
 
     return bufferStartIdx;
