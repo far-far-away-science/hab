@@ -477,9 +477,19 @@
               <FilePath>.\src\nmea_messages.h</FilePath>
             </File>
             <File>
+              <FileName>nmea_messages_impl.h</FileName>
+              <FileType>5</FileType>
+              <FilePath>.\src\nmea_messages_impl.h</FilePath>
+            </File>
+            <File>
               <FileName>nmea_messages.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\nmea_messages.c</FilePath>
+            </File>
+            <File>
+              <FileName>nmea_messages_impl.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>.\src\nmea_messages_impl.c</FilePath>
             </File>
             <File>
               <FileName>main.c</FileName>
