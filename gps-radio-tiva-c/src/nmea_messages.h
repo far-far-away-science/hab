@@ -1,5 +1,12 @@
 #pragma once
 
+/*
+ * Design choices:
+ * - need to minimize data conversion from strings to numbers, etc.
+ * - I2C accepts integers
+ * - APRS accepts strings slightly formatted compared to nmea
+ */
+
 #include "uart.h"
 
 typedef enum LATITUDE_HEMISPHERE_t
@@ -62,14 +69,10 @@ typedef struct GpsData_t
     float speedKph;
 } GpsData;
 
-// format: DDMMFF
-// D - degree digit
-// M - whole minute digit
-// F - minute fraction digit
+// degrees times 10^6
 int32_t floatAngularCoordinateToInt32Degrees(AngularCoordinate lat);
 
 void parseGpggaMessageIfValid(const Message* pGpggaMessage, GpsData* pResult);
-
 void parseGpvtgMessageIfValid(const Message* pGpvtgMessage, GpsData* pResult);
 
 #ifdef UNIT_TEST
