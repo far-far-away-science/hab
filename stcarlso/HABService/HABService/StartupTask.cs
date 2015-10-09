@@ -156,6 +156,7 @@ namespace HABService {
 			#region Sensor Configuration
 			sensors.Add(new TelemetryI2CSensor());
 			sensors.Add(new TMP102I2CSensor());
+			sensors.Add(new ADXL345I2CSensor(0x53));
 			#endregion
 			try {
 				using (StreamWriter log = await OpenLog()) {
