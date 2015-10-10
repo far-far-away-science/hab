@@ -230,3 +230,5 @@ ModelManifest.xml
 
 # eagle temp files
 *.s#*
+
+BundleArtifacts
