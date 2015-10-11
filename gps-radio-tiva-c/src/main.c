@@ -60,8 +60,12 @@ static const Message airMode = {
     }
 };
 
-int main()
+// Initialize the board
+static inline uint32_t init(void)
 {
+    bool r = true;
+
+    // Call initialize methods in individual subsystem files
     initializeTivaC();
     initializeSignals();
     initializeAprs();
@@ -75,17 +79,14 @@ int main()
     initializeEEPROM(record == 0U);
     eepromBuffer = 0U;
 #endif
-
     initializeI2C();
 
-    bool r = true;
-
+    // Configure UART channels
     r &= initializeUartChannel(CHANNEL_VENUS_GPS, UART_1, 9600, CPU_SPEED, UART_FLAGS_RECEIVE);
     r &= initializeUartChannel(CHANNEL_COPERNICUS_GPS, UART_2, 4800, CPU_SPEED, UART_FLAGS_RECEIVE);
 #ifdef DUMP_DATA_TO_UART0
     r &= initializeUartChannel(CHANNEL_OUTPUT, UART_0, 115200, CPU_SPEED, UART_FLAGS_SEND);
 #endif
-
     r &= writeMessage(CHANNEL_COPERNICUS_GPS, &airMode);
     if (r)
     {
@@ -95,69 +96,151 @@ int main()
     {
         signalError();
     }
+    return record;
+}
 
-    bool shouldSendVenusDataToAprs = true;
+// Reads and updates GPS module data
+static void updateGPS(uint32_t channel, Message *messageIn, GpsData *dataOut)
+{
+    // If a message is available
+    if (readMessage(channel, messageIn) && messageIn->size > 6)
+    {
+#ifdef DUMP_DATA_TO_UART0
+        // Debugging usage only
+        if (channel == CHANNEL_VENUS_GPS)
+        {
+            writeString(CHANNEL_OUTPUT, "vens - ");
+        }
+        else
+        {
+            writeString(CHANNEL_OUTPUT, "copr - ");
+        }
+        writeMessage(CHANNEL_OUTPUT, messageIn);
+#endif
+        if (memcmp(messageIn->message, "$GP", 3) == 0)
+        {
+            bool update = false;
+            if (memcmp(messageIn->message + 3, "GGA", 3) == 0)
+            {
+                // Global Positioning System fix
+                parseGpggaMessageIfValid(messageIn, dataOut);
+                update = true;
+            }
+            else if (memcmp(venusGpsMessage.message + 3, "VTG", 3) == 0)
+            {
+                // Track made good and ground speed
+                parseGpvtgMessageIfValid(messageIn, dataOut);
+                update = true;
+            }
+            if (update)
+            {
+                // The GPS can be set up to disable all the other messages in theory
+                // Conveniently enough, the channels match the I2C indices
+                submitI2CData(channel, dataOut);
+            }
+        }
+    }
+}
 
-    uint32_t nextRadioSendTime = 5U;
-    startWatchdog();
+// Sends an APRS message
+static inline uint32_t sendAPRSMessage(uint32_t now, bool *sendVenusData, uint32_t *ditherCount)
+{
+    uint32_t dither, alt = 0U;
+    const bool shouldSendVenusDataToAprs = *sendVenusData;
     
+    // Fetch telemetry data
+    getTelemetry(&telemetry);
+#ifdef DUMP_DATA_TO_UART0
+    // Debugging only
+    telemetryMessage.size = sprintf((char*) telemetryMessage.message, "tele - temp=%u, vcc=%u\r\n", telemetry.cpuTemperature, telemetry.voltage);
+    writeMessage(CHANNEL_OUTPUT, &telemetryMessage);
+#endif
+    // Update I2C registers
+    submitI2CTelemetry(&telemetry);
+    
+    if (shouldSendVenusDataToAprs && venusGpsData.latitude.isValid && venusGpsData.longitude.isValid)
+    {
+        // venus data
+        alt = venusGpsData.altitudeMslMeters;
+        sendAprsMessage(VENUS_GPS_ID, &venusGpsData, &telemetry);
+    }
+    else
+    {
+        // higher chance that copernicus will work more reliably
+        // so we will use it as a default fallback
+        alt = copernicusGpsData.altitudeMslMeters;
+        sendAprsMessage(COPERNICUS_GPS_ID, &copernicusGpsData, &telemetry);
+    }
+    *sendVenusData = !shouldSendVenusDataToAprs;
+    
+#if defined(RADIO_MCU_MESSAGE_DITHER) && (RADIO_MCU_MESSAGE_DITHER > 0)
+    {
+        // Perform dithering, correctly this time!
+        const uint32_t ditherCountValue = *ditherCount;
+        dither = (ditherCountValue % RADIO_MCU_MESSAGE_DITHER);
+        *ditherCount = ditherCountValue + 1;
+    }
+#else
+    dither = 0U;
+#endif
+    // Issue #5: Send messages more frequently near the ground
+    if (alt > 0U && alt < RADIO_MCU_LOW_ALTITUDE)
+    {
+        dither += RADIO_MCU_MESSAGE_FAST_INTERVAL;
+    }
+    else
+    {
+        dither += RADIO_MCU_MESSAGE_SENDING_INTERVAL;
+    }
+    now += dither;
+    // Next radio send time
+    return now;
+}
+
+// Writes data to the EEPROM
+#ifdef EEPROM_ENABLED
+static inline uint32_t writeEEPROM(uint32_t record)
+{
+    // Every 30 seconds, write stats to EEPROM
+    if (record < 2048U)
+    {
+        // Compose 16-bit EEPROM word = [LSB] one byte temp, [MSB] one byte voltage
+        // Voltage = (mV - 4990) / 20
+        // Temperature = (raw reading - 1595) / 10
+        uint32_t result = ((telemetry.cpuTemperature - 1595U) / 10U) & 0xFFU;
+        result |= (((telemetry.voltage - 4990U) / 20U) & 0xFFU) << 8;
+        if (record & 2U)
+        {
+            eepromBuffer |= (result << 16U);
+            // Finish up the buffer, and write the word at the base address
+            eepromWrite(record & 0x7FC, &eepromBuffer);
+        }
+        else
+        {
+            // Write first half of the buffer value
+            eepromBuffer = result;
+        }
+        record += 2U;
+    }
+    return record;
+}
+#endif
+
+int main()
+{
+    bool shouldSendVenusDataToAprs = true;
+    uint32_t currentTime, nextRadioSendTime = 5U, ditherCount = 0U;
+    // Initialize board
+    uint32_t record = init();
+    // Start the watchdog
+    startWatchdog();
     while (true)
     {
-        if (readMessage(CHANNEL_VENUS_GPS, &venusGpsMessage) && venusGpsMessage.size > 6)
-        {
-#ifdef DUMP_DATA_TO_UART0
-            writeString(CHANNEL_OUTPUT, "vens - ");
-            writeMessage(CHANNEL_OUTPUT, &venusGpsMessage);
-#endif
-            if (memcmp(venusGpsMessage.message, "$GP", 3) == 0)
-            {
-                bool update = false;
-                if (memcmp(venusGpsMessage.message + 3, "GGA", 3) == 0)
-                {
-                    parseGpggaMessageIfValid(&venusGpsMessage, &venusGpsData);
-                    update = true;
-                }
-                else if (memcmp(venusGpsMessage.message + 3, "VTG", 3) == 0)
-                {
-                    parseGpvtgMessageIfValid(&venusGpsMessage, &venusGpsData);
-                    update = true;
-                }
-                if (update)
-                {
-                    // The Venus can be set up to disable all the other messages in theory
-                    submitI2CData(0, &venusGpsData);
-                }
-            }
-        }
-
-        if (readMessage(CHANNEL_COPERNICUS_GPS, &copernicusGpsMessage) && copernicusGpsMessage.size > 6)
-        {
-#ifdef DUMP_DATA_TO_UART0
-            writeString(CHANNEL_OUTPUT, "copr - ");
-            writeMessage(CHANNEL_OUTPUT, &copernicusGpsMessage);
-#endif
-            if (memcmp(copernicusGpsMessage.message, "$GP", 3) == 0)
-            {
-                bool update = false;
-                if (memcmp(copernicusGpsMessage.message + 3, "GGA", 3) == 0)
-                {
-                    parseGpggaMessageIfValid(&copernicusGpsMessage, &copernicusGpsData);
-                    update = true;
-                }
-                else if (memcmp(copernicusGpsMessage.message + 3, "VTG", 3) == 0)
-                {
-                    parseGpvtgMessageIfValid(&copernicusGpsMessage, &copernicusGpsData);
-                    update = true;
-                }
-                if (update)
-                {
-                    submitI2CData(1, &copernicusGpsData);
-                }
-            }
-        }
-
-        uint32_t currentTime = getSecondsSinceStart();
-
+        // GPS data update
+        updateGPS(CHANNEL_VENUS_GPS, &venusGpsMessage, &venusGpsData);
+        updateGPS(CHANNEL_COPERNICUS_GPS, &copernicusGpsMessage, &copernicusGpsData);
+        
+        currentTime = getSecondsSinceStart();
         // If user button 1 is down, send APRS message "now"
         if (isUserButton1())
         {
@@ -166,57 +249,11 @@ int main()
 
         if (currentTime >= nextRadioSendTime)
         {
-            getTelemetry(&telemetry);
-            
-#ifdef DUMP_DATA_TO_UART0
-            telemetryMessage.size = sprintf((char*) telemetryMessage.message, "tele - temp=%u, vcc=%u\r\n", telemetry.cpuTemperature, telemetry.voltage);
-            writeMessage(CHANNEL_OUTPUT, &telemetryMessage);
-#endif
-
-            submitI2CTelemetry(&telemetry);
-
-            if (shouldSendVenusDataToAprs && venusGpsData.latitude.isValid && venusGpsData.longitude.isValid)
-            {
-                sendAprsMessage(VENUS_GPS_ID, &venusGpsData, &telemetry);
-            }
-            else
-            {
-                // higher chance that copernicus will work more reliably
-                // so we will use it as a default fallback
-                sendAprsMessage(COPERNICUS_GPS_ID, &copernicusGpsData, &telemetry);
-            }
-            shouldSendVenusDataToAprs = !shouldSendVenusDataToAprs;
-            
-            uint32_t dither;
-#if defined(RADIO_MCU_MESSAGE_DITHER) && (RADIO_MCU_MESSAGE_DITHER > 0)
-            dither = (currentTime % RADIO_MCU_MESSAGE_DITHER);
-#else
-            dither = 0U;
-#endif
-            nextRadioSendTime = currentTime + RADIO_MCU_MESSAGE_SENDING_INTERVAL_SECONDS + dither;
-            
-#ifdef EEPROM_ENABLED            
-            // Every 30 seconds, write stats to EEPROM
-            if (record < 2048U)
-            {
-                // Compose 16-bit EEPROM word = [LSB] one byte temp, [MSB] one byte voltage
-                // Voltage = (mV - 4990) / 20
-                // Temperature = (raw reading - 1595) / 10
-                uint32_t result = ((telemetry.cpuTemperature - 1595U) / 10U) & 0xFFU;
-                result |= (((telemetry.voltage - 4990U) / 20U) & 0xFFU) << 8;
-                if (record & 2U)
-                {
-                    eepromBuffer |= (result << 16U);
-                    // Finish up the buffer, and write the word at the base address
-                    eepromWrite(record & 0x7FC, &eepromBuffer);
-                }
-                else
-                {
-                    // Write first half of the buffer value
-                    eepromBuffer = result;
-                }
-                record += 2U;
-            }
+            // Send message
+            nextRadioSendTime = sendAPRSMessage(currentTime, &shouldSendVenusDataToAprs, &ditherCount);
+            // EEPROM
+#ifdef EEPROM_ENABLED
+            record = writeEEPROM(record);
 #endif
         }
         
@@ -229,7 +266,6 @@ int main()
         {
             signalHeartbeatOn();
         }
-        
         feedWatchdog();
         
         // Enter low power mode
