@@ -20,9 +20,11 @@
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\nmea_messages.c" />
+    <ClCompile Include="src\nmea_messages_impl.c" />
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\nmea_messages.h" />
+    <ClInclude Include="src\nmea_messages_impl.h" />
   </ItemGroup>
   <PropertyGroup Label="Globals">
     <ProjectGuid>{7B258CFD-382D-43B8-BFFF-55BBED2C2555}</ProjectGuid>

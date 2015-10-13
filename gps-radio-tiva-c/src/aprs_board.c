@@ -255,9 +255,9 @@ uint8_t createPacketPayload(GpsDataSource gpsDataSource, const GpsData* pGpsData
 {
     uint8_t bufferStartIdx = 0;
     
-    if (pGpsData->latitude.isValid && pGpsData->longitude.isValid)
+    if (pGpsData->gpggaData.latitude.isValid && pGpsData->gpggaData.longitude.isValid)
     {
-        if (pGpsData->utcTime.isValid)
+        if (pGpsData->gpggaData.utcTime.isValid)
         {
             if (bufferStartIdx + 8 > bufferSize)
             {
@@ -266,9 +266,9 @@ uint8_t createPacketPayload(GpsDataSource gpsDataSource, const GpsData* pGpsData
             
             bufferStartIdx += sprintf((char*) &pBuffer[bufferStartIdx],
                                       "@%02u%02u%02uz",
-                                      pGpsData->utcTime.hours,
-                                      pGpsData->utcTime.minutes,
-                                      (int) pGpsData->utcTime.seconds);
+                                      pGpsData->gpggaData.utcTime.hours,
+                                      pGpsData->gpggaData.utcTime.minutes,
+                                      (int) pGpsData->gpggaData.utcTime.seconds);
         }
         else
         {
@@ -283,11 +283,11 @@ uint8_t createPacketPayload(GpsDataSource gpsDataSource, const GpsData* pGpsData
         // tiva seem to be crashing when I try to feed float to sprintf
         // need to investigate later on
         
-        const uint32_t latMinutesWhole = (uint32_t) pGpsData->latitude.minutes;
-        const uint32_t latMinutesFraction = (uint32_t) ((pGpsData->latitude.minutes - latMinutesWhole) * 100.0f);
+        const uint32_t latMinutesWhole = pGpsData->gpggaData.latitude.minutes / 1000000;
+        const uint32_t latMinutesFraction = (pGpsData->gpggaData.latitude.minutes - latMinutesWhole * 1000000) / 10000;
 
-        const uint32_t lonMinutesWhole = (uint32_t) pGpsData->longitude.minutes;
-        const uint32_t lonMinutesFraction = (uint32_t) ((pGpsData->longitude.minutes - lonMinutesWhole) * 100.0f);
+        const uint32_t lonMinutesWhole = pGpsData->gpggaData.longitude.minutes / 1000000;
+        const uint32_t lonMinutesFraction = (pGpsData->gpggaData.longitude.minutes - lonMinutesWhole * 1000000) / 10000;
 
         if (bufferStartIdx + 19 > bufferSize)
         {
@@ -296,17 +296,17 @@ uint8_t createPacketPayload(GpsDataSource gpsDataSource, const GpsData* pGpsData
 
         bufferStartIdx += sprintf((char*) &pBuffer[bufferStartIdx],
                                   "%02u%02u.%02u%1c/%03u%02u.%02u%1c",
-                                  pGpsData->latitude.degrees,
+                                  pGpsData->gpggaData.latitude.degrees,
                                   latMinutesWhole,
                                   latMinutesFraction,
-                                  pGpsData->latitudeHemisphere,
-                                  pGpsData->longitude.degrees,
+                                  pGpsData->gpggaData.latitude.hemisphere,
+                                  pGpsData->gpggaData.longitude.degrees,
                                   lonMinutesWhole,
                                   lonMinutesFraction,
-                                  pGpsData->longitudeHemisphere);
+                                  pGpsData->gpggaData.longitude.hemisphere);
 
-        if ((pGpsData->trueCourseDegrees == 0 || isnormal(pGpsData->trueCourseDegrees)) ||
-            (pGpsData->speedKnots == 0 || isnormal(pGpsData->speedKnots)))
+        if ((pGpsData->gpvtgData.trueCourseDegrees == 0 || isnormal(pGpsData->gpvtgData.trueCourseDegrees)) ||
+            (pGpsData->gpvtgData.speedKph == 0 || isnormal(pGpsData->gpvtgData.speedKph)))
         {
             if (bufferStartIdx + 7 > bufferSize)
             {
@@ -315,8 +315,8 @@ uint8_t createPacketPayload(GpsDataSource gpsDataSource, const GpsData* pGpsData
             
             bufferStartIdx += sprintf((char*) &pBuffer[bufferStartIdx],
                                       ">%03u/%03u",
-                                      (uint32_t) (isnan(pGpsData->trueCourseDegrees) ? 0.0f : pGpsData->trueCourseDegrees),
-                                      (uint32_t) (isnan(pGpsData->speedKnots) ? 0.0f : pGpsData->speedKnots));
+                                      (uint32_t) (isnan(pGpsData->gpvtgData.trueCourseDegrees) ? 0.0f : pGpsData->gpvtgData.trueCourseDegrees),
+                                      (uint32_t) (isnan(pGpsData->gpvtgData.speedKph) ? 0.0f : pGpsData->gpvtgData.speedKph));
         }
     }
 
@@ -331,7 +331,7 @@ uint8_t createPacketPayload(GpsDataSource gpsDataSource, const GpsData* pGpsData
                               gpsDataSource,
                               pTelemetry->cpuTemperature / 10,
                               pTelemetry->voltage / 100 /* values are from 0 to 255 */,
-                              (uint32_t) pGpsData->altitudeMslMeters);
+                              (uint32_t) pGpsData->gpggaData.altitudeMslMeters);
 
     return bufferStartIdx;
 }

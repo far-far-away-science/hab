@@ -16,18 +16,48 @@
     <ClInclude Include="targetver.h">
       <Filter>Source Files</Filter>
     </ClInclude>
+    <ClInclude Include="test\nmea_messages_test.h">
+      <Filter>Source Files\test</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="test\nmea_messages_test_parseUInt8.cpp">
-      <Filter>Source Files\test</Filter>
-    </ClCompile>
     <ClCompile Include="test\nmea_messages_test_parseGpggaMessageIfValid.cpp">
       <Filter>Source Files\test</Filter>
     </ClCompile>
-    <ClCompile Include="test\nmea_messages_test_parseFloat.cpp">
+    <ClCompile Include="test\nmea_messages_impl_parseHemisphere.cpp">
+      <Filter>Source Files\test</Filter>
+    </ClCompile>
+    <ClCompile Include="test\nmea_messages_impl_findNextTokenStart.cpp">
+      <Filter>Source Files\test</Filter>
+    </ClCompile>
+    <ClCompile Include="test\nmea_messages_impl_canUInt32Overflow.cpp">
+      <Filter>Source Files\test</Filter>
+    </ClCompile>
+    <ClCompile Include="test\nmea_messages_impl_parseUInt16FixedPoint.cpp">
+      <Filter>Source Files\test</Filter>
+    </ClCompile>
+    <ClCompile Include="test\nmea_messages_impl_parseUInt32FixedPoint.cpp">
+      <Filter>Source Files\test</Filter>
+    </ClCompile>
+    <ClCompile Include="test\nmea_messages_impl_parseGpsTime.cpp">
+      <Filter>Source Files\test</Filter>
+    </ClCompile>
+    <ClCompile Include="test\nmea_messages_impl_parseAngularCoordinate_latitude.cpp">
+      <Filter>Source Files\test</Filter>
+    </ClCompile>
+    <ClCompile Include="test\nmea_messages_impl_parseAngularCoordinate_longitude.cpp">
+      <Filter>Source Files\test</Filter>
+    </ClCompile>
+    <ClCompile Include="test\nmea_messages_impl_parseUInt8.cpp">
+      <Filter>Source Files\test</Filter>
+    </ClCompile>
+    <ClCompile Include="test\nmea_messages_test_parseGpvtgMessageIfValid.cpp">
+      <Filter>Source Files\test</Filter>
+    </ClCompile>
+    <ClCompile Include="test\nmea_messages_test_angularCoordinateToInt32Degrees.cpp">
       <Filter>Source Files\test</Filter>
     </ClCompile>
   </ItemGroup>

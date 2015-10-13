@@ -4,238 +4,471 @@
 #include <ctype.h>
 #include <stdlib.h>
 
-int32_t floatAngularCoordinateToInt32Degrees(AngularCoordinate lat)
+bool isSeparator(__in uint8_t c)
 {
-    if (lat.isValid)
+    return c == ',' || c == '*';
+}
+
+bool canUInt32Overflow(uint32_t previousValue, uint8_t newDigit)
+{
+    if ((previousValue > NMEA_MAX_UINT32_DIV_10) ||
+        (previousValue == NMEA_MAX_UINT32_DIV_10 && newDigit > 5))
     {
-        return (int32_t) (1000000.0f * (lat.degrees + lat.minutes / 60.0f));
+        return true;
     }
     else
     {
-        return 0;
+        return false;
     }
 }
 
-uint32_t findDivider(const Message* pGpggaMessage, uint32_t startIdx)
+NMEA_PARSING_RESULT findNextTokenStart(__in NmeaParsingContext* pContext)
 {
-    uint32_t i;
-    for (i = startIdx; i < pGpggaMessage->size && pGpggaMessage->message[i] != ','; ++i)
+    for (;; ++pContext->tokenStartIdx)
     {
-    }
-    return i;
-}
-
-uint32_t minimal(uint32_t a, uint32_t b)
-{
-    return a < b ? a : b;
-}
-
-// https://en.wikipedia.org/wiki/Floating_point
-float parseFloat(const Message* pGpggaMessage, uint32_t tokenStartIdx, uint32_t tokenOneAfterEndIdx)
-{
-    if (!pGpggaMessage || tokenStartIdx >= tokenOneAfterEndIdx)
-    {
-        return NAN;
-    }
-
-    uint32_t w = 0;
-    uint32_t f = 0;
-    uint32_t fDivisor = 1;
-    bool pointEncountered = false;
-
-    // for some reason atof/strtof are crashing tiva.
-
-    // max number of digits plus dot is 9
-    const uint32_t lastIdxPlusOne = minimal(tokenOneAfterEndIdx, tokenStartIdx + 9);
-    for (uint32_t i = tokenStartIdx; i < lastIdxPlusOne; ++i)
-    {
-        if (pGpggaMessage->message[i] == '.')
+        if (pContext->tokenStartIdx >= pContext->pMessage->size)
         {
-            if (pointEncountered)
+            return NPR_UNEXPECTED_END_OF_MESSAGE;
+        }
+
+        const uint8_t c = pContext->pMessage->message[pContext->tokenStartIdx];
+
+        if (isSeparator(c))
+        {
+            ++pContext->tokenStartIdx; // move to start of the next token
+            return NPR_VALID;
+        }
+    }
+}
+
+NMEA_PARSING_RESULT parseUInt32FixedPoint(__in NmeaParsingContext* pContext, __in uint8_t minNumberOfWholeDigits, __in uint8_t fractionalDigitsCount, __out uint32_t* pResult)
+{
+    bool ignoreRemaningCharacters = false;
+
+    NMEA_PARSING_RESULT result = NPR_VALID;
+
+    uint32_t number = 0;
+    uint32_t numberOfDigitsProcessed = 0;
+    uint32_t numberOfCharactersProcessed = 0;
+    uint32_t decimalPointPosition = NMEA_NO_POINT;
+
+    for (;; ++pContext->tokenStartIdx, ++numberOfCharactersProcessed)
+    {
+        if (pContext->tokenStartIdx >= pContext->pMessage->size)
+        {
+            result = NPR_UNEXPECTED_END_OF_MESSAGE;
+            break;
+        }
+
+        const uint8_t c = pContext->pMessage->message[pContext->tokenStartIdx];
+
+        if (isSeparator(c))
+        {
+            ++pContext->tokenStartIdx; // move to start of the next token
+            break;
+        }
+        else if (!ignoreRemaningCharacters)
+        {
+            if (c == '.')
             {
-                return NAN;
+                const bool isSecondPointDetected = decimalPointPosition != NMEA_NO_POINT;
+
+                if (isSecondPointDetected)
+                {
+                    ignoreRemaningCharacters = true; // ignore fractional digits as precision isn't that big of a deal
+                    result = NPR_UNEXPECTED_CHARACTER_ENCOUNTERED;
+                }
+                else
+                {
+                    decimalPointPosition = numberOfCharactersProcessed;
+                }
+            }
+            else if (!isdigit(c))
+            {
+                ignoreRemaningCharacters = true;
+                result = NPR_UNEXPECTED_CHARACTER_ENCOUNTERED;
             }
             else
             {
-                pointEncountered = true;
+                const uint8_t d = c - '0';
+
+                if (canUInt32Overflow(number, d))
+                {
+                    result = NPR_OVERFLOW;
+                    ignoreRemaningCharacters = true;
+                }
+                else
+                {
+                    number = number * 10 + d;
+                    ++numberOfDigitsProcessed;
+
+                    const bool isPointEncountered = decimalPointPosition != NMEA_NO_POINT;
+
+                    if (isPointEncountered)
+                    {
+                        const bool collectedEnoughFractionalDigits = (numberOfCharactersProcessed - decimalPointPosition) >= fractionalDigitsCount;
+
+                        if (collectedEnoughFractionalDigits)
+                        {
+                            ignoreRemaningCharacters = true; // safely ignore remaining digits
+                        }
+                    }
+                }
             }
-            continue;
         }
-        else if (!isdigit(pGpggaMessage->message[i]))
+    }
+
+    const bool isPointEncountered = decimalPointPosition != NMEA_NO_POINT;
+
+    if (NPR_IS_VALID(result))
+    {
+        if (isPointEncountered)
         {
-            if (i == tokenStartIdx)
+            if (decimalPointPosition < minNumberOfWholeDigits)
             {
-                return NAN; // not a number!
+                result = NPR_NOT_ENOUGH_DIGITS;
             }
-            break;
         }
-        if (pointEncountered)
+        else if (numberOfDigitsProcessed < minNumberOfWholeDigits)
         {
-            f = f * 10 + (pGpggaMessage->message[i] - '0');
-            fDivisor *= 10;
-        }
-        else
-        {
-            w = w * 10 + (pGpggaMessage->message[i] - '0');
+            result = NPR_NOT_ENOUGH_DIGITS;
         }
     }
 
-    return (float) w + (float) f / (float) fDivisor;
-}
-
-bool parseUInt8(const Message* pGpggaMessage, uint32_t tokenStartIdx, uint32_t tokenOneAfterEndIdx, uint8_t* pResult)
-{
-    if (!pResult || !pGpggaMessage || tokenStartIdx >= tokenOneAfterEndIdx)
+    if (NPR_IS_VALID(result) && number)
     {
-        return false;
-    }
+        // as it's a fixed point number we need to fill up missing fractional digits
 
-    uint32_t r = 0;
+        const uint32_t encounteredFractionalDigitCount = isPointEncountered ? numberOfCharactersProcessed - decimalPointPosition - 1 : 0;
 
-    // max number of digits is 4
-    const uint32_t lastIdxPlusOne = minimal(tokenOneAfterEndIdx, tokenStartIdx + 4);
-    for (uint32_t i = tokenStartIdx; i < lastIdxPlusOne; ++i)
-    {
-        if (!isdigit(pGpggaMessage->message[i]))
+        for (uint32_t i = encounteredFractionalDigitCount; i < fractionalDigitsCount; ++i)
         {
-            if (i == tokenStartIdx)
+            if (canUInt32Overflow(number, 0))
             {
-                return false; // not a number!
+                result = NPR_OVERFLOW;
+                break;
             }
-            break;
+            number = number * 10;
         }
-        r = r * 10 + (pGpggaMessage->message[i] - '0');
     }
 
-    if (r > 255)
+    if (NPR_IS_VALID(result))
     {
-        *pResult = 0;
-        return false;
+        *pResult = number;
+        return numberOfDigitsProcessed == 0 ? NPR_EMPTY_VALUE : NPR_VALID;
     }
     else
     {
-        *pResult = r;
-        return true;
+        *pResult = 0;
+        return result;
     }
 }
 
-void parseLatLong(uint8_t numberOfDigitsInDegrees,
-                  const Message* pGpggaMessage,
-                  uint32_t tokenStartIdx,
-                  uint32_t tokenOneAfterEndIdx,
-                  AngularCoordinate* pCoordinate)
+NMEA_PARSING_RESULT parseUInt16FixedPoint(__in NmeaParsingContext* pContext, __in uint8_t minNumberOfWholeDigits, __in uint8_t fractionalDigitsCount, __out uint16_t* pResult)
 {
-    if (!pCoordinate)
-    {
-        return;
-    }        
+    uint32_t result;
 
-    pCoordinate->isValid = false;
-    
-    if (!pGpggaMessage || tokenStartIdx >= tokenOneAfterEndIdx)
+    const NMEA_PARSING_RESULT parsingResult = parseUInt32FixedPoint(pContext, minNumberOfWholeDigits, fractionalDigitsCount, &result);
+
+    if (NPR_IS_INVALID(parsingResult))
     {
-        return;
+        *pResult = 0;
+        return parsingResult;
     }
-
-    uint8_t degrees;
-
-    if (!parseUInt8(pGpggaMessage, tokenStartIdx, minimal(tokenOneAfterEndIdx, tokenStartIdx + numberOfDigitsInDegrees), &degrees))
+    else
     {
-        return;
-    }
-
-    float minutes = 0.0f;
-    
-    if (tokenStartIdx + numberOfDigitsInDegrees < tokenOneAfterEndIdx)
-    {
-        minutes = parseFloat(pGpggaMessage, tokenStartIdx + numberOfDigitsInDegrees, tokenOneAfterEndIdx);
-    }
-    
-    if (minutes == 0.0f || isnormal(minutes))
-    {
-        pCoordinate->isValid = true;
-        pCoordinate->degrees = degrees;
-        pCoordinate->minutes = minutes;
+        if (result > 65535)
+        {
+            *pResult = 0;
+            return NPR_OVERFLOW;
+        }
+        else
+        {
+            *pResult = (uint16_t) result;
+            return parsingResult;
+        }
     }
 }
 
-void parseGpsTime(const Message* pGpggaMessage, uint32_t tokenStartIdx, uint32_t tokenOneAfterEndIdx, GpsTime* pTime)
+NMEA_PARSING_RESULT parseUInt8(__in NmeaParsingContext* pContext, __in uint32_t maxNumberOfCharactersToConsider, __out uint8_t* pResult)
 {
-    if (!pTime || !pGpggaMessage)
+    bool ignoreRemaningCharacters = false;
+
+    uint16_t number = 0;
+    uint32_t numberOfCharactersProcessed = 0;
+
+    NMEA_PARSING_RESULT result = NPR_VALID;
+
+    for (;; ++pContext->tokenStartIdx, ++numberOfCharactersProcessed)
     {
-        return;
+        if (pContext->tokenStartIdx >= pContext->pMessage->size)
+        {
+            result = NPR_UNEXPECTED_END_OF_MESSAGE;
+            break;
+        }
+        else if (numberOfCharactersProcessed >= maxNumberOfCharactersToConsider)
+        {
+            break;
+        }
+
+        const uint8_t c = pContext->pMessage->message[pContext->tokenStartIdx];
+
+        if (isSeparator(c))
+        {
+            if (maxNumberOfCharactersToConsider != NMEA_UNLIMITED_NUMBER_OF_CHARACTERS)
+            {
+                result = NPR_UNEXPECTED_SEPARATOR_ENCOUNTERED;
+            }
+            ++pContext->tokenStartIdx; // move to start of the next token
+            break;
+        }
+        else if (!ignoreRemaningCharacters)
+        {
+            if (!isdigit(c))
+            {
+                ignoreRemaningCharacters = true;
+                result = NPR_UNEXPECTED_CHARACTER_ENCOUNTERED;
+            }
+            else
+            {
+                number = number * 10 + (c - '0');
+
+                if (number > 255)
+                {
+                    result = NPR_OVERFLOW;
+                    ignoreRemaningCharacters = true;
+                }
+            }
+        }
     }
 
+    if (NPR_IS_VALID(result))
+    {
+        *pResult = (uint8_t) number;
+        return result;
+    }
+    else
+    {
+        *pResult = 0;
+        return result;
+    }
+}
+
+NMEA_PARSING_RESULT parseHemisphere(__in NmeaParsingContext* pContext, __out HEMISPHERE* pHemisphere)
+{
+    if (pContext->tokenStartIdx >= pContext->pMessage->size)
+    {
+        return NPR_UNEXPECTED_END_OF_MESSAGE;
+    }
+
+    NMEA_PARSING_RESULT result = NPR_VALID;
+    uint8_t c = pContext->pMessage->message[pContext->tokenStartIdx];
+
+    switch (c)
+    {
+        case 'n':
+        case 'N':
+        {
+            *pHemisphere = H_NORTH;
+            break;
+        }
+        case 's':
+        case 'S':
+        {
+            *pHemisphere = H_SOUTH;
+            break;
+        }
+        case 'e':
+        case 'E':
+        {
+            *pHemisphere = H_EAST;
+            break;
+        }
+        case 'w':
+        case 'W':
+        {
+            *pHemisphere = H_WEST;
+            break;
+        }
+        case ',':
+        {
+            *pHemisphere = H_UNKNOWN;
+            ++pContext->tokenStartIdx;
+            return NPR_EMPTY_VALUE;
+        }
+        default:
+        {
+            result = NPR_UNEXPECTED_CHARACTER_ENCOUNTERED;
+        }
+    }
+
+    ++pContext->tokenStartIdx;
+
+    if (pContext->tokenStartIdx >= pContext->pMessage->size)
+    {
+        return NPR_UNEXPECTED_END_OF_MESSAGE;
+    }
+
+    c = pContext->pMessage->message[pContext->tokenStartIdx];
+
+    if (c == ',')
+    {
+        ++pContext->tokenStartIdx;
+        return result;
+    }
+    else
+    {
+        findNextTokenStart(pContext);
+        return NPR_UNEXPECTED_CHARACTER_ENCOUNTERED;
+    }
+}
+
+NMEA_PARSING_RESULT parseGpsTime(__in NmeaParsingContext* pContext, __out GpsTime* pTime)
+{
     pTime->isValid = false;
 
-    if (tokenStartIdx != tokenOneAfterEndIdx && tokenOneAfterEndIdx - tokenStartIdx >= 6)
+    if (pContext->tokenStartIdx >= pContext->pMessage->size)
     {
-        uint8_t hours;
-        uint8_t minutes;
-
-        if (!parseUInt8(pGpggaMessage, tokenStartIdx, tokenStartIdx + 2, &hours))
-        {
-            return;
-        }
-        if (!parseUInt8(pGpggaMessage, tokenStartIdx + 2, tokenStartIdx + 4, &minutes))
-        {
-            return;
-        }
-        float seconds = parseFloat(pGpggaMessage, tokenStartIdx + 4, tokenOneAfterEndIdx);
-        if (seconds != 0 && !isnormal(seconds))
-        {
-            return;
-        }
-
-        pTime->isValid = true;
-        pTime->hours = hours;
-        pTime->minutes = minutes;
-        pTime->seconds = seconds;
+        return NPR_UNEXPECTED_END_OF_MESSAGE;
     }
-    
-    return;
+    if (pContext->pMessage->message[pContext->tokenStartIdx] == ',')
+    {
+        ++pContext->tokenStartIdx;
+        return NPR_EMPTY_VALUE;
+    }
+
+    NMEA_PARSING_RESULT result;
+
+    if (NPR_IS_INVALID(result = parseUInt8(pContext, 2, &pTime->hours)))
+    {
+        if (result != NPR_UNEXPECTED_SEPARATOR_ENCOUNTERED)
+        {
+            findNextTokenStart(pContext); // skip to next token
+        }
+        else
+        {
+            result = NPR_NOT_ENOUGH_DIGITS;
+        }
+        return result;
+    }
+    if (NPR_IS_INVALID(result = parseUInt8(pContext, 2, &pTime->minutes)))
+    {
+        if (result != NPR_UNEXPECTED_SEPARATOR_ENCOUNTERED)
+        {
+            findNextTokenStart(pContext); // skip to next token
+        }
+        else
+        {
+            result = NPR_NOT_ENOUGH_DIGITS;
+        }
+        return result;
+    }
+    if (NPR_IS_INVALID(result = parseUInt16FixedPoint(pContext, 2, 2, &pTime->seconds)))
+    {
+        return result;
+    }
+    else if (result == NPR_EMPTY_VALUE)
+    {
+        return NPR_UNEXPECTED_SEPARATOR_ENCOUNTERED;
+    }
+
+    if (pTime->hours > 23 ||
+        pTime->minutes > 59 ||
+        pTime->seconds > 5999)
+    {
+        return NPR_OVERFLOW;
+    }
+
+    pTime->isValid = true;
+
+    return NPR_VALID;
 }
 
-LATITUDE_HEMISPHERE parseLatitudeHemisphere(const Message* pGpggaMessage, uint32_t tokenStartIdx, uint32_t tokenOneAfterEndIdx)
+NMEA_PARSING_RESULT parseAngularCoordinate(__in NmeaParsingContext* pContext, __in AngularCoordinateType angularCoordinateType, __out AngularCoordinate* pCoordinate)
 {
-    if (!pGpggaMessage || tokenStartIdx >= tokenOneAfterEndIdx)
-    {
-        return LATH_UNKNOWN;
-    }
-    switch (pGpggaMessage->message[tokenStartIdx])
-    {
-        case 'N':
-        case 'n':
-        {
-            return LATH_NORTH;
-        }
-        case 'S':
-        case 's':
-        {
-            return LATH_SOUTH;
-        }
-    }
-    return LATH_UNKNOWN;
-}
+    pCoordinate->isValid = false;
 
-LONGITUDE_HEMISPHERE parseLongitudeHemisphere(const Message* pGpggaMessage, uint32_t tokenStartIdx, uint32_t tokenOneAfterEndIdx)
-{
-    if (!pGpggaMessage || tokenStartIdx >= tokenOneAfterEndIdx)
+    if (pContext->tokenStartIdx >= pContext->pMessage->size)
     {
-        return LONH_UNKNOWN;
+        return NPR_UNEXPECTED_END_OF_MESSAGE;
     }
-    switch (pGpggaMessage->message[tokenStartIdx])
+
+    NMEA_PARSING_RESULT resultCoordinate;
+
+    if (pContext->pMessage->message[pContext->tokenStartIdx] == ',')
     {
-        case 'E':
-        case 'e':
+        ++pContext->tokenStartIdx;
+        resultCoordinate = NPR_EMPTY_VALUE;
+    }
+    else
+    {
+        if (NPR_IS_INVALID(resultCoordinate = parseUInt8(pContext, angularCoordinateType, &pCoordinate->degrees)))
         {
-            return LONH_EAST;
+            if (resultCoordinate != NPR_UNEXPECTED_SEPARATOR_ENCOUNTERED)
+            {
+                findNextTokenStart(pContext); // skip current angular coordinate
+            }
+            else
+            {
+                resultCoordinate = NPR_NOT_ENOUGH_DIGITS;
+            }
+            findNextTokenStart(pContext); // skip hemisphere
+            return resultCoordinate;
         }
-        case 'W':
-        case 'w':
+        if (NPR_IS_INVALID(resultCoordinate = parseUInt32FixedPoint(pContext, 2, 6, &pCoordinate->minutes)))
         {
-            return LONH_WEST;
+            findNextTokenStart(pContext); // skip hemisphere
+            return resultCoordinate;
         }
     }
-    return LONH_UNKNOWN;
+
+    NMEA_PARSING_RESULT resultHemisphere;
+
+    if (NPR_IS_INVALID(resultHemisphere = parseHemisphere(pContext, &pCoordinate->hemisphere)))
+    {
+        return resultHemisphere;
+    }
+
+    if ((resultCoordinate == NPR_EMPTY_VALUE || resultHemisphere == NPR_EMPTY_VALUE))
+    {
+        return resultCoordinate == resultHemisphere ? NPR_EMPTY_VALUE : NPR_UNEXPECTED_CHARACTER_ENCOUNTERED;
+    }
+
+    if (pCoordinate->minutes >= 60000000)
+    {
+        return NPR_OVERFLOW;
+    }
+
+    switch (angularCoordinateType)
+    {
+        case ACR_LATITUDE:
+        {
+            if (pCoordinate->hemisphere != H_NORTH && pCoordinate->hemisphere != H_SOUTH)
+            {
+                return NPR_UNEXPECTED_CHARACTER_ENCOUNTERED;
+            }
+            if (pCoordinate->degrees >= 91)
+            {
+                return NPR_OVERFLOW;
+            }
+            break;
+        }
+        case ACR_LONGITUDE:
+        {
+            if (pCoordinate->hemisphere != H_EAST && pCoordinate->hemisphere != H_WEST)
+            {
+                return NPR_UNEXPECTED_CHARACTER_ENCOUNTERED;
+            }
+            if (pCoordinate->degrees >= 181)
+            {
+                return NPR_OVERFLOW;
+            }
+            break;
+        }
+        default: return NPR_INVALID;
+    }
+
+    pCoordinate->isValid = true;
+
+    return NPR_VALID;
 }

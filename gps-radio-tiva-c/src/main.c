@@ -83,7 +83,7 @@ static inline uint32_t init(void)
 
     // Configure UART channels
     r &= initializeUartChannel(CHANNEL_VENUS_GPS, UART_1, 9600, CPU_SPEED, UART_FLAGS_RECEIVE);
-    r &= initializeUartChannel(CHANNEL_COPERNICUS_GPS, UART_2, 4800, CPU_SPEED, UART_FLAGS_RECEIVE);
+    r &= initializeUartChannel(CHANNEL_COPERNICUS_GPS, UART_2, 4800, CPU_SPEED, UART_FLAGS_RECEIVE | UART_FLAGS_SEND);
 #ifdef DUMP_DATA_TO_UART0
     r &= initializeUartChannel(CHANNEL_OUTPUT, UART_0, 115200, CPU_SPEED, UART_FLAGS_SEND);
 #endif
@@ -158,17 +158,17 @@ static inline uint32_t sendAPRSMessage(uint32_t now, bool *sendVenusData, uint32
     // Update I2C registers
     submitI2CTelemetry(&telemetry);
     
-    if (shouldSendVenusDataToAprs && venusGpsData.latitude.isValid && venusGpsData.longitude.isValid)
+    if (shouldSendVenusDataToAprs && venusGpsData.gpggaData.latitude.isValid && venusGpsData.gpggaData.longitude.isValid)
     {
         // venus data
-        alt = venusGpsData.altitudeMslMeters;
+        alt = venusGpsData.gpggaData.altitudeMslMeters;
         sendAprsMessage(VENUS_GPS_ID, &venusGpsData, &telemetry);
     }
     else
     {
         // higher chance that copernicus will work more reliably
         // so we will use it as a default fallback
-        alt = copernicusGpsData.altitudeMslMeters;
+        alt = copernicusGpsData.gpggaData.altitudeMslMeters;
         sendAprsMessage(COPERNICUS_GPS_ID, &copernicusGpsData, &telemetry);
     }
     *sendVenusData = !shouldSendVenusDataToAprs;

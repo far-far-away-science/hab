@@ -121,7 +121,7 @@ namespace HABService {
 						float x = BitConverter.ToInt16(data, 0) * 3.9F;
 						float y = BitConverter.ToInt16(data, 2) * 3.9F;
 						float z = BitConverter.ToInt16(data, 4) * 3.9F;
-						samples.AppendFormat("{0:F0},{1:F0},{2:F0}", x, y, z);
+						samples.AppendFormat("(x:{0:F0},y:{1:F0},z:{2:F0})", x, y, z);
 						if (i < sampleCount - 1)
 							samples.Append(',');
 					}

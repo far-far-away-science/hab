@@ -1,132 +1,216 @@
 #include "..\stdafx.h"
 
-extern "C"
-{
-    #include <nmea_messages.h>
-}
-
-using namespace Microsoft::VisualStudio::CppUnitTestFramework;
-
-namespace Microsoft { namespace VisualStudio { namespace CppUnitTestFramework {
-    template<> inline std::wstring ToString<LATITUDE_HEMISPHERE_t>(const LATITUDE_HEMISPHERE_t& t) { RETURN_WIDE_STRING(t); }
-    template<> inline std::wstring ToString<LONGITUDE_HEMISPHERE_t>(const LONGITUDE_HEMISPHERE_t& t) { RETURN_WIDE_STRING(t); }
-    template<> inline std::wstring ToString<GPS_FIX_TYPE_t>(const GPS_FIX_TYPE_t& t) { RETURN_WIDE_STRING(t); }
-    template<> inline std::wstring ToString<uint16_t>(const uint16_t& t) { RETURN_WIDE_STRING(t); }
-}}}
+#include "nmea_messages_test.h"
 
 namespace nmea_messages_test
 {
-    TEST_CLASS(ParseUInt8Test)
+    TEST_CLASS(nmea_messages_test_parseGpggaMessageIfValid), private NmeaTest
     {
-        Message* MAKE_MESSAGE(const char* messageText)
-        {
-            strcpy_s((char*) message.message, UART_MESSAGE_MAX_LEN, messageText);
-            message.size = (uint8_t) strlen(messageText);
-            return &message;
-        }
-
-        TEST_METHOD(ShouldParseAllFieldsOfFullyFilledMessage)
+        TEST_METHOD(Valid_fully_filled_message)
         {
             GpsData result = { 0 };
-            ::parseGpggaMessageIfValid(MAKE_MESSAGE("$GPGGA,062801.835,4732.7089,N,12201.0455,W,1,03,3.5,179.6,M,-18.1,M,,0000*64"), &result);
-            Assert::IsTrue(result.utcTime.isValid);
-            Assert::AreEqual((uint8_t) 6, result.utcTime.hours);
-            Assert::AreEqual((uint8_t) 28, result.utcTime.minutes);
-            Assert::AreEqual(1.835f, result.utcTime.seconds);
-            Assert::IsTrue(result.latitude.isValid);
-            Assert::AreEqual((uint16_t) 47, result.latitude.degrees);
-            Assert::AreEqual(32.7089f, result.latitude.minutes);
-            Assert::AreEqual(LATH_NORTH, result.latitudeHemisphere);
-            Assert::IsTrue(result.longitude.isValid);
-            Assert::AreEqual((uint16_t) 122, result.longitude.degrees);
-            Assert::AreEqual(1.0455f, result.longitude.minutes);
-            Assert::AreEqual(LONH_WEST, result.longitudeHemisphere);
-            Assert::AreEqual(GPSFT_GPS, result.fixType);
-            Assert::AreEqual(179.6f, result.altitudeMslMeters);
-            Assert::AreEqual((uint8_t) 3, result.numberOfSattelitesInUse);
+            parseGpggaMessageIfValid(MAKE_MESSAGE("$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47"), &result);
+
+            Assert::IsTrue(result.isValid);
+
+            Assert::IsTrue(result.gpggaData.utcTime.isValid);
+            Assert::AreEqual((uint8_t) 12, result.gpggaData.utcTime.hours);
+            Assert::AreEqual((uint8_t) 35, result.gpggaData.utcTime.minutes);
+            Assert::AreEqual((uint16_t) 1900, result.gpggaData.utcTime.seconds);
+
+            Assert::IsTrue(result.gpggaData.latitude.isValid);
+            Assert::AreEqual(H_NORTH, result.gpggaData.latitude.hemisphere);
+            Assert::AreEqual((uint8_t) 48, result.gpggaData.latitude.degrees);
+            Assert::AreEqual((fixedPointW2F6_t) 7038000, result.gpggaData.latitude.minutes);
+
+            Assert::IsTrue(result.gpggaData.longitude.isValid);
+            Assert::AreEqual(H_EAST, result.gpggaData.longitude.hemisphere);
+            Assert::AreEqual((uint8_t) 11, result.gpggaData.longitude.degrees);
+            Assert::AreEqual((fixedPointW2F6_t) 31000000, result.gpggaData.longitude.minutes);
+
+            Assert::AreEqual(GPSFT_GPS, result.gpggaData.fixType);
+            Assert::AreEqual((uint8_t) 8, result.gpggaData.numberOfSattelitesInUse);
+            Assert::AreEqual((fixedPointW5F1_t) 5454, result.gpggaData.altitudeMslMeters);
         }
 
-        TEST_METHOD(ShouldParseAllFieldsOfMessageWithDgpsFixAndWithoutTimeAndAltitude)
+        TEST_METHOD(Valid_message_without_time)
         {
             GpsData result = { 0 };
-            ::parseGpggaMessageIfValid(MAKE_MESSAGE("$GPGGA,,4732.70072,N,12200.86047,W,2,00,,,,,,,*44"), &result);
-            Assert::IsFalse(result.utcTime.isValid);
-            Assert::IsTrue(result.latitude.isValid);
-            Assert::AreEqual((uint16_t)47, result.latitude.degrees);
-            Assert::AreEqual(32.70072f, result.latitude.minutes);
-            Assert::AreEqual(LATH_NORTH, result.latitudeHemisphere);
-            Assert::IsTrue(result.longitude.isValid);
-            Assert::AreEqual((uint16_t)122, result.longitude.degrees);
-            Assert::AreEqual(00.86047f, result.longitude.minutes);
-            Assert::AreEqual(LONH_WEST, result.longitudeHemisphere);
-            Assert::AreEqual(GPSFT_DGPS, result.fixType);
-            Assert::IsTrue(isnan(result.altitudeMslMeters));
-            Assert::AreEqual((uint8_t) 0, result.numberOfSattelitesInUse);
+            parseGpggaMessageIfValid(MAKE_MESSAGE("$GPGGA,,4807.038,N,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47"), &result);
+
+            Assert::IsTrue(result.isValid);
+
+            Assert::IsFalse(result.gpggaData.utcTime.isValid);
+
+            Assert::IsTrue(result.gpggaData.latitude.isValid);
+            Assert::AreEqual(H_NORTH, result.gpggaData.latitude.hemisphere);
+            Assert::AreEqual((uint8_t) 48, result.gpggaData.latitude.degrees);
+            Assert::AreEqual((fixedPointW2F6_t) 7038000, result.gpggaData.latitude.minutes);
+
+            Assert::IsTrue(result.gpggaData.longitude.isValid);
+            Assert::AreEqual(H_EAST, result.gpggaData.longitude.hemisphere);
+            Assert::AreEqual((uint8_t) 11, result.gpggaData.longitude.degrees);
+            Assert::AreEqual((fixedPointW2F6_t) 31000000, result.gpggaData.longitude.minutes);
+
+            Assert::AreEqual(GPSFT_GPS, result.gpggaData.fixType);
+            Assert::AreEqual((uint8_t) 8, result.gpggaData.numberOfSattelitesInUse);
+            Assert::AreEqual((fixedPointW5F1_t) 5454, result.gpggaData.altitudeMslMeters);
         }
 
-        TEST_METHOD(ShouldIgnoreNoLatitude)
+        TEST_METHOD(Valid_without_number_of_sattelites)
         {
             GpsData result = { 0 };
-            ::parseGpggaMessageIfValid(MAKE_MESSAGE("$GPGGA,062801.835,,N,12201.0455,W,1,03,3.5,179.6,M,-18.1,M,,0000*64"), &result);
-            Assert::IsFalse(result.utcTime.isValid);
-            Assert::IsFalse(result.latitude.isValid);
-            Assert::IsFalse(result.longitude.isValid);
+            parseGpggaMessageIfValid(MAKE_MESSAGE("$GPGGA,123519,4807.038,N,01131.000,E,1,,0.9,54512.4,M,46.9,M,,*47"), &result);
+
+            Assert::IsTrue(result.isValid);
+
+            Assert::IsTrue(result.gpggaData.utcTime.isValid);
+            Assert::AreEqual((uint8_t) 12, result.gpggaData.utcTime.hours);
+            Assert::AreEqual((uint8_t) 35, result.gpggaData.utcTime.minutes);
+            Assert::AreEqual((uint16_t) 1900, result.gpggaData.utcTime.seconds);
+
+            Assert::IsTrue(result.gpggaData.latitude.isValid);
+            Assert::AreEqual(H_NORTH, result.gpggaData.latitude.hemisphere);
+            Assert::AreEqual((uint8_t) 48, result.gpggaData.latitude.degrees);
+            Assert::AreEqual((fixedPointW2F6_t) 7038000, result.gpggaData.latitude.minutes);
+
+            Assert::IsTrue(result.gpggaData.longitude.isValid);
+            Assert::AreEqual(H_EAST, result.gpggaData.longitude.hemisphere);
+            Assert::AreEqual((uint8_t) 11, result.gpggaData.longitude.degrees);
+            Assert::AreEqual((fixedPointW2F6_t) 31000000, result.gpggaData.longitude.minutes);
+
+            Assert::AreEqual(GPSFT_GPS, result.gpggaData.fixType);
+            Assert::AreEqual((uint8_t) 0, result.gpggaData.numberOfSattelitesInUse);
+            Assert::AreEqual((fixedPointW5F1_t) 545124, result.gpggaData.altitudeMslMeters);
         }
 
-        TEST_METHOD(ShouldIgnoreNoLongitude)
+        TEST_METHOD(Valid_without_altitude)
         {
             GpsData result = { 0 };
-            ::parseGpggaMessageIfValid(MAKE_MESSAGE("$GPGGA,062801.835,4732.7089,N,,W,1,03,3.5,179.6,M,-18.1,M,,0000*64"), &result);
-            Assert::IsFalse(result.utcTime.isValid);
-            Assert::IsFalse(result.latitude.isValid);
-            Assert::IsFalse(result.longitude.isValid);
+            parseGpggaMessageIfValid(MAKE_MESSAGE("$GPGGA,123519,4807.038,N,01131.000,E,1,08,0.9,,M,46.9,M,,*47"), &result);
+
+            Assert::IsTrue(result.isValid);
+
+            Assert::IsTrue(result.gpggaData.utcTime.isValid);
+            Assert::AreEqual((uint8_t) 12, result.gpggaData.utcTime.hours);
+            Assert::AreEqual((uint8_t) 35, result.gpggaData.utcTime.minutes);
+            Assert::AreEqual((uint16_t) 1900, result.gpggaData.utcTime.seconds);
+
+            Assert::IsTrue(result.gpggaData.latitude.isValid);
+            Assert::AreEqual(H_NORTH, result.gpggaData.latitude.hemisphere);
+            Assert::AreEqual((uint8_t) 48, result.gpggaData.latitude.degrees);
+            Assert::AreEqual((fixedPointW2F6_t) 7038000, result.gpggaData.latitude.minutes);
+
+            Assert::IsTrue(result.gpggaData.longitude.isValid);
+            Assert::AreEqual(H_EAST, result.gpggaData.longitude.hemisphere);
+            Assert::AreEqual((uint8_t) 11, result.gpggaData.longitude.degrees);
+            Assert::AreEqual((fixedPointW2F6_t) 31000000, result.gpggaData.longitude.minutes);
+
+            Assert::AreEqual(GPSFT_GPS, result.gpggaData.fixType);
+            Assert::AreEqual((uint8_t) 8, result.gpggaData.numberOfSattelitesInUse);
+            Assert::AreEqual((fixedPointW5F1_t) 0, result.gpggaData.altitudeMslMeters);
         }
 
-        TEST_METHOD(ShouldIgnoreAllFieldsOfEmptyMessage)
+        TEST_METHOD(Valid_without_all_mandatory_fields)
         {
             GpsData result = { 0 };
-            ::parseGpggaMessageIfValid(MAKE_MESSAGE("$GPGGA,,,,,,,,,,,,,,"), &result);
-            Assert::IsFalse(result.utcTime.isValid);
-            Assert::IsFalse(result.latitude.isValid);
-            Assert::IsFalse(result.longitude.isValid);
+            parseGpggaMessageIfValid(MAKE_MESSAGE("$GPGGA,,4807.038,N,01131.000,E,1,,,,,,,,*47"), &result);
+
+            Assert::IsTrue(result.isValid);
+
+            Assert::IsFalse(result.gpggaData.utcTime.isValid);
+
+            Assert::IsTrue(result.gpggaData.latitude.isValid);
+            Assert::AreEqual(H_NORTH, result.gpggaData.latitude.hemisphere);
+            Assert::AreEqual((uint8_t) 48, result.gpggaData.latitude.degrees);
+            Assert::AreEqual((fixedPointW2F6_t) 7038000, result.gpggaData.latitude.minutes);
+
+            Assert::IsTrue(result.gpggaData.longitude.isValid);
+            Assert::AreEqual(H_EAST, result.gpggaData.longitude.hemisphere);
+            Assert::AreEqual((uint8_t) 11, result.gpggaData.longitude.degrees);
+            Assert::AreEqual((fixedPointW2F6_t) 31000000, result.gpggaData.longitude.minutes);
+
+            Assert::AreEqual(GPSFT_GPS, result.gpggaData.fixType);
+            Assert::AreEqual((uint8_t) 0, result.gpggaData.numberOfSattelitesInUse);
+            Assert::AreEqual((fixedPointW5F1_t) 0, result.gpggaData.altitudeMslMeters);
         }
 
-        TEST_METHOD(ShouldIgnoreMalformedMessage)
+        TEST_METHOD(Invalid_empty_message)
         {
             GpsData result = { 0 };
-            ::parseGpggaMessageIfValid(MAKE_MESSAGE("$GPGGA"), &result);
-            Assert::IsFalse(result.utcTime.isValid);
-            Assert::IsFalse(result.latitude.isValid);
-            Assert::IsFalse(result.longitude.isValid);
-            ::parseGpggaMessageIfValid(MAKE_MESSAGE("$GPGGA,,4732.70047,W,7,00,,,,,,,7,"), &result);
-            Assert::IsFalse(result.utcTime.isValid);
-            Assert::IsFalse(result.latitude.isValid);
-            Assert::IsFalse(result.longitude.isValid);
-            ::parseGpggaMessageIfValid(MAKE_MESSAGE("GA,,4732.70072,N"), &result);
-            Assert::IsFalse(result.utcTime.isValid);
-            Assert::IsFalse(result.latitude.isValid);
-            Assert::IsFalse(result.longitude.isValid);
+            parseGpggaMessageIfValid(MAKE_MESSAGE("$GPGGA,,,,,,,,,,,,,,*47"), &result);
+
+            Assert::IsFalse(result.isValid);
         }
 
-        TEST_METHOD(ShouldIgnoreEmptyString)
+        TEST_METHOD(Invalid_malformed_message)
         {
             GpsData result = { 0 };
-            ::parseGpggaMessageIfValid(MAKE_MESSAGE(""), &result);
-            Assert::IsFalse(result.utcTime.isValid);
-            Assert::IsFalse(result.latitude.isValid);
-            Assert::IsFalse(result.longitude.isValid);
+            parseGpggaMessageIfValid(MAKE_MESSAGE("$GPGGA"), &result);
+
+            Assert::IsFalse(result.isValid);
         }
 
-        TEST_METHOD(ShouldIgnoreNullptrString)
+        TEST_METHOD(Invalid_message_without_latitude)
         {
             GpsData result = { 0 };
-            ::parseGpggaMessageIfValid(nullptr, &result);
-            Assert::IsFalse(result.utcTime.isValid);
-            Assert::IsFalse(result.latitude.isValid);
-            Assert::IsFalse(result.longitude.isValid);
+            parseGpggaMessageIfValid(MAKE_MESSAGE("$GPGGA,123519,,,01131.000,E,1,08,0.9,545.4,M,46.9,M,,*47"), &result);
+
+            Assert::IsFalse(result.isValid);
         }
 
-        private:
-            Message message;
+        TEST_METHOD(Invalid_message_without_longitude)
+        {
+            GpsData result = { 0 };
+            parseGpggaMessageIfValid(MAKE_MESSAGE("$GPGGA,123519,4807.038,N,,,1,08,0.9,545.4,M,46.9,M,,*47"), &result);
+
+            Assert::IsFalse(result.isValid);
+        }
+
+        TEST_METHOD(Invalid_message_with_invalid_gps_fix)
+        {
+            {
+                GpsData result = { 0 };
+                parseGpggaMessageIfValid(MAKE_MESSAGE("$GPGGA,123519,4807.038,N,,,,08,0.9,545.4,M,46.9,M,,*47"), &result);
+                Assert::IsFalse(result.isValid);
+            }
+
+            {
+                GpsData result = { 0 };
+                parseGpggaMessageIfValid(MAKE_MESSAGE("$GPGGA,123519,4807.038,N,,,0,08,0.9,545.4,M,46.9,M,,*47"), &result);
+                Assert::IsFalse(result.isValid);
+            }
+
+            {
+                GpsData result = { 0 };
+                parseGpggaMessageIfValid(MAKE_MESSAGE("$GPGGA,123519,4807.038,N,,,3,08,0.9,545.4,M,46.9,M,,*47"), &result);
+                Assert::IsFalse(result.isValid);
+            }
+
+            {
+                GpsData result = { 0 };
+                parseGpggaMessageIfValid(MAKE_MESSAGE("$GPGGA,123519,4807.038,N,,,4,08,0.9,545.4,M,46.9,M,,*47"), &result);
+                Assert::IsFalse(result.isValid);
+            }
+
+            {
+                GpsData result = { 0 };
+                parseGpggaMessageIfValid(MAKE_MESSAGE("$GPGGA,123519,4807.038,N,,,5,08,0.9,545.4,M,46.9,M,,*47"), &result);
+                Assert::IsFalse(result.isValid);
+            }
+
+            {
+                GpsData result = { 0 };
+                parseGpggaMessageIfValid(MAKE_MESSAGE("$GPGGA,123519,4807.038,N,,,6,08,0.9,545.4,M,46.9,M,,*47"), &result);
+                Assert::IsFalse(result.isValid);
+            }
+
+            {
+                GpsData result = { 0 };
+                parseGpggaMessageIfValid(MAKE_MESSAGE("$GPGGA,123519,4807.038,N,,,8,08,0.9,545.4,M,46.9,M,,*47"), &result);
+                Assert::IsFalse(result.isValid);
+            }
+        }
+
     };
 }

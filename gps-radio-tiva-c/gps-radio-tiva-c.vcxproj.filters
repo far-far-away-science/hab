@@ -10,9 +10,15 @@
     <ClCompile Include="src\nmea_messages.c">
       <Filter>Source Files</Filter>
     </ClCompile>
+    <ClCompile Include="src\nmea_messages_impl.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="src\nmea_messages.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\nmea_messages_impl.h">
       <Filter>Source Files</Filter>
     </ClInclude>
   </ItemGroup>

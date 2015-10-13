@@ -152,22 +152,22 @@ void submitI2CData(uint32_t index, GpsData *data) {
     // Mask I2C interrupts while we update
     MAP_I2CSlaveIntDisable(I2C_MODULE);
     // Latitude update
-    data32.word = floatAngularCoordinateToInt32Degrees(data->latitude);
+    data32.word = angularCoordinateToInt32Degrees(data->gpggaData.latitude);
     memcpy(ptr + REG_LAT_0, data32.bytes, sizeof(data32.bytes));
     // Longitude update
-    data32.word = floatAngularCoordinateToInt32Degrees(data->longitude);
+    data32.word = angularCoordinateToInt32Degrees(data->gpggaData.longitude);
     memcpy(ptr + REG_LON_0, data32.bytes, sizeof(data32.bytes));
     // Altitude update
-    data32.word = (int32_t) data->altitudeMslMeters * 10;
+    data32.word = data->gpggaData.altitudeMslMeters;
     memcpy(ptr + REG_ALT_0, data32.bytes, sizeof(data32.bytes));
     // Velocity update
-    data16.hword = (int32_t) data->speedKph * 10;
+    data16.hword = data->gpvtgData.speedKph;
     memcpy(ptr + REG_VEL_0, data16.bytes, sizeof(data16.bytes));
     // Heading update
-    data16.hword = (int32_t) data->trueCourseDegrees * 10;
+    data16.hword = data->gpvtgData.trueCourseDegrees;
     memcpy(ptr + REG_HDG_0, data16.bytes, sizeof(data16.bytes));
     // Satellites update
-    ptr[REG_SAT] = data->numberOfSattelitesInUse;
+    ptr[REG_SAT] = data->gpggaData.numberOfSattelitesInUse;
     // Data is available
     i2cData.regs[REG_DATA_AVAILABLE] = 1U;
     MAP_I2CSlaveIntEnableEx(I2C_MODULE, I2C_SLAVE_INT_DATA);

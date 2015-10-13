@@ -5,23 +5,23 @@
  * - need to minimize data conversion from strings to numbers, etc.
  * - I2C accepts integers
  * - APRS accepts strings slightly formatted compared to nmea
+ *
+ * Frequencies
+ * - APRS once in 30 seconds
+ * - I2C once every message is received
  */
 
 #include "uart.h"
+#include "defs.h"
 
-typedef enum LATITUDE_HEMISPHERE_t
+typedef enum HEMISPHERE_t
 {
-    LATH_UNKNOWN = '?',
-    LATH_NORTH   = 'N',
-    LATH_SOUTH   = 'S',
-} LATITUDE_HEMISPHERE;
-
-typedef enum LONGITUDE_HEMISPHERE_t
-{
-    LONH_UNKNOWN = '?',
-    LONH_EAST    = 'E',
-    LONH_WEST    = 'W',
-} LONGITUDE_HEMISPHERE;
+    H_UNKNOWN = '?',
+    H_NORTH   = 'N',
+    H_SOUTH   = 'S',
+    H_EAST    = 'E',
+    H_WEST    = 'W',
+} HEMISPHERE;
 
 typedef enum GPS_FIX_TYPE_t
 {
@@ -32,45 +32,59 @@ typedef enum GPS_FIX_TYPE_t
     GPSFT_REALTIME_KINEMATIC = 4,
     GPSFT_FLOAT_RTK          = 5,
     GPSFT_ESTIMATED          = 6,
-    GPSFT_MANUAL_INPUT_MODE  = 7,
+    GPSFT_MANUAL_INPUT_MODE  = 7, // previously retreived / entered value stored in device's ROM
     GPSFT_SIMULATION_MODE    = 8,
 } GPS_FIX_TYPE;
+
+typedef uint16_t fixedPointW3F1_t;
+typedef uint16_t fixedPointW2F2_t;
+typedef uint32_t fixedPointW2F6_t;
+typedef uint32_t fixedPointW5F1_t;
 
 typedef struct GpsTime_t
 {
     bool isValid;
     uint8_t hours;
     uint8_t minutes;
-    float seconds;
+    fixedPointW2F2_t seconds;
 } GpsTime;
 
 typedef struct AngularCoordinate_t
 {
     bool isValid;
-    uint16_t degrees;
-    float minutes;
+    uint8_t degrees;
+    fixedPointW2F6_t minutes;
+    HEMISPHERE hemisphere;
 } AngularCoordinate;
+
+typedef struct GpggaData_t
+{
+    GpsTime utcTime;
+    AngularCoordinate latitude;
+    AngularCoordinate longitude;
+    fixedPointW5F1_t altitudeMslMeters;
+    GPS_FIX_TYPE fixType;
+    uint8_t numberOfSattelitesInUse;
+} GpggaData;
+
+typedef struct GpvtgData_t
+{
+    fixedPointW3F1_t trueCourseDegrees;
+    fixedPointW3F1_t speedKph;
+} GpvtgData;
 
 /*
  * had to choose to use floats as it seems that nmea messages precision can vary given number of sattelites? settings?
  */
 typedef struct GpsData_t
 {
-    GpsTime utcTime;
-    AngularCoordinate latitude;
-    LATITUDE_HEMISPHERE latitudeHemisphere;
-    AngularCoordinate longitude;
-    LONGITUDE_HEMISPHERE longitudeHemisphere;
-    float altitudeMslMeters;
-    GPS_FIX_TYPE fixType;
-    uint8_t numberOfSattelitesInUse;
-    float trueCourseDegrees;
-    float speedKnots;
-    float speedKph;
+    bool isValid;
+    GpggaData gpggaData;
+    GpvtgData gpvtgData;
 } GpsData;
 
 // degrees times 10^6
-int32_t floatAngularCoordinateToInt32Degrees(AngularCoordinate lat);
+int32_t angularCoordinateToInt32Degrees(AngularCoordinate lat);
 
 void parseGpggaMessageIfValid(const Message* pGpggaMessage, GpsData* pResult);
 void parseGpvtgMessageIfValid(const Message* pGpvtgMessage, GpsData* pResult);
