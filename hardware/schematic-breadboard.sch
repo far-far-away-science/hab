@@ -16238,6 +16238,10 @@ Source: http://products.nichicon.co.jp/en/pdf/XJA043/e-ud.pdf</description>
 <part name="GND16" library="supply1" deviceset="GNDA" device=""/>
 <part name="R14" library="resistor" deviceset="R-US_" device="0204/2V" value="10K"/>
 <part name="R15" library="resistor" deviceset="R-US_" device="0204/2V" value="10K"/>
+<part name="ADXL345_SPARKFUN" library="pinhead" deviceset="PINHD-1X8" device=""/>
+<part name="GND15" library="supply1" deviceset="GNDA" device=""/>
+<part name="+3V7" library="supply1" deviceset="+3V3" device=""/>
+<part name="R16" library="resistor" deviceset="R-US_" device="0204/2V" value="10K"/>
 </parts>
 <sheets>
 <sheet>
@@ -16270,6 +16274,14 @@ output</text>
 <text x="-10.16" y="76.2" size="1.778" layer="91">PB1</text>
 <text x="-10.16" y="63.5" size="1.778" layer="91">PA6</text>
 <text x="-10.16" y="60.96" size="1.778" layer="91">PA7</text>
+<text x="154.94" y="83.82" size="1.778" layer="91" rot="R180">Temperature sensor is attached as is.
+SDA to SDA, SCL to SCL, etc.</text>
+<text x="160.02" y="137.16" size="1.778" layer="91">SCL</text>
+<text x="160.02" y="134.62" size="1.778" layer="91">SDA</text>
+<text x="160.02" y="132.08" size="1.778" layer="91">SD0</text>
+<text x="160.02" y="124.46" size="1.778" layer="91">CS</text>
+<text x="160.02" y="121.92" size="1.778" layer="91">VCC</text>
+<text x="160.02" y="119.38" size="1.778" layer="91">GND</text>
 </plain>
 <instances>
 <instance part="TIVA_1" gate="A" x="2.54" y="73.66"/>
@@ -16342,6 +16354,10 @@ output</text>
 <instance part="GND16" gate="1" x="182.88" y="73.66"/>
 <instance part="R14" gate="G$1" x="149.86" y="96.52" rot="R90"/>
 <instance part="R15" gate="G$1" x="139.7" y="96.52" rot="R90"/>
+<instance part="ADXL345_SPARKFUN" gate="A" x="172.72" y="127"/>
+<instance part="GND15" gate="1" x="157.48" y="114.3"/>
+<instance part="+3V7" gate="G$1" x="139.7" y="132.08"/>
+<instance part="R16" gate="G$1" x="147.32" y="124.46" rot="R180"/>
 </instances>
 <busses>
 </busses>
@@ -16478,6 +16494,16 @@ output</text>
 <pinref part="GND16" gate="1" pin="GNDA"/>
 <wire x1="182.88" y1="86.36" x2="182.88" y2="76.2" width="0.1524" layer="91"/>
 </segment>
+<segment>
+<pinref part="GND15" gate="1" pin="GNDA"/>
+<wire x1="157.48" y1="116.84" x2="157.48" y2="119.38" width="0.1524" layer="91"/>
+<pinref part="ADXL345_SPARKFUN" gate="A" pin="8"/>
+<wire x1="170.18" y1="119.38" x2="157.48" y2="119.38" width="0.1524" layer="91"/>
+<junction x="157.48" y="119.38"/>
+<pinref part="ADXL345_SPARKFUN" gate="A" pin="3"/>
+<wire x1="170.18" y1="132.08" x2="157.48" y2="132.08" width="0.1524" layer="91"/>
+<wire x1="157.48" y1="132.08" x2="157.48" y2="119.38" width="0.1524" layer="91"/>
+</segment>
 </net>
 <net name="+3V3" class="0">
 <segment>
@@ -16544,6 +16570,16 @@ output</text>
 <wire x1="139.7" y1="101.6" x2="139.7" y2="104.14" width="0.1524" layer="91"/>
 <pinref part="R14" gate="G$1" pin="2"/>
 <wire x1="149.86" y1="101.6" x2="149.86" y2="104.14" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="+3V7" gate="G$1" pin="+3V3"/>
+<wire x1="139.7" y1="129.54" x2="139.7" y2="124.46" width="0.1524" layer="91"/>
+<pinref part="R16" gate="G$1" pin="2"/>
+<wire x1="139.7" y1="124.46" x2="142.24" y2="124.46" width="0.1524" layer="91"/>
+<junction x="139.7" y="124.46"/>
+<wire x1="139.7" y1="124.46" x2="139.7" y2="121.92" width="0.1524" layer="91"/>
+<pinref part="ADXL345_SPARKFUN" gate="A" pin="7"/>
+<wire x1="139.7" y1="121.92" x2="170.18" y2="121.92" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="N$6" class="0">
@@ -16870,6 +16906,23 @@ output</text>
 <wire x1="139.7" y1="88.9" x2="132.08" y2="88.9" width="0.1524" layer="91"/>
 <pinref part="R15" gate="G$1" pin="1"/>
 <wire x1="139.7" y1="91.44" x2="139.7" y2="88.9" width="0.1524" layer="91"/>
+</segment>
+<segment>
+<pinref part="ADXL345_SPARKFUN" gate="A" pin="2"/>
+<wire x1="170.18" y1="134.62" x2="160.02" y2="134.62" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="SDL" class="0">
+<segment>
+<pinref part="ADXL345_SPARKFUN" gate="A" pin="1"/>
+<wire x1="170.18" y1="137.16" x2="160.02" y2="137.16" width="0.1524" layer="91"/>
+</segment>
+</net>
+<net name="N$9" class="0">
+<segment>
+<pinref part="ADXL345_SPARKFUN" gate="A" pin="6"/>
+<wire x1="170.18" y1="124.46" x2="152.4" y2="124.46" width="0.1524" layer="91"/>
+<pinref part="R16" gate="G$1" pin="1"/>
 </segment>
 </net>
 </nets>
