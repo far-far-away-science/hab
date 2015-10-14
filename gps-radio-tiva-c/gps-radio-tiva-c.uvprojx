@@ -371,7 +371,7 @@
             <vShortWch>0</vShortWch>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>rvmdk PART_TM4C123GH6PM TARGET_IS_TM4C123_RB1 TRIG_SLOW EEPROM_ENABLED DUMP_DATA_TO_UART0 DEBUG</Define>
+              <Define>rvmdk PART_TM4C123GH6PM TARGET_IS_TM4C123_RB1 EEPROM_ENABLED</Define>
               <Undefine></Undefine>
               <IncludePath>C:\Tools\ti\TivaWare_C_Series-2.1.1.71</IncludePath>
             </VariousControls>
@@ -455,16 +455,6 @@
               <FileName>faults.c</FileName>
               <FileType>1</FileType>
               <FilePath>.\src\faults.c</FilePath>
-            </File>
-            <File>
-              <FileName>generated_trig_data.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>.\src\generated_trig_data.h</FilePath>
-            </File>
-            <File>
-              <FileName>generated_trig_data.c</FileName>
-              <FileType>1</FileType>
-              <FilePath>.\src\generated_trig_data.c</FilePath>
             </File>
             <File>
               <FileName>i2c.h</FileName>

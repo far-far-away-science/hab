@@ -11,7 +11,6 @@ namespace Microsoft { namespace VisualStudio { namespace CppUnitTestFramework {
     template<> inline std::wstring ToString<NMEA_PARSING_RESULT_t>(const NMEA_PARSING_RESULT_t& t) { RETURN_WIDE_STRING(t); }
     template<> inline std::wstring ToString<HEMISPHERE_t>(const HEMISPHERE_t& t) { RETURN_WIDE_STRING(t); }
     template<> inline std::wstring ToString<GPS_FIX_TYPE_t>(const GPS_FIX_TYPE_t& t) { RETURN_WIDE_STRING(t); }
-    template<> inline std::wstring ToString<uint16_t>(const uint16_t& t) { RETURN_WIDE_STRING(t); }
 }}}
 
 class NmeaTest

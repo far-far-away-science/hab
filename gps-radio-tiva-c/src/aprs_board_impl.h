@@ -1,5 +1,7 @@
 #pragma once
 
+#include "aprs_board.h"
+
 #define PREFIX_FLAGS_COUNT 1
 #define SUFFIX_FLAGS_COUNT 10
 
@@ -61,19 +63,19 @@
 
 typedef enum FCS_TYPE_t
 {
-    NO_FCS,
-    CALCULATE_FCS,
+    FCS_NONE,
+    FCS_CALCULATE,
 } FCS_TYPE;
 
 typedef enum STUFFING_TYPE_t
 {
-    NO_STUFFING,
-    PERFORM_STUFFING,
+    ST_NO_STUFFING,
+    ST_PERFORM_STUFFING,
 } STUFFING_TYPE;
 
 typedef enum SHIFT_ONE_LEFT_TYPE_t
 {
-    NO_SHIFT_ONE_LEFT,
+    SHIFT_ONE_LEFT_NO,
     SHIFT_ONE_LEFT,
 } SHIFT_ONE_LEFT_TYPE;
 
@@ -93,6 +95,8 @@ typedef struct EncodingData_t
 
 void advanceBitstreamBit(BitstreamPos* pResultBitstreamSize);
 
+float normalizePulseWidth(float width);
+
 bool encodeAndAppendBits(uint8_t* pBitstreamBuffer,
                          uint16_t maxBitstreamBufferLen,
                          EncodingData* pEncodingData,
@@ -111,9 +115,5 @@ bool generateMessage(const Callsign* pCallsignSource,
                      uint8_t* bitstreamBuffer,
                      uint16_t maxBitstreamBufferLen,
                      BitstreamPos* pBitstreamSize);
-
-bool createAprsMessage(GpsDataSource gpsDataSource, const GpsData* pGpsData, const Telemetry* pTelemetry);
-
-float normalizePulseWidth(float width);
 
 void Pwm10Handler(void);

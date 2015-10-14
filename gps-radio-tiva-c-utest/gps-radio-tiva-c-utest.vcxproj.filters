@@ -1,67 +1,79 @@
 ﻿<?xml version="1.0" encoding="utf-8"?>
 <Project ToolsVersion="4.0" xmlns="http://schemas.microsoft.com/developer/msbuild/2003">
   <ItemGroup>
-    <Filter Include="Source Files">
+    <Filter Include="test">
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
-    <Filter Include="Source Files\test">
-      <UniqueIdentifier>{6aec3a3d-439e-4c1b-b970-14ab2573232e}</UniqueIdentifier>
+    <Filter Include="test\aprs_board">
+      <UniqueIdentifier>{0c431295-11f9-4cc1-91a4-6e3f1771613c}</UniqueIdentifier>
     </Filter>
-    <Filter Include="Source Files\test\nmea_messages">
+    <Filter Include="test\nmea_messages">
       <UniqueIdentifier>{56de911a-3fce-4f70-968d-336211005a45}</UniqueIdentifier>
     </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
-      <Filter>Source Files</Filter>
+      <Filter>test</Filter>
     </ClInclude>
     <ClInclude Include="targetver.h">
-      <Filter>Source Files</Filter>
+      <Filter>test</Filter>
     </ClInclude>
     <ClInclude Include="test\nmea_messages\nmea_messages_test.h">
-      <Filter>Source Files\test\nmea_messages</Filter>
+      <Filter>test\nmea_messages</Filter>
+    </ClInclude>
+    <ClInclude Include="test\aprs_board\aprs_board_test.h">
+      <Filter>test\aprs_board</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
-      <Filter>Source Files</Filter>
+      <Filter>test</Filter>
     </ClCompile>
     <ClCompile Include="test\nmea_messages\angularCoordinateToInt32Degrees.cpp">
-      <Filter>Source Files\test\nmea_messages</Filter>
+      <Filter>test\nmea_messages</Filter>
     </ClCompile>
     <ClCompile Include="test\nmea_messages\impl_canUInt32Overflow.cpp">
-      <Filter>Source Files\test\nmea_messages</Filter>
+      <Filter>test\nmea_messages</Filter>
     </ClCompile>
     <ClCompile Include="test\nmea_messages\impl_findNextTokenStart.cpp">
-      <Filter>Source Files\test\nmea_messages</Filter>
+      <Filter>test\nmea_messages</Filter>
     </ClCompile>
     <ClCompile Include="test\nmea_messages\impl_parseAngularCoordinate_latitude.cpp">
-      <Filter>Source Files\test\nmea_messages</Filter>
+      <Filter>test\nmea_messages</Filter>
     </ClCompile>
     <ClCompile Include="test\nmea_messages\impl_parseAngularCoordinate_longitude.cpp">
-      <Filter>Source Files\test\nmea_messages</Filter>
+      <Filter>test\nmea_messages</Filter>
     </ClCompile>
     <ClCompile Include="test\nmea_messages\impl_parseGpsTime.cpp">
-      <Filter>Source Files\test\nmea_messages</Filter>
+      <Filter>test\nmea_messages</Filter>
     </ClCompile>
     <ClCompile Include="test\nmea_messages\impl_parseHemisphere.cpp">
-      <Filter>Source Files\test\nmea_messages</Filter>
+      <Filter>test\nmea_messages</Filter>
     </ClCompile>
     <ClCompile Include="test\nmea_messages\impl_parseUInt8.cpp">
-      <Filter>Source Files\test\nmea_messages</Filter>
+      <Filter>test\nmea_messages</Filter>
     </ClCompile>
     <ClCompile Include="test\nmea_messages\impl_parseUInt16FixedPoint.cpp">
-      <Filter>Source Files\test\nmea_messages</Filter>
+      <Filter>test\nmea_messages</Filter>
     </ClCompile>
     <ClCompile Include="test\nmea_messages\impl_parseUInt32FixedPoint.cpp">
-      <Filter>Source Files\test\nmea_messages</Filter>
+      <Filter>test\nmea_messages</Filter>
     </ClCompile>
     <ClCompile Include="test\nmea_messages\parseGpggaMessageIfValid.cpp">
-      <Filter>Source Files\test\nmea_messages</Filter>
+      <Filter>test\nmea_messages</Filter>
     </ClCompile>
     <ClCompile Include="test\nmea_messages\parseGpvtgMessageIfValid.cpp">
-      <Filter>Source Files\test\nmea_messages</Filter>
+      <Filter>test\nmea_messages</Filter>
+    </ClCompile>
+    <ClCompile Include="test\aprs_board\advanceBitstreamBit.cpp">
+      <Filter>test\aprs_board</Filter>
+    </ClCompile>
+    <ClCompile Include="test\aprs_board\normalizePulseWidth.cpp">
+      <Filter>test\aprs_board</Filter>
+    </ClCompile>
+    <ClCompile Include="test\aprs_board\encodeAndAppendBits.cpp">
+      <Filter>test\aprs_board</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>

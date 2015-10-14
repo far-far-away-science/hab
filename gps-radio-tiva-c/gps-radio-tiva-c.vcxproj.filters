@@ -48,9 +48,6 @@
     <ClInclude Include="src\timer.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="src\generated_trig_data.h">
-      <Filter>Source Files</Filter>
-    </ClInclude>
     <ClInclude Include="src\stubs\tiva_c.h">
       <Filter>Source Files\stubs</Filter>
     </ClInclude>

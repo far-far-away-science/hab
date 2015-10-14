@@ -1,4 +1,3 @@
-#include "aprs_board.h"
 #include "aprs_board_impl.h"
 
 #include <math.h>
@@ -14,41 +13,12 @@
 #include "uart.h"
 #include "timer.h"
 #include "common.h"
-#include "generated_trig_data.h"
 
-#ifdef TRIG_SLOW
-    #define SINE(v)            sinf(v)
-    #define COSINE_G_THAN_0(v) (cosf(v) >= 0)
-    #define INVERSE_SINE(v)    asinf(v)
-#else
-    #define TRIG_FLOAT_TO_INT(value) \
-        (int) ((value) * TRIG_MULTIPLIER + 0.5f)
-            
-    #define COS_0A TRIG_FLOAT_TO_INT(PI / 2.0f)
-    #define COS_0B TRIG_FLOAT_TO_INT(3.0f * PI / 2.0f)
-        
-    #define INVERSE_TRIG_FLOAT_TO_INT(value) \
-        (INVERSE_TRIG_MULTIPLIER + (int) ((value) * INVERSE_TRIG_MULTIPLIER + 0.5f))
-
-    // this complication is due to the fact that mVision has a 32K limit for code
-    // need to try to compile this stuff using Ubuntu/gcc and use normal table for cosine
-    float cosineSign(int idx)
-    {
-        if ((idx >= 0 && idx <= COS_0A) ||
-            (idx >= COS_0B))
-        {
-            return true;
-        }
-        else
-        {
-            return false;
-        }
-    }
-
-    #define SINE(v)            SIN[TRIG_FLOAT_TO_INT(v)]
-    #define COSINE_G_THAN_0(v) cosineSign(TRIG_FLOAT_TO_INT(v))
-    #define INVERSE_SINE(v)    ASIN[INVERSE_TRIG_FLOAT_TO_INT(v)]
-#endif
+// ran out of memory (Keil IDE limitation to 32Kb so couldn't use good tables)
+// will address this later once we move to use GCC or something like it
+#define SINE(v)            sinf(v)
+#define COSINE_G_THAN_0(v) (cosf(v) >= 0)
+#define INVERSE_SINE(v)    asinf(v)
 
 const Callsign CALLSIGN_SOURCE = 
 {
@@ -105,18 +75,43 @@ bool sendAprsMessage(GpsDataSource gpsDataSource, const GpsData* pGpsData, const
     {
         return false;
     }
-    if (!createAprsMessage(gpsDataSource, pGpsData, pTelemetry))
+
+    g_leadingOnesLeft = LEADING_ONES_COUNT_TO_CANCEL_PREVIOUS_PACKET;
+    g_leadingWarmUpLeft = LEADING_WARMUP_AMPLITUDE_DC_PULSES_COUNT;
+    
+    g_currentBitstreamSize.bitstreamCharIdx = 0;
+    g_currentBitstreamSize.bitstreamCharBitIdx = 0;
+
+    g_currentBitstreamPos.bitstreamCharIdx = 0;
+    g_currentBitstreamPos.bitstreamCharBitIdx = 0;
+
+    g_currentF1200Frame = 0;
+    g_currentF2200Frame = 0;
+    g_currentFrequencyIsF1200 = true;
+    g_currentSymbolPulsesCount = F1200_PWM_PULSES_COUNT_PER_SYMBOL;
+
+    if (generateMessage(&CALLSIGN_SOURCE,
+                        gpsDataSource,
+                        pGpsData,
+                        pTelemetry,
+                        g_currentBitstream,
+                        APRS_BITSTREAM_MAX_LEN,
+                        &g_currentBitstreamSize))
+    {
+        g_sendingMessage = true;
+        enableHx1();
+        enableAprsPwm();
+        return true;
+    }
+    else
     {
         return false;
     }
-    enableHx1();
-    enableAprsPwm();
-    return true;
 }
 
 void advanceBitstreamBit(BitstreamPos* pResultBitstreamSize)
 {
-    if (pResultBitstreamSize->bitstreamCharBitIdx == 7)
+    if (pResultBitstreamSize->bitstreamCharBitIdx >= 7)
     {
         ++pResultBitstreamSize->bitstreamCharIdx;
         pResultBitstreamSize->bitstreamCharBitIdx = 0;
@@ -139,14 +134,14 @@ bool encodeAndAppendBits(uint8_t* pBitstreamBuffer,
     if (!pBitstreamBuffer || !pEncodingData || maxBitstreamBufferLen < messageDataSize)
     {
         return false;
-    }        
+    }
     if (messageDataSize == 0)
     {
         return true;
     }
     if (!pMessageData)
     {
-        return true;
+        return false;
     }
 
     for (uint16_t iByte = 0; iByte < messageDataSize; ++iByte)
@@ -162,7 +157,11 @@ bool encodeAndAppendBits(uint8_t* pBitstreamBuffer,
         {
             const uint8_t currentBit = currentByte & (1 << iBit);
 
-            if (fcsType == CALCULATE_FCS)
+            // add FCS calculation based on tables
+            // to improve speed (need to migrate to GCC due to 
+            // 32Kb application size limit in Keil)
+
+            if (fcsType == FCS_CALCULATE)
             {
                 const uint16_t shiftBit = pEncodingData->fcs & 0x0001;
                 pEncodingData->fcs = pEncodingData->fcs >> 1;
@@ -190,7 +189,7 @@ bool encodeAndAppendBits(uint8_t* pBitstreamBuffer,
 
                 advanceBitstreamBit(&pEncodingData->bitstreamSize);
 
-                if (stuffingType == PERFORM_STUFFING)
+                if (stuffingType == ST_PERFORM_STUFFING)
                 {
                     ++pEncodingData->numberOfOnes;
                     
@@ -240,7 +239,7 @@ bool encodeAndAppendBits(uint8_t* pBitstreamBuffer,
 
                 advanceBitstreamBit(&pEncodingData->bitstreamSize);
 
-                if (stuffingType == PERFORM_STUFFING)
+                if (stuffingType == ST_PERFORM_STUFFING)
                 {
                     pEncodingData->numberOfOnes = 0;
                 }
@@ -248,7 +247,7 @@ bool encodeAndAppendBits(uint8_t* pBitstreamBuffer,
         }
     }
 
-    if (stuffingType == NO_STUFFING)
+    if (stuffingType == ST_NO_STUFFING)
     {
         // resert ones as we didn't do any stuffing while sending this data
         pEncodingData->numberOfOnes = 0;
@@ -354,22 +353,22 @@ bool generateMessage(const Callsign* pCallsignSource,
 
     for (uint8_t i = 0; i < PREFIX_FLAGS_COUNT; ++i)
     {
-        encodeAndAppendBits(bitstreamBuffer, maxBitstreamBufferLen, &encodingData, (const uint8_t*) "\x7E", 1, NO_STUFFING, NO_FCS, NO_SHIFT_ONE_LEFT);
+        encodeAndAppendBits(bitstreamBuffer, maxBitstreamBufferLen, &encodingData, (const uint8_t*) "\x7E", 1, ST_NO_STUFFING, FCS_NONE, SHIFT_ONE_LEFT_NO);
     }
 
     // addresses to and from
     
-    encodeAndAppendBits(bitstreamBuffer, maxBitstreamBufferLen, &encodingData, CALLSIGN_DESTINATION_1.callsign, 6, PERFORM_STUFFING, CALCULATE_FCS, SHIFT_ONE_LEFT);
-    encodeAndAppendBits(bitstreamBuffer, maxBitstreamBufferLen, &encodingData, &CALLSIGN_DESTINATION_1.ssid, 1, PERFORM_STUFFING, CALCULATE_FCS, NO_SHIFT_ONE_LEFT);
-    encodeAndAppendBits(bitstreamBuffer, maxBitstreamBufferLen, &encodingData, pCallsignSource->callsign, 6, PERFORM_STUFFING, CALCULATE_FCS, SHIFT_ONE_LEFT);
-    encodeAndAppendBits(bitstreamBuffer, maxBitstreamBufferLen, &encodingData, &pCallsignSource->ssid, 1, PERFORM_STUFFING, CALCULATE_FCS, NO_SHIFT_ONE_LEFT);
-    encodeAndAppendBits(bitstreamBuffer, maxBitstreamBufferLen, &encodingData, CALLSIGN_DESTINATION_2.callsign, 6, PERFORM_STUFFING, CALCULATE_FCS, SHIFT_ONE_LEFT);
-    encodeAndAppendBits(bitstreamBuffer, maxBitstreamBufferLen, &encodingData, &CALLSIGN_DESTINATION_2.ssid, 1, PERFORM_STUFFING, CALCULATE_FCS, NO_SHIFT_ONE_LEFT);
+    encodeAndAppendBits(bitstreamBuffer, maxBitstreamBufferLen, &encodingData, CALLSIGN_DESTINATION_1.callsign, 6, ST_PERFORM_STUFFING, FCS_CALCULATE, SHIFT_ONE_LEFT);
+    encodeAndAppendBits(bitstreamBuffer, maxBitstreamBufferLen, &encodingData, &CALLSIGN_DESTINATION_1.ssid, 1, ST_PERFORM_STUFFING, FCS_CALCULATE, SHIFT_ONE_LEFT_NO);
+    encodeAndAppendBits(bitstreamBuffer, maxBitstreamBufferLen, &encodingData, pCallsignSource->callsign, 6, ST_PERFORM_STUFFING, FCS_CALCULATE, SHIFT_ONE_LEFT);
+    encodeAndAppendBits(bitstreamBuffer, maxBitstreamBufferLen, &encodingData, &pCallsignSource->ssid, 1, ST_PERFORM_STUFFING, FCS_CALCULATE, SHIFT_ONE_LEFT_NO);
+    encodeAndAppendBits(bitstreamBuffer, maxBitstreamBufferLen, &encodingData, CALLSIGN_DESTINATION_2.callsign, 6, ST_PERFORM_STUFFING, FCS_CALCULATE, SHIFT_ONE_LEFT);
+    encodeAndAppendBits(bitstreamBuffer, maxBitstreamBufferLen, &encodingData, &CALLSIGN_DESTINATION_2.ssid, 1, ST_PERFORM_STUFFING, FCS_CALCULATE, SHIFT_ONE_LEFT_NO);
 
     // control bytes
     
-    encodeAndAppendBits(bitstreamBuffer, maxBitstreamBufferLen, &encodingData, (const uint8_t*) "\x03", 1, PERFORM_STUFFING, CALCULATE_FCS, NO_SHIFT_ONE_LEFT);
-    encodeAndAppendBits(bitstreamBuffer, maxBitstreamBufferLen, &encodingData, (const uint8_t*) "\xF0", 1, PERFORM_STUFFING, CALCULATE_FCS, NO_SHIFT_ONE_LEFT);
+    encodeAndAppendBits(bitstreamBuffer, maxBitstreamBufferLen, &encodingData, (const uint8_t*) "\x03", 1, ST_PERFORM_STUFFING, FCS_CALCULATE, SHIFT_ONE_LEFT_NO);
+    encodeAndAppendBits(bitstreamBuffer, maxBitstreamBufferLen, &encodingData, (const uint8_t*) "\xF0", 1, ST_PERFORM_STUFFING, FCS_CALCULATE, SHIFT_ONE_LEFT_NO);
 
     // packet contents
     
@@ -386,59 +385,26 @@ bool generateMessage(const Callsign* pCallsignSource,
     }
     writeString(CHANNEL_OUTPUT, "\r\n");
 #endif
-    encodeAndAppendBits(bitstreamBuffer, maxBitstreamBufferLen, &encodingData, g_aprsPayloadBuffer, bufferSize, PERFORM_STUFFING, CALCULATE_FCS, NO_SHIFT_ONE_LEFT);
+    encodeAndAppendBits(bitstreamBuffer, maxBitstreamBufferLen, &encodingData, g_aprsPayloadBuffer, bufferSize, ST_PERFORM_STUFFING, FCS_CALCULATE, SHIFT_ONE_LEFT_NO);
     
     // fcs
 
     encodingData.fcs ^= FCS_POST_PROCESSING_XOR_VALUE;
     uint8_t fcsByte = encodingData.fcs & 0x00FF; // get low byte
-    encodeAndAppendBits(bitstreamBuffer, maxBitstreamBufferLen, &encodingData, &fcsByte, 1, PERFORM_STUFFING, NO_FCS, NO_SHIFT_ONE_LEFT);
+    encodeAndAppendBits(bitstreamBuffer, maxBitstreamBufferLen, &encodingData, &fcsByte, 1, ST_PERFORM_STUFFING, FCS_NONE, SHIFT_ONE_LEFT_NO);
     fcsByte = (encodingData.fcs >> 8) & 0x00FF; // get high byte
-    encodeAndAppendBits(bitstreamBuffer, maxBitstreamBufferLen, &encodingData, &fcsByte, 1, PERFORM_STUFFING, NO_FCS, NO_SHIFT_ONE_LEFT);
+    encodeAndAppendBits(bitstreamBuffer, maxBitstreamBufferLen, &encodingData, &fcsByte, 1, ST_PERFORM_STUFFING, FCS_NONE, SHIFT_ONE_LEFT_NO);
 
     // sufix flags
 
     for (uint8_t i = 0; i < SUFFIX_FLAGS_COUNT; ++i)
     {
-        encodeAndAppendBits(bitstreamBuffer, maxBitstreamBufferLen, &encodingData, (const uint8_t*) "\x7E", 1, NO_STUFFING, NO_FCS, NO_SHIFT_ONE_LEFT);
+        encodeAndAppendBits(bitstreamBuffer, maxBitstreamBufferLen, &encodingData, (const uint8_t*) "\x7E", 1, ST_NO_STUFFING, FCS_NONE, SHIFT_ONE_LEFT_NO);
     }
 
     *pBitstreamSize = encodingData.bitstreamSize;
 
     return true;
-}
-
-bool createAprsMessage(GpsDataSource gpsDataSource, const GpsData* pGpsData, const Telemetry* pTelemetry)
-{
-    g_leadingOnesLeft = LEADING_ONES_COUNT_TO_CANCEL_PREVIOUS_PACKET;
-    g_leadingWarmUpLeft = LEADING_WARMUP_AMPLITUDE_DC_PULSES_COUNT;
-    
-    g_currentBitstreamSize.bitstreamCharIdx = 0;
-    g_currentBitstreamSize.bitstreamCharBitIdx = 0;
-
-    g_currentBitstreamPos.bitstreamCharIdx = 0;
-    g_currentBitstreamPos.bitstreamCharBitIdx = 0;
-
-    g_currentF1200Frame = 0;
-    g_currentF2200Frame = 0;
-    g_currentFrequencyIsF1200 = true;
-    g_currentSymbolPulsesCount = F1200_PWM_PULSES_COUNT_PER_SYMBOL;
-
-    if (generateMessage(&CALLSIGN_SOURCE,
-                        gpsDataSource,
-                        pGpsData,
-                        pTelemetry,
-                        g_currentBitstream,
-                        APRS_BITSTREAM_MAX_LEN,
-                        &g_currentBitstreamSize))
-    {
-        g_sendingMessage = true;
-        return true;
-    }
-    else
-    {
-        return false;
-    }
 }
 
 float normalizePulseWidth(float width)
