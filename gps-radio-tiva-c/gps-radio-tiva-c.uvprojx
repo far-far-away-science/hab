@@ -371,7 +371,7 @@
             <vShortWch>0</vShortWch>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>rvmdk PART_TM4C123GH6PM TARGET_IS_TM4C123_RB1 TRIG_SLOW EEPROM_ENABLED</Define>
+              <Define>rvmdk PART_TM4C123GH6PM TARGET_IS_TM4C123_RB1 TRIG_SLOW EEPROM_ENABLED DUMP_DATA_TO_UART0 DEBUG</Define>
               <Undefine></Undefine>
               <IncludePath>C:\Tools\ti\TivaWare_C_Series-2.1.1.71</IncludePath>
             </VariousControls>

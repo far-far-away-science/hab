@@ -15,4 +15,5 @@ extern const Callsign CALLSIGN_DESTINATION_1;
 extern const Callsign CALLSIGN_DESTINATION_2;
 
 void initializeAprs(void);
+
 bool sendAprsMessage(GpsDataSource gpsDataSource, const GpsData* pGpsData, const Telemetry* pTelemetry);

@@ -91,4 +91,29 @@ typedef struct EncodingData_t
     BitstreamPos bitstreamSize;
 } EncodingData;
 
+void advanceBitstreamBit(BitstreamPos* pResultBitstreamSize);
+
+bool encodeAndAppendBits(uint8_t* pBitstreamBuffer,
+                         uint16_t maxBitstreamBufferLen,
+                         EncodingData* pEncodingData,
+                         const uint8_t* pMessageData,
+                         uint16_t messageDataSize,
+                         STUFFING_TYPE stuffingType,
+                         FCS_TYPE fcsType,
+                         SHIFT_ONE_LEFT_TYPE shiftOneLeftType);
+
+uint8_t createPacketPayload(GpsDataSource gpsDataSource, const GpsData* pGpsData, const Telemetry* pTelemetry, uint8_t* pBuffer, uint8_t bufferSize);
+
+bool generateMessage(const Callsign* pCallsignSource,
+                     GpsDataSource gpsDataSource,
+                     const GpsData* pGpsData,
+                     const Telemetry* pTelemetry,
+                     uint8_t* bitstreamBuffer,
+                     uint16_t maxBitstreamBufferLen,
+                     BitstreamPos* pBitstreamSize);
+
 bool createAprsMessage(GpsDataSource gpsDataSource, const GpsData* pGpsData, const Telemetry* pTelemetry);
+
+float normalizePulseWidth(float width);
+
+void Pwm10Handler(void);

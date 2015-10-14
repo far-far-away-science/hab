@@ -5,12 +5,18 @@
       <UniqueIdentifier>{4FC737F1-C7A5-4376-A066-2A32D752A2FF}</UniqueIdentifier>
       <Extensions>cpp;c;cc;cxx;def;odl;idl;hpj;bat;asm;asmx</Extensions>
     </Filter>
+    <Filter Include="Source Files\stubs">
+      <UniqueIdentifier>{94f7e232-e96e-45c3-81e2-45b49cbcf740}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="src\nmea_messages.c">
       <Filter>Source Files</Filter>
     </ClCompile>
     <ClCompile Include="src\nmea_messages_impl.c">
+      <Filter>Source Files</Filter>
+    </ClCompile>
+    <ClCompile Include="src\aprs_board.c">
       <Filter>Source Files</Filter>
     </ClCompile>
   </ItemGroup>
@@ -20,6 +26,33 @@
     </ClInclude>
     <ClInclude Include="src\nmea_messages_impl.h">
       <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\aprs_board.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\aprs_board_impl.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\defs.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\uart.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\common.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\telemetry.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\timer.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\generated_trig_data.h">
+      <Filter>Source Files</Filter>
+    </ClInclude>
+    <ClInclude Include="src\stubs\tiva_c.h">
+      <Filter>Source Files\stubs</Filter>
     </ClInclude>
   </ItemGroup>
 </Project>

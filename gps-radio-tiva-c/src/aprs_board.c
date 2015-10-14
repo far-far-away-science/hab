@@ -1,13 +1,18 @@
 #include "aprs_board.h"
 #include "aprs_board_impl.h"
 
-#include <cmath>
+#include <math.h>
+#include <stdio.h>
 #include <string.h>
-#include <cstdio>
+
+#ifndef UNIT_TEST
+    #include "tiva_c.h"
+#else
+    #include "stubs\tiva_c.h"
+#endif
 
 #include "uart.h"
 #include "timer.h"
-#include "tiva_c.h"
 #include "common.h"
 #include "generated_trig_data.h"
 
@@ -121,6 +126,7 @@ void advanceBitstreamBit(BitstreamPos* pResultBitstreamSize)
         ++pResultBitstreamSize->bitstreamCharBitIdx;
     }
 }
+
 bool encodeAndAppendBits(uint8_t* pBitstreamBuffer,
                          uint16_t maxBitstreamBufferLen,
                          EncodingData* pEncodingData,
@@ -280,19 +286,16 @@ uint8_t createPacketPayload(GpsDataSource gpsDataSource, const GpsData* pGpsData
             pBuffer[bufferStartIdx++] = '!';
         }
 
-        // tiva seem to be crashing when I try to feed float to sprintf
-        // need to investigate later on
-        
+        if (bufferStartIdx + 19 > bufferSize)
+        {
+            return 0;
+        }
+
         const uint32_t latMinutesWhole = pGpsData->gpggaData.latitude.minutes / 1000000;
         const uint32_t latMinutesFraction = (pGpsData->gpggaData.latitude.minutes - latMinutesWhole * 1000000) / 10000;
 
         const uint32_t lonMinutesWhole = pGpsData->gpggaData.longitude.minutes / 1000000;
         const uint32_t lonMinutesFraction = (pGpsData->gpggaData.longitude.minutes - lonMinutesWhole * 1000000) / 10000;
-
-        if (bufferStartIdx + 19 > bufferSize)
-        {
-            return 0;
-        }
 
         bufferStartIdx += sprintf((char*) &pBuffer[bufferStartIdx],
                                   "%02u%02u.%02u%1c/%03u%02u.%02u%1c",
@@ -305,19 +308,15 @@ uint8_t createPacketPayload(GpsDataSource gpsDataSource, const GpsData* pGpsData
                                   lonMinutesFraction,
                                   pGpsData->gpggaData.longitude.hemisphere);
 
-        if ((pGpsData->gpvtgData.trueCourseDegrees == 0 || isnormal(pGpsData->gpvtgData.trueCourseDegrees)) ||
-            (pGpsData->gpvtgData.speedKph == 0 || isnormal(pGpsData->gpvtgData.speedKph)))
+        if (bufferStartIdx + 7 > bufferSize)
         {
-            if (bufferStartIdx + 7 > bufferSize)
-            {
-                return 0;
-            }
-            
-            bufferStartIdx += sprintf((char*) &pBuffer[bufferStartIdx],
-                                      ">%03u/%03u",
-                                      (uint32_t) (isnan(pGpsData->gpvtgData.trueCourseDegrees) ? 0.0f : pGpsData->gpvtgData.trueCourseDegrees),
-                                      (uint32_t) (isnan(pGpsData->gpvtgData.speedKph) ? 0.0f : pGpsData->gpvtgData.speedKph));
+            return 0;
         }
+            
+        bufferStartIdx += sprintf((char*) &pBuffer[bufferStartIdx],
+                                  ">%03u/%03u",
+                                  (uint32_t) (pGpsData->gpvtgData.trueCourseDegrees / 10),
+                                  (uint32_t) (pGpsData->gpvtgData.speedKph / 10));
     }
 
     if (bufferStartIdx + 42 > bufferSize)
@@ -330,7 +329,7 @@ uint8_t createPacketPayload(GpsDataSource gpsDataSource, const GpsData* pGpsData
                               g_aprsMessageId++, 
                               gpsDataSource,
                               pTelemetry->cpuTemperature / 10,
-                              pTelemetry->voltage / 100 /* values are from 0 to 255 */,
+                              pTelemetry->voltage / 10,
                               (uint32_t) pGpsData->gpggaData.altitudeMslMeters);
 
     return bufferStartIdx;

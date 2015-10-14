@@ -1,4 +1,4 @@
-#include "..\stdafx.h"
+#include "..\..\stdafx.h"
 
 #include "nmea_messages_test.h"
 

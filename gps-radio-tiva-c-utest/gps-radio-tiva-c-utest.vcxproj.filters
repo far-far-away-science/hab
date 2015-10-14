@@ -8,6 +8,9 @@
     <Filter Include="Source Files\test">
       <UniqueIdentifier>{6aec3a3d-439e-4c1b-b970-14ab2573232e}</UniqueIdentifier>
     </Filter>
+    <Filter Include="Source Files\test\nmea_messages">
+      <UniqueIdentifier>{56de911a-3fce-4f70-968d-336211005a45}</UniqueIdentifier>
+    </Filter>
   </ItemGroup>
   <ItemGroup>
     <ClInclude Include="stdafx.h">
@@ -16,49 +19,49 @@
     <ClInclude Include="targetver.h">
       <Filter>Source Files</Filter>
     </ClInclude>
-    <ClInclude Include="test\nmea_messages_test.h">
-      <Filter>Source Files\test</Filter>
+    <ClInclude Include="test\nmea_messages\nmea_messages_test.h">
+      <Filter>Source Files\test\nmea_messages</Filter>
     </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ClCompile Include="stdafx.cpp">
       <Filter>Source Files</Filter>
     </ClCompile>
-    <ClCompile Include="test\nmea_messages_test_parseGpggaMessageIfValid.cpp">
-      <Filter>Source Files\test</Filter>
+    <ClCompile Include="test\nmea_messages\angularCoordinateToInt32Degrees.cpp">
+      <Filter>Source Files\test\nmea_messages</Filter>
     </ClCompile>
-    <ClCompile Include="test\nmea_messages_impl_parseHemisphere.cpp">
-      <Filter>Source Files\test</Filter>
+    <ClCompile Include="test\nmea_messages\impl_canUInt32Overflow.cpp">
+      <Filter>Source Files\test\nmea_messages</Filter>
     </ClCompile>
-    <ClCompile Include="test\nmea_messages_impl_findNextTokenStart.cpp">
-      <Filter>Source Files\test</Filter>
+    <ClCompile Include="test\nmea_messages\impl_findNextTokenStart.cpp">
+      <Filter>Source Files\test\nmea_messages</Filter>
     </ClCompile>
-    <ClCompile Include="test\nmea_messages_impl_canUInt32Overflow.cpp">
-      <Filter>Source Files\test</Filter>
+    <ClCompile Include="test\nmea_messages\impl_parseAngularCoordinate_latitude.cpp">
+      <Filter>Source Files\test\nmea_messages</Filter>
     </ClCompile>
-    <ClCompile Include="test\nmea_messages_impl_parseUInt16FixedPoint.cpp">
-      <Filter>Source Files\test</Filter>
+    <ClCompile Include="test\nmea_messages\impl_parseAngularCoordinate_longitude.cpp">
+      <Filter>Source Files\test\nmea_messages</Filter>
     </ClCompile>
-    <ClCompile Include="test\nmea_messages_impl_parseUInt32FixedPoint.cpp">
-      <Filter>Source Files\test</Filter>
+    <ClCompile Include="test\nmea_messages\impl_parseGpsTime.cpp">
+      <Filter>Source Files\test\nmea_messages</Filter>
     </ClCompile>
-    <ClCompile Include="test\nmea_messages_impl_parseGpsTime.cpp">
-      <Filter>Source Files\test</Filter>
+    <ClCompile Include="test\nmea_messages\impl_parseHemisphere.cpp">
+      <Filter>Source Files\test\nmea_messages</Filter>
     </ClCompile>
-    <ClCompile Include="test\nmea_messages_impl_parseAngularCoordinate_latitude.cpp">
-      <Filter>Source Files\test</Filter>
+    <ClCompile Include="test\nmea_messages\impl_parseUInt8.cpp">
+      <Filter>Source Files\test\nmea_messages</Filter>
     </ClCompile>
-    <ClCompile Include="test\nmea_messages_impl_parseAngularCoordinate_longitude.cpp">
-      <Filter>Source Files\test</Filter>
+    <ClCompile Include="test\nmea_messages\impl_parseUInt16FixedPoint.cpp">
+      <Filter>Source Files\test\nmea_messages</Filter>
     </ClCompile>
-    <ClCompile Include="test\nmea_messages_impl_parseUInt8.cpp">
-      <Filter>Source Files\test</Filter>
+    <ClCompile Include="test\nmea_messages\impl_parseUInt32FixedPoint.cpp">
+      <Filter>Source Files\test\nmea_messages</Filter>
     </ClCompile>
-    <ClCompile Include="test\nmea_messages_test_parseGpvtgMessageIfValid.cpp">
-      <Filter>Source Files\test</Filter>
+    <ClCompile Include="test\nmea_messages\parseGpggaMessageIfValid.cpp">
+      <Filter>Source Files\test\nmea_messages</Filter>
     </ClCompile>
-    <ClCompile Include="test\nmea_messages_test_angularCoordinateToInt32Degrees.cpp">
-      <Filter>Source Files\test</Filter>
+    <ClCompile Include="test\nmea_messages\parseGpvtgMessageIfValid.cpp">
+      <Filter>Source Files\test\nmea_messages</Filter>
     </ClCompile>
   </ItemGroup>
 </Project>
