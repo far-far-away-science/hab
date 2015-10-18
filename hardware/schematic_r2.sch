@@ -3203,9 +3203,11 @@ Standard 0603 ceramic capacitor, and 0.1" leaded capacitor.</description>
 <nets>
 <net name="PWMOUT" class="0">
 <segment>
-<pinref part="TIVA_2" gate="A" pin="16"/>
 <pinref part="R1" gate="G$1" pin="1"/>
-<wire x1="7.62" y1="12.7" x2="17.78" y2="12.7" width="0.1524" layer="91"/>
+<wire x1="15.24" y1="12.7" x2="17.78" y2="12.7" width="0.1524" layer="91"/>
+<pinref part="TIVA_2" gate="A" pin="14"/>
+<wire x1="7.62" y1="15.24" x2="15.24" y2="15.24" width="0.1524" layer="91"/>
+<wire x1="15.24" y1="15.24" x2="15.24" y2="12.7" width="0.1524" layer="91"/>
 </segment>
 </net>
 <net name="PWMF1" class="0">
