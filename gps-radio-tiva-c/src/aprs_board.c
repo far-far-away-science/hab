@@ -273,7 +273,7 @@ uint8_t createPacketPayload(GpsDataSource gpsDataSource, const GpsData* pGpsData
                                       "@%02u%02u%02uz",
                                       pGpsData->gpggaData.utcTime.hours,
                                       pGpsData->gpggaData.utcTime.minutes,
-                                      (int) pGpsData->gpggaData.utcTime.seconds);
+                                      pGpsData->gpggaData.utcTime.seconds / 100);
         }
         else
         {
