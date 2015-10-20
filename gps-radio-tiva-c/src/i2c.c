@@ -55,14 +55,18 @@
 #include <inc/hw_ints.h>
 #include <inc/hw_memmap.h>
 
-static struct {
+static struct
+{
     // I2C register data
     uint8_t regs[I2C_NUM_REGS];
     // Address pointer
     volatile uint8_t address;
+    // 1 if a communication was ever received, or 0 otherwise
+    uint8_t running;
 } i2cData;
 
-static void updateI2CEEPROM() {
+static void updateI2CEEPROM()
+{
 #ifdef EEPROM_ENABLED            
     // Update the EEDATA register, up to 512 words (0x200) are accessible
     uint32_t address = (uint32_t)i2cData.regs[REG_EEADDR_0];
@@ -73,14 +77,19 @@ static void updateI2CEEPROM() {
 #endif
 }
 
+bool i2cCommRunning(void)
+{
+    return i2cData.running != 0U;
+}
+
 void I2cSlaveHandler(void)
 {
     const uint32_t action = MAP_I2CSlaveStatus(I2C_MODULE);
     bool ack = false;
     // Shut off the alarm clock to prevent us from being called again
     MAP_I2CSlaveIntClear(I2C_MODULE);
-   switch (action)
-   {
+    switch (action)
+    {
         case I2C_SLAVE_ACT_RREQ_FBR:
         {
             // This is the address
@@ -89,6 +98,7 @@ void I2cSlaveHandler(void)
                 // Prevent array access out of bounds
                 newAddress = I2C_NUM_REGS - 1U;
             i2cData.address = (uint8_t)newAddress;
+            i2cData.running = 1U;
             ack = true;
             break;
         }
@@ -134,12 +144,15 @@ void I2cSlaveHandler(void)
     MAP_I2CSlaveACKOverride(I2C_MODULE, true);
 }
 
-void submitI2CData(uint32_t index, GpsData *data) {
-    union {
+void submitI2CData(uint32_t index, GpsData *data)
+{
+    union
+    {
         uint8_t bytes[4];
         int32_t word;
     } data32;
-    union {
+    union
+    {
         uint8_t bytes[2];
         uint16_t hword;
     } data16;
@@ -173,8 +186,10 @@ void submitI2CData(uint32_t index, GpsData *data) {
     MAP_I2CSlaveIntEnableEx(I2C_MODULE, I2C_SLAVE_INT_DATA);
 }
 
-void submitI2CTelemetry(Telemetry *telemetry) {
-    union {
+void submitI2CTelemetry(Telemetry *telemetry)
+{
+    union
+    {
         uint8_t bytes[2];
         uint16_t hword;
     } data16;
@@ -190,7 +205,8 @@ void submitI2CTelemetry(Telemetry *telemetry) {
     MAP_I2CSlaveIntEnableEx(I2C_MODULE, I2C_SLAVE_INT_DATA);
 }
 
-void initializeI2C(void) {
+void initializeI2C(void)
+{
     // Peripheral enable: the I/O port and the I2C module
     MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_GPIOA);
     MAP_SysCtlPeripheralEnable(SYSCTL_PERIPH_I2C1);
@@ -211,6 +227,7 @@ void initializeI2C(void) {
     MAP_I2CSlaveInit(I2C_MODULE, I2C_ADDRESS);
     // Init register file
     i2cData.address = 0U;
+    i2cData.running = 0U;
     memset(i2cData.regs, 0, sizeof(i2cData.regs));
     i2cData.regs[REG_WHO_AM_I] = I2C_ADDRESS;
     i2cData.regs[REG_SW_VERSION_MAJOR] = SW_VERSION_MAJOR;
