@@ -75,5 +75,8 @@
     <ClCompile Include="test\aprs_board\encodeAndAppendBits.cpp">
       <Filter>test\aprs_board</Filter>
     </ClCompile>
+    <ClCompile Include="test\aprs_board\createPacketPayload.cpp">
+      <Filter>test\aprs_board</Filter>
+    </ClCompile>
   </ItemGroup>
 </Project>

@@ -21,6 +21,6 @@
 
 typedef enum GpsDataSource_t
 {
-    VENUS_GPS_ID      = 1,
-    COPERNICUS_GPS_ID = 2,
+    GPS_ID_VENUS      = 1,
+    GPS_ID_COPERNICUS = 2,
 } GpsDataSource;

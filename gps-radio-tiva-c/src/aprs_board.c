@@ -256,7 +256,7 @@ bool encodeAndAppendBits(uint8_t* pBitstreamBuffer,
     return true;
 }
 
-uint8_t createPacketPayload(GpsDataSource gpsDataSource, const GpsData* pGpsData, const Telemetry* pTelemetry, uint8_t* pBuffer, uint8_t bufferSize)
+uint8_t createPacketPayload(GpsDataSource gpsDataSource, const GpsData* pGpsData, const Telemetry* pTelemetry, uint16_t messageIdx, uint8_t* pBuffer, uint8_t bufferSize)
 {
     uint8_t bufferStartIdx = 0;
     
@@ -268,7 +268,7 @@ uint8_t createPacketPayload(GpsDataSource gpsDataSource, const GpsData* pGpsData
             {
                 return 0;
             }
-            
+
             bufferStartIdx += sprintf((char*) &pBuffer[bufferStartIdx],
                                       "@%02u%02u%02uz",
                                       pGpsData->gpggaData.utcTime.hours,
@@ -311,7 +311,7 @@ uint8_t createPacketPayload(GpsDataSource gpsDataSource, const GpsData* pGpsData
         {
             return 0;
         }
-            
+
         bufferStartIdx += sprintf((char*) &pBuffer[bufferStartIdx],
                                   ">%03u/%03u",
                                   (uint32_t) (pGpsData->gpvtgData.trueCourseDegrees / 10),
@@ -325,11 +325,11 @@ uint8_t createPacketPayload(GpsDataSource gpsDataSource, const GpsData* pGpsData
 
     bufferStartIdx += sprintf((char*) &pBuffer[bufferStartIdx],
                               "T#%03u,%03u,%03u,%03u,000,000,00000000 a=%05u",
-                              g_aprsMessageId++, 
+                              messageIdx, 
                               gpsDataSource,
                               pTelemetry->cpuTemperature / 10,
                               pTelemetry->voltage / 10,
-                              (uint32_t) pGpsData->gpggaData.altitudeMslMeters);
+                              (uint32_t) pGpsData->gpggaData.altitudeMslMeters / 10);
 
     return bufferStartIdx;
 }
@@ -372,7 +372,7 @@ bool generateMessage(const Callsign* pCallsignSource,
 
     // packet contents
     
-    const uint8_t bufferSize = createPacketPayload(gpsDataSource, pGpsData, pTelemetry, g_aprsPayloadBuffer, APRS_PAYLOAD_LEN);
+    const uint8_t bufferSize = createPacketPayload(gpsDataSource, pGpsData, pTelemetry, g_aprsMessageId++, g_aprsPayloadBuffer, APRS_PAYLOAD_LEN);
     if (bufferSize == 0)
     {
         return false;

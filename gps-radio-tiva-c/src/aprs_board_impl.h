@@ -106,7 +106,7 @@ bool encodeAndAppendBits(uint8_t* pBitstreamBuffer,
                          FCS_TYPE fcsType,
                          SHIFT_ONE_LEFT_TYPE shiftOneLeftType);
 
-uint8_t createPacketPayload(GpsDataSource gpsDataSource, const GpsData* pGpsData, const Telemetry* pTelemetry, uint8_t* pBuffer, uint8_t bufferSize);
+uint8_t createPacketPayload(GpsDataSource gpsDataSource, const GpsData* pGpsData, const Telemetry* pTelemetry, uint16_t messageIdx, uint8_t* pBuffer, uint8_t bufferSize);
 
 bool generateMessage(const Callsign* pCallsignSource,
                      GpsDataSource gpsDataSource,

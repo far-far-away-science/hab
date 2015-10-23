@@ -162,14 +162,14 @@ static inline uint32_t sendAPRSMessage(uint32_t now, bool *sendVenusData, uint32
     {
         // venus data
         alt = venusGpsData.gpggaData.altitudeMslMeters;
-        sendAprsMessage(VENUS_GPS_ID, &venusGpsData, &telemetry);
+        sendAprsMessage(GPS_ID_VENUS, &venusGpsData, &telemetry);
     }
     else
     {
         // higher chance that copernicus will work more reliably
         // so we will use it as a default fallback
         alt = copernicusGpsData.gpggaData.altitudeMslMeters;
-        sendAprsMessage(COPERNICUS_GPS_ID, &copernicusGpsData, &telemetry);
+        sendAprsMessage(GPS_ID_COPERNICUS, &copernicusGpsData, &telemetry);
     }
     *sendVenusData = !shouldSendVenusDataToAprs;
     
