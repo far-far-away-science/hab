@@ -56,6 +56,8 @@
 // Must be last register address + 1
 #define I2C_NUM_REGS 0x41
 
+// Returns true if the I2C communications with the Raspberry PI are running
+bool i2cCommRunning(void);
 // Initialize I2C module as slave and configures pin muxes to I2C1
 void initializeI2C(void);
 // Submits parsed GPS data to the I2C subsystem

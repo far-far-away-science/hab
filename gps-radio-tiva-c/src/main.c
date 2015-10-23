@@ -30,6 +30,11 @@ static Telemetry telemetry;
     static uint32_t eepromBuffer;
 #endif
 
+#if defined(RADIO_MCU_MESSAGE_DITHER) && (RADIO_MCU_MESSAGE_DITHER > 0)
+    // Dithering state variable
+    static uint32_t ditherCount;
+#endif
+
 // AIR mode for Copernicus:
 // 0x10 DLE
 // 0xBB Set GPS Processing Options
@@ -143,7 +148,7 @@ static void updateGPS(uint32_t channel, Message *messageIn, GpsData *dataOut)
 }
 
 // Sends an APRS message
-static inline uint32_t sendAPRSMessage(uint32_t now, bool *sendVenusData, uint32_t *ditherCount)
+static inline uint32_t sendAPRS(uint32_t now, bool *sendVenusData)
 {
     uint32_t dither, alt = 0U;
     const bool shouldSendVenusDataToAprs = *sendVenusData;
@@ -176,9 +181,9 @@ static inline uint32_t sendAPRSMessage(uint32_t now, bool *sendVenusData, uint32
 #if defined(RADIO_MCU_MESSAGE_DITHER) && (RADIO_MCU_MESSAGE_DITHER > 0)
     {
         // Perform dithering, correctly this time!
-        const uint32_t ditherCountValue = *ditherCount;
+        const uint32_t ditherCountValue = ditherCount;
         dither = (ditherCountValue % RADIO_MCU_MESSAGE_DITHER);
-        *ditherCount = ditherCountValue + 1;
+        ditherCount = ditherCountValue + 1;
     }
 #else
     dither = 0U;
@@ -229,7 +234,7 @@ static inline uint32_t writeEEPROM(uint32_t record)
 int main()
 {
     bool shouldSendVenusDataToAprs = true;
-    uint32_t currentTime, nextRadioSendTime = 5U, ditherCount = 0U;
+    uint32_t currentTime, nextRadioSendTime = 5U;
     // Initialize board
     uint32_t record = init();
     // Start the watchdog
@@ -250,7 +255,7 @@ int main()
         if (currentTime >= nextRadioSendTime)
         {
             // Send message
-            nextRadioSendTime = sendAPRSMessage(currentTime, &shouldSendVenusDataToAprs, &ditherCount);
+            nextRadioSendTime = sendAPRS(currentTime, &shouldSendVenusDataToAprs);
             // EEPROM
 #ifdef EEPROM_ENABLED
             record = writeEEPROM(record);
@@ -258,7 +263,7 @@ int main()
         }
         
         // Blink green light to let everyone know that we are still running
-        if (currentTime & 1)
+        if ((currentTime & 1U) != 0U && i2cCommRunning())
         {
             signalHeartbeatOff();
         }
