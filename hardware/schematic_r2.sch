@@ -1423,6 +1423,24 @@ Radiometrix HX1</description>
 <text x="-1" y="2.667" size="0.4064" layer="25">&gt;NAME</text>
 <text x="-1" y="-3.0988" size="0.4064" layer="27">&gt;VALUE</text>
 </package>
+<package name="1206">
+<description>&lt;b&gt;1206&lt;/b&gt;&lt;br/&gt;
+&lt;br/&gt;
+Sometimes, inductors CAN come in standard packages.</description>
+<wire x1="-2.473" y1="0.983" x2="2.473" y2="0.983" width="0.0508" layer="39"/>
+<wire x1="2.473" y1="-0.983" x2="-2.473" y2="-0.983" width="0.0508" layer="39"/>
+<wire x1="-2.473" y1="-0.983" x2="-2.473" y2="0.983" width="0.0508" layer="39"/>
+<wire x1="2.473" y1="0.983" x2="2.473" y2="-0.983" width="0.0508" layer="39"/>
+<wire x1="-0.965" y1="0.787" x2="0.965" y2="0.787" width="0.1016" layer="51"/>
+<wire x1="-0.965" y1="-0.787" x2="0.965" y2="-0.787" width="0.1016" layer="51"/>
+<smd name="1" x="-1.4" y="0" dx="1.6" dy="1.8" layer="1"/>
+<smd name="2" x="1.4" y="0" dx="1.6" dy="1.8" layer="1"/>
+<text x="-1.27" y="1.143" size="0.4064" layer="25">&gt;NAME</text>
+<text x="-1.397" y="-1.524" size="0.4064" layer="27">&gt;VALUE</text>
+<rectangle x1="-1.7018" y1="-0.8509" x2="-0.9517" y2="0.8491" layer="51"/>
+<rectangle x1="0.9517" y1="-0.8491" x2="1.7018" y2="0.8509" layer="51"/>
+<rectangle x1="-0.1999" y1="-0.4001" x2="0.1999" y2="0.4001" layer="35"/>
+</package>
 </packages>
 <symbols>
 <symbol name="HX1">
@@ -1534,7 +1552,16 @@ Why do inductors never come in standard packages!?</description>
 <gate name="G$1" symbol="INDUCTOR" x="0" y="0"/>
 </gates>
 <devices>
-<device name="" package="1008">
+<device name="1008" package="1008">
+<connects>
+<connect gate="G$1" pin="1" pad="1"/>
+<connect gate="G$1" pin="2" pad="2"/>
+</connects>
+<technologies>
+<technology name=""/>
+</technologies>
+</device>
+<device name="1206" package="1206">
 <connects>
 <connect gate="G$1" pin="1" pad="1"/>
 <connect gate="G$1" pin="2" pad="2"/>
@@ -3047,7 +3074,7 @@ drill 1.2 mm</description>
 <part name="GND11" library="supply1" deviceset="GNDA" device=""/>
 <part name="C8" library="SparkFun-Passives" deviceset="CAP" device="0805" value="0.1uF"/>
 <part name="U2" library="HAB" deviceset="TPS62160" device=""/>
-<part name="L1" library="HAB" deviceset="INDUCTOR" device="" value="2.2u"/>
+<part name="L1" library="HAB" deviceset="INDUCTOR" device="1008" value="2.2u"/>
 <part name="P+2" library="supply1" deviceset="+5V" device=""/>
 <part name="GND12" library="supply1" deviceset="GNDA" device=""/>
 <part name="R12" library="SparkFun-Passives" deviceset="RESISTOR" device="0805-RES" value="430K"/>
