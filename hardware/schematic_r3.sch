@@ -9150,9 +9150,9 @@ D2: ESD12VD3-TPMSCT-ND</text>
 <label x="83.82" y="160.02" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="U7" gate="G$2" pin="TXD-B"/>
-<wire x1="487.68" y1="152.4" x2="482.6" y2="152.4" width="0.1524" layer="91"/>
-<label x="485.14" y="152.4" size="1.778" layer="95"/>
+<pinref part="U7" gate="G$2" pin="TXD-A"/>
+<wire x1="487.68" y1="149.86" x2="482.6" y2="149.86" width="0.1524" layer="91"/>
+<label x="485.14" y="149.86" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="RX_GPS" class="0">
@@ -9162,9 +9162,9 @@ D2: ESD12VD3-TPMSCT-ND</text>
 <label x="83.82" y="152.4" size="1.778" layer="95"/>
 </segment>
 <segment>
-<pinref part="U7" gate="G$2" pin="RXD-B"/>
-<wire x1="487.68" y1="142.24" x2="482.6" y2="142.24" width="0.1524" layer="91"/>
-<label x="485.14" y="142.24" size="1.778" layer="95"/>
+<pinref part="U7" gate="G$2" pin="RXD-A"/>
+<wire x1="487.68" y1="144.78" x2="482.6" y2="144.78" width="0.1524" layer="91"/>
+<label x="485.14" y="144.78" size="1.778" layer="95"/>
 </segment>
 </net>
 <net name="RFIN" class="0">
