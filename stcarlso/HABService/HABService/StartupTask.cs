@@ -143,7 +143,7 @@ namespace HABService {
 			// Get the current time as the filename
 			string date = DateTime.Now.ToString(DATE_FORMAT);
 			// If it collides, append a number to avoid trashing old logs
-			StorageFile file = await DownloadsFolder.CreateFileAsync(date + ".log",
+			StorageFile file = await ApplicationData.Current.LocalFolder.CreateFileAsync(date + ".log",
 				CreationCollisionOption.GenerateUniqueName);
 			return new StreamWriter(await file.OpenStreamForWriteAsync());
 		}
