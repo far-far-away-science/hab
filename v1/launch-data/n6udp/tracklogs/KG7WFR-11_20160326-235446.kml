@@ -1,0 +1,349 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<kml xmlns="http://earth.google.com/kml/2.2">
+<Document>
+<name>APRS Data</name>
+<open>1</open>
+<description>WGS-84 tracklog created by Xastir 2016/03/26 23:54</description>
+<Placemark><name>KG7WFR-11</name>
+<description>Packets received: 240     Last Heard: </description>
+<TimeStamp><when>2016-03-26T16:53:18-07:00</when></TimeStamp><Point>
+<coordinates>-117.52633,46.30467,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T11:40:04-07:00</name>
+<TimeStamp><when>2016-03-26T11:40:04-07:00</when></TimeStamp><Point><coordinates>-122.19400,47.61467,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T11:41:13-07:00</name>
+<TimeStamp><when>2016-03-26T11:41:13-07:00</when></TimeStamp><Point><coordinates>-118.93967,47.12900,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T11:42:47-07:00</name>
+<TimeStamp><when>2016-03-26T11:42:47-07:00</when></TimeStamp><Point><coordinates>-118.93850,47.12933,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T11:44:20-07:00</name>
+<TimeStamp><when>2016-03-26T11:44:20-07:00</when></TimeStamp><Point><coordinates>-118.93883,47.12967,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T11:44:50-07:00</name>
+<TimeStamp><when>2016-03-26T11:44:50-07:00</when></TimeStamp><Point><coordinates>-118.93850,47.12933,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T11:53:38-07:00</name>
+<TimeStamp><when>2016-03-26T11:53:38-07:00</when></TimeStamp><Point><coordinates>-118.93733,47.12967,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T11:55:41-07:00</name>
+<TimeStamp><when>2016-03-26T11:55:41-07:00</when></TimeStamp><Point><coordinates>-118.93850,47.12933,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T11:58:47-07:00</name>
+<TimeStamp><when>2016-03-26T11:58:47-07:00</when></TimeStamp><Point><coordinates>-118.93867,47.12933,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T11:59:50-07:00</name>
+<TimeStamp><when>2016-03-26T11:59:50-07:00</when></TimeStamp><Point><coordinates>-118.93883,47.12933,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T12:06:02-07:00</name>
+<TimeStamp><when>2016-03-26T12:06:02-07:00</when></TimeStamp><Point><coordinates>-118.93867,47.12950,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T12:08:05-07:00</name>
+<TimeStamp><when>2016-03-26T12:08:05-07:00</when></TimeStamp><Point><coordinates>-118.93900,47.12917,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T12:25:08-07:00</name>
+<TimeStamp><when>2016-03-26T12:25:08-07:00</when></TimeStamp><Point><coordinates>-118.93833,47.12933,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T12:27:44-07:00</name>
+<TimeStamp><when>2016-03-26T12:27:44-07:00</when></TimeStamp><Point><coordinates>-118.93883,47.12983,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T12:29:17-07:00</name>
+<TimeStamp><when>2016-03-26T12:29:17-07:00</when></TimeStamp><Point><coordinates>-118.93833,47.12933,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T12:30:18-07:00</name>
+<TimeStamp><when>2016-03-26T12:30:18-07:00</when></TimeStamp><Point><coordinates>-118.93833,47.12933,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T12:30:49-07:00</name>
+<TimeStamp><when>2016-03-26T12:30:49-07:00</when></TimeStamp><Point><coordinates>-118.93833,47.12950,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T12:32:24-07:00</name>
+<TimeStamp><when>2016-03-26T12:32:24-07:00</when></TimeStamp><Point><coordinates>-118.93833,47.12933,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T12:33:56-07:00</name>
+<TimeStamp><when>2016-03-26T12:33:56-07:00</when></TimeStamp><Point><coordinates>-118.93850,47.12933,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T12:34:57-07:00</name>
+<TimeStamp><when>2016-03-26T12:34:57-07:00</when></TimeStamp><Point><coordinates>-118.93850,47.12933,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T12:36:29-07:00</name>
+<TimeStamp><when>2016-03-26T12:36:29-07:00</when></TimeStamp><Point><coordinates>-118.93850,47.12933,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T12:38:03-07:00</name>
+<TimeStamp><when>2016-03-26T12:38:03-07:00</when></TimeStamp><Point><coordinates>-118.93833,47.12933,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T12:39:05-07:00</name>
+<TimeStamp><when>2016-03-26T12:39:05-07:00</when></TimeStamp><Point><coordinates>-118.93850,47.12933,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T12:40:38-07:00</name>
+<TimeStamp><when>2016-03-26T12:40:38-07:00</when></TimeStamp><Point><coordinates>-118.93850,47.12933,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T12:42:10-07:00</name>
+<TimeStamp><when>2016-03-26T12:42:10-07:00</when></TimeStamp><Point><coordinates>-118.93817,47.12917,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T12:43:44-07:00</name>
+<TimeStamp><when>2016-03-26T12:43:44-07:00</when></TimeStamp><Point><coordinates>-118.93850,47.12933,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T12:45:17-07:00</name>
+<TimeStamp><when>2016-03-26T12:45:17-07:00</when></TimeStamp><Point><coordinates>-118.93867,47.12933,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T12:46:20-07:00</name>
+<TimeStamp><when>2016-03-26T12:46:20-07:00</when></TimeStamp><Point><coordinates>-118.93850,47.12933,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T12:47:53-07:00</name>
+<TimeStamp><when>2016-03-26T12:47:53-07:00</when></TimeStamp><Point><coordinates>-118.93850,47.12933,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T12:48:54-07:00</name>
+<TimeStamp><when>2016-03-26T12:48:54-07:00</when></TimeStamp><Point><coordinates>-118.93850,47.12933,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T12:58:12-07:00</name>
+<TimeStamp><when>2016-03-26T12:58:12-07:00</when></TimeStamp><Point><coordinates>-118.93667,47.14567,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T12:59:45-07:00</name>
+<TimeStamp><when>2016-03-26T12:59:45-07:00</when></TimeStamp><Point><coordinates>-118.94250,47.14350,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T13:00:17-07:00</name>
+<TimeStamp><when>2016-03-26T13:00:17-07:00</when></TimeStamp><Point><coordinates>-118.93650,47.15333,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T13:00:47-07:00</name>
+<TimeStamp><when>2016-03-26T13:00:47-07:00</when></TimeStamp><Point><coordinates>-118.94217,47.14617,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T13:01:18-07:00</name>
+<TimeStamp><when>2016-03-26T13:01:18-07:00</when></TimeStamp><Point><coordinates>-118.94133,47.14750,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T13:02:19-07:00</name>
+<TimeStamp><when>2016-03-26T13:02:19-07:00</when></TimeStamp><Point><coordinates>-118.93817,47.14950,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T13:04:05-07:00</name>
+<TimeStamp><when>2016-03-26T13:04:05-07:00</when></TimeStamp><Point><coordinates>-118.92900,47.15033,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T13:05:26-07:00</name>
+<TimeStamp><when>2016-03-26T13:05:26-07:00</when></TimeStamp><Point><coordinates>-118.92083,47.15017,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T13:06:58-07:00</name>
+<TimeStamp><when>2016-03-26T13:06:58-07:00</when></TimeStamp><Point><coordinates>-118.91250,47.14917,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T13:14:44-07:00</name>
+<TimeStamp><when>2016-03-26T13:14:44-07:00</when></TimeStamp><Point><coordinates>-118.83000,47.10983,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T13:15:18-07:00</name>
+<TimeStamp><when>2016-03-26T13:15:18-07:00</when></TimeStamp><Point><coordinates>-118.82317,47.10583,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T13:17:32-07:00</name>
+<TimeStamp><when>2016-03-26T13:17:32-07:00</when></TimeStamp><Point><coordinates>-118.79500,47.08950,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T13:19:22-07:00</name>
+<TimeStamp><when>2016-03-26T13:19:22-07:00</when></TimeStamp><Point><coordinates>-118.77000,47.07450,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T13:20:25-07:00</name>
+<TimeStamp><when>2016-03-26T13:20:25-07:00</when></TimeStamp><Point><coordinates>-118.75300,47.06717,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T13:20:55-07:00</name>
+<TimeStamp><when>2016-03-26T13:20:55-07:00</when></TimeStamp><Point><coordinates>-118.74500,47.06300,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T13:21:26-07:00</name>
+<TimeStamp><when>2016-03-26T13:21:26-07:00</when></TimeStamp><Point><coordinates>-118.73733,47.05883,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T13:22:28-07:00</name>
+<TimeStamp><when>2016-03-26T13:22:28-07:00</when></TimeStamp><Point><coordinates>-118.72517,47.05033,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T13:23:38-07:00</name>
+<TimeStamp><when>2016-03-26T13:23:38-07:00</when></TimeStamp><Point><coordinates>-118.71017,47.03983,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T13:24:01-07:00</name>
+<TimeStamp><when>2016-03-26T13:24:01-07:00</when></TimeStamp><Point><coordinates>-118.70200,47.03517,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T13:24:33-07:00</name>
+<TimeStamp><when>2016-03-26T13:24:33-07:00</when></TimeStamp><Point><coordinates>-118.69217,47.02933,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T13:25:04-07:00</name>
+<TimeStamp><when>2016-03-26T13:25:04-07:00</when></TimeStamp><Point><coordinates>-118.68100,47.02333,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T13:26:05-07:00</name>
+<TimeStamp><when>2016-03-26T13:26:05-07:00</when></TimeStamp><Point><coordinates>-118.66333,47.01200,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T13:27:38-07:00</name>
+<TimeStamp><when>2016-03-26T13:27:38-07:00</when></TimeStamp><Point><coordinates>-118.64217,46.99867,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T13:28:10-07:00</name>
+<TimeStamp><when>2016-03-26T13:28:10-07:00</when></TimeStamp><Point><coordinates>-118.63383,46.99583,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T13:29:11-07:00</name>
+<TimeStamp><when>2016-03-26T13:29:11-07:00</when></TimeStamp><Point><coordinates>-118.61400,46.99300,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T13:29:43-07:00</name>
+<TimeStamp><when>2016-03-26T13:29:43-07:00</when></TimeStamp><Point><coordinates>-118.60267,46.99183,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T13:30:13-07:00</name>
+<TimeStamp><when>2016-03-26T13:30:13-07:00</when></TimeStamp><Point><coordinates>-118.59183,46.98950,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T13:30:45-07:00</name>
+<TimeStamp><when>2016-03-26T13:30:45-07:00</when></TimeStamp><Point><coordinates>-118.58467,46.98783,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T13:34:53-07:00</name>
+<TimeStamp><when>2016-03-26T13:34:53-07:00</when></TimeStamp><Point><coordinates>-118.57050,46.98217,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T13:40:37-07:00</name>
+<TimeStamp><when>2016-03-26T13:40:37-07:00</when></TimeStamp><Point><coordinates>-118.46967,46.94467,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T13:41:36-07:00</name>
+<TimeStamp><when>2016-03-26T13:41:36-07:00</when></TimeStamp><Point><coordinates>-118.44083,46.93233,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T13:43:42-07:00</name>
+<TimeStamp><when>2016-03-26T13:43:42-07:00</when></TimeStamp><Point><coordinates>-118.41750,46.91967,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T13:45:43-07:00</name>
+<TimeStamp><when>2016-03-26T13:45:43-07:00</when></TimeStamp><Point><coordinates>-118.40050,46.90833,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T13:46:47-07:00</name>
+<TimeStamp><when>2016-03-26T13:46:47-07:00</when></TimeStamp><Point><coordinates>-118.38950,46.90383,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T13:47:47-07:00</name>
+<TimeStamp><when>2016-03-26T13:47:47-07:00</when></TimeStamp><Point><coordinates>-118.37750,46.89917,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T13:48:49-07:00</name>
+<TimeStamp><when>2016-03-26T13:48:49-07:00</when></TimeStamp><Point><coordinates>-118.36783,46.89300,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T13:49:53-07:00</name>
+<TimeStamp><when>2016-03-26T13:49:53-07:00</when></TimeStamp><Point><coordinates>-118.35950,46.88700,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T13:50:54-07:00</name>
+<TimeStamp><when>2016-03-26T13:50:54-07:00</when></TimeStamp><Point><coordinates>-118.35217,46.88267,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T13:51:55-07:00</name>
+<TimeStamp><when>2016-03-26T13:51:55-07:00</when></TimeStamp><Point><coordinates>-118.34383,46.87733,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T13:52:59-07:00</name>
+<TimeStamp><when>2016-03-26T13:52:59-07:00</when></TimeStamp><Point><coordinates>-118.33700,46.87350,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T13:54:00-07:00</name>
+<TimeStamp><when>2016-03-26T13:54:00-07:00</when></TimeStamp><Point><coordinates>-118.32817,46.86950,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T13:55:03-07:00</name>
+<TimeStamp><when>2016-03-26T13:55:03-07:00</when></TimeStamp><Point><coordinates>-118.32167,46.86450,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T13:56:06-07:00</name>
+<TimeStamp><when>2016-03-26T13:56:06-07:00</when></TimeStamp><Point><coordinates>-118.31350,46.86033,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T13:57:05-07:00</name>
+<TimeStamp><when>2016-03-26T13:57:05-07:00</when></TimeStamp><Point><coordinates>-118.30650,46.85500,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:00:12-07:00</name>
+<TimeStamp><when>2016-03-26T14:00:12-07:00</when></TimeStamp><Point><coordinates>-118.29367,46.83883,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:01:14-07:00</name>
+<TimeStamp><when>2016-03-26T14:01:14-07:00</when></TimeStamp><Point><coordinates>-118.29067,46.83317,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:02:16-07:00</name>
+<TimeStamp><when>2016-03-26T14:02:16-07:00</when></TimeStamp><Point><coordinates>-118.28667,46.82750,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:03:18-07:00</name>
+<TimeStamp><when>2016-03-26T14:03:18-07:00</when></TimeStamp><Point><coordinates>-118.28300,46.82183,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:04:20-07:00</name>
+<TimeStamp><when>2016-03-26T14:04:20-07:00</when></TimeStamp><Point><coordinates>-118.27750,46.81617,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:05:23-07:00</name>
+<TimeStamp><when>2016-03-26T14:05:23-07:00</when></TimeStamp><Point><coordinates>-118.27200,46.81000,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:05:53-07:00</name>
+<TimeStamp><when>2016-03-26T14:05:53-07:00</when></TimeStamp><Point><coordinates>-118.57050,46.98217,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:06:24-07:00</name>
+<TimeStamp><when>2016-03-26T14:06:24-07:00</when></TimeStamp><Point><coordinates>-118.26617,46.80300,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:07:25-07:00</name>
+<TimeStamp><when>2016-03-26T14:07:25-07:00</when></TimeStamp><Point><coordinates>-118.26383,46.79600,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:08:29-07:00</name>
+<TimeStamp><when>2016-03-26T14:08:29-07:00</when></TimeStamp><Point><coordinates>-118.26067,46.79000,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:09:29-07:00</name>
+<TimeStamp><when>2016-03-26T14:09:29-07:00</when></TimeStamp><Point><coordinates>-118.25850,46.78350,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:10:32-07:00</name>
+<TimeStamp><when>2016-03-26T14:10:32-07:00</when></TimeStamp><Point><coordinates>-118.25517,46.77700,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:11:35-07:00</name>
+<TimeStamp><when>2016-03-26T14:11:35-07:00</when></TimeStamp><Point><coordinates>-118.25067,46.76933,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:12:35-07:00</name>
+<TimeStamp><when>2016-03-26T14:12:35-07:00</when></TimeStamp><Point><coordinates>-118.24633,46.76217,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:13:38-07:00</name>
+<TimeStamp><when>2016-03-26T14:13:38-07:00</when></TimeStamp><Point><coordinates>-118.24133,46.75417,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:14:41-07:00</name>
+<TimeStamp><when>2016-03-26T14:14:41-07:00</when></TimeStamp><Point><coordinates>-118.23583,46.74300,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:15:42-07:00</name>
+<TimeStamp><when>2016-03-26T14:15:42-07:00</when></TimeStamp><Point><coordinates>-118.23467,46.73100,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:16:44-07:00</name>
+<TimeStamp><when>2016-03-26T14:16:44-07:00</when></TimeStamp><Point><coordinates>-118.23200,46.71983,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:17:47-07:00</name>
+<TimeStamp><when>2016-03-26T14:17:47-07:00</when></TimeStamp><Point><coordinates>-118.22883,46.70800,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:18:48-07:00</name>
+<TimeStamp><when>2016-03-26T14:18:48-07:00</when></TimeStamp><Point><coordinates>-118.22533,46.69550,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:19:50-07:00</name>
+<TimeStamp><when>2016-03-26T14:19:50-07:00</when></TimeStamp><Point><coordinates>-118.21733,46.68367,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:20:52-07:00</name>
+<TimeStamp><when>2016-03-26T14:20:52-07:00</when></TimeStamp><Point><coordinates>-118.20867,46.67000,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:21:53-07:00</name>
+<TimeStamp><when>2016-03-26T14:21:53-07:00</when></TimeStamp><Point><coordinates>-118.20400,46.65600,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:22:55-07:00</name>
+<TimeStamp><when>2016-03-26T14:22:55-07:00</when></TimeStamp><Point><coordinates>-118.19667,46.64300,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:23:26-07:00</name>
+<TimeStamp><when>2016-03-26T14:23:26-07:00</when></TimeStamp><Point><coordinates>-118.19333,46.63617,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:23:59-07:00</name>
+<TimeStamp><when>2016-03-26T14:23:59-07:00</when></TimeStamp><Point><coordinates>-118.18933,46.62983,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:24:28-07:00</name>
+<TimeStamp><when>2016-03-26T14:24:28-07:00</when></TimeStamp><Point><coordinates>-118.18400,46.62333,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:25:00-07:00</name>
+<TimeStamp><when>2016-03-26T14:25:00-07:00</when></TimeStamp><Point><coordinates>-118.17950,46.61633,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:25:34-07:00</name>
+<TimeStamp><when>2016-03-26T14:25:34-07:00</when></TimeStamp><Point><coordinates>-118.17467,46.60950,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:26:01-07:00</name>
+<TimeStamp><when>2016-03-26T14:26:01-07:00</when></TimeStamp><Point><coordinates>-118.16867,46.60400,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:26:36-07:00</name>
+<TimeStamp><when>2016-03-26T14:26:36-07:00</when></TimeStamp><Point><coordinates>-118.16150,46.59800,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:27:04-07:00</name>
+<TimeStamp><when>2016-03-26T14:27:04-07:00</when></TimeStamp><Point><coordinates>-118.15567,46.59133,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:27:39-07:00</name>
+<TimeStamp><when>2016-03-26T14:27:39-07:00</when></TimeStamp><Point><coordinates>-118.15167,46.58417,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:28:05-07:00</name>
+<TimeStamp><when>2016-03-26T14:28:05-07:00</when></TimeStamp><Point><coordinates>-118.14750,46.57667,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:28:38-07:00</name>
+<TimeStamp><when>2016-03-26T14:28:38-07:00</when></TimeStamp><Point><coordinates>-118.14450,46.56967,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:29:09-07:00</name>
+<TimeStamp><when>2016-03-26T14:29:09-07:00</when></TimeStamp><Point><coordinates>-118.14150,46.56383,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:29:39-07:00</name>
+<TimeStamp><when>2016-03-26T14:29:39-07:00</when></TimeStamp><Point><coordinates>-118.13633,46.55900,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:30:11-07:00</name>
+<TimeStamp><when>2016-03-26T14:30:11-07:00</when></TimeStamp><Point><coordinates>-118.13117,46.55367,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:30:41-07:00</name>
+<TimeStamp><when>2016-03-26T14:30:41-07:00</when></TimeStamp><Point><coordinates>-118.12683,46.54917,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:31:13-07:00</name>
+<TimeStamp><when>2016-03-26T14:31:13-07:00</when></TimeStamp><Point><coordinates>-118.11983,46.54483,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:31:43-07:00</name>
+<TimeStamp><when>2016-03-26T14:31:43-07:00</when></TimeStamp><Point><coordinates>-118.11150,46.53967,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:32:13-07:00</name>
+<TimeStamp><when>2016-03-26T14:32:13-07:00</when></TimeStamp><Point><coordinates>-118.10567,46.53367,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:32:53-07:00</name>
+<TimeStamp><when>2016-03-26T14:32:53-07:00</when></TimeStamp><Point><coordinates>-118.10117,46.52783,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:33:16-07:00</name>
+<TimeStamp><when>2016-03-26T14:33:16-07:00</when></TimeStamp><Point><coordinates>-118.09417,46.52250,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:33:47-07:00</name>
+<TimeStamp><when>2016-03-26T14:33:47-07:00</when></TimeStamp><Point><coordinates>-118.08750,46.51767,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:34:18-07:00</name>
+<TimeStamp><when>2016-03-26T14:34:18-07:00</when></TimeStamp><Point><coordinates>-118.08217,46.51383,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:34:50-07:00</name>
+<TimeStamp><when>2016-03-26T14:34:50-07:00</when></TimeStamp><Point><coordinates>-118.07733,46.51200,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:35:20-07:00</name>
+<TimeStamp><when>2016-03-26T14:35:20-07:00</when></TimeStamp><Point><coordinates>-118.07183,46.51167,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:35:50-07:00</name>
+<TimeStamp><when>2016-03-26T14:35:50-07:00</when></TimeStamp><Point><coordinates>-118.06450,46.51050,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:36:22-07:00</name>
+<TimeStamp><when>2016-03-26T14:36:22-07:00</when></TimeStamp><Point><coordinates>-118.05683,46.50900,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:36:52-07:00</name>
+<TimeStamp><when>2016-03-26T14:36:52-07:00</when></TimeStamp><Point><coordinates>-118.05100,46.50733,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:37:23-07:00</name>
+<TimeStamp><when>2016-03-26T14:37:23-07:00</when></TimeStamp><Point><coordinates>-118.04367,46.50567,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:37:55-07:00</name>
+<TimeStamp><when>2016-03-26T14:37:55-07:00</when></TimeStamp><Point><coordinates>-118.03517,46.50400,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:38:25-07:00</name>
+<TimeStamp><when>2016-03-26T14:38:25-07:00</when></TimeStamp><Point><coordinates>-118.02717,46.50333,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:38:56-07:00</name>
+<TimeStamp><when>2016-03-26T14:38:56-07:00</when></TimeStamp><Point><coordinates>-118.01767,46.50217,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:47:13-07:00</name>
+<TimeStamp><when>2016-03-26T14:47:13-07:00</when></TimeStamp><Point><coordinates>-117.87417,46.47367,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:47:43-07:00</name>
+<TimeStamp><when>2016-03-26T14:47:43-07:00</when></TimeStamp><Point><coordinates>-117.87317,46.47350,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:48:14-07:00</name>
+<TimeStamp><when>2016-03-26T14:48:14-07:00</when></TimeStamp><Point><coordinates>-117.85583,46.46967,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:48:46-07:00</name>
+<TimeStamp><when>2016-03-26T14:48:46-07:00</when></TimeStamp><Point><coordinates>-117.84650,46.46817,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:49:16-07:00</name>
+<TimeStamp><when>2016-03-26T14:49:16-07:00</when></TimeStamp><Point><coordinates>-117.83783,46.46583,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:49:47-07:00</name>
+<TimeStamp><when>2016-03-26T14:49:47-07:00</when></TimeStamp><Point><coordinates>-117.83150,46.46267,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:50:19-07:00</name>
+<TimeStamp><when>2016-03-26T14:50:19-07:00</when></TimeStamp><Point><coordinates>-117.82533,46.45667,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:50:49-07:00</name>
+<TimeStamp><when>2016-03-26T14:50:49-07:00</when></TimeStamp><Point><coordinates>-117.82083,46.45050,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:51:20-07:00</name>
+<TimeStamp><when>2016-03-26T14:51:20-07:00</when></TimeStamp><Point><coordinates>-117.81700,46.44383,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:52:24-07:00</name>
+<TimeStamp><when>2016-03-26T14:52:24-07:00</when></TimeStamp><Point><coordinates>-117.81383,46.43767,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:52:57-07:00</name>
+<TimeStamp><when>2016-03-26T14:52:57-07:00</when></TimeStamp><Point><coordinates>-117.81217,46.43283,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:52:58-07:00</name>
+<TimeStamp><when>2016-03-26T14:52:58-07:00</when></TimeStamp><Point><coordinates>-117.81017,46.42867,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:53:25-07:00</name>
+<TimeStamp><when>2016-03-26T14:53:25-07:00</when></TimeStamp><Point><coordinates>-117.80783,46.42517,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:53:55-07:00</name>
+<TimeStamp><when>2016-03-26T14:53:55-07:00</when></TimeStamp><Point><coordinates>-117.80583,46.42250,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:54:26-07:00</name>
+<TimeStamp><when>2016-03-26T14:54:26-07:00</when></TimeStamp><Point><coordinates>-117.80283,46.41950,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:55:28-07:00</name>
+<TimeStamp><when>2016-03-26T14:55:28-07:00</when></TimeStamp><Point><coordinates>-117.80000,46.41500,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:55:59-07:00</name>
+<TimeStamp><when>2016-03-26T14:55:59-07:00</when></TimeStamp><Point><coordinates>-117.79517,46.41083,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:56:31-07:00</name>
+<TimeStamp><when>2016-03-26T14:56:31-07:00</when></TimeStamp><Point><coordinates>-117.79067,46.40883,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:57:01-07:00</name>
+<TimeStamp><when>2016-03-26T14:57:01-07:00</when></TimeStamp><Point><coordinates>-117.78667,46.40650,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T14:57:50-07:00</name>
+<TimeStamp><when>2016-03-26T14:57:50-07:00</when></TimeStamp><Point><coordinates>-117.78217,46.40400,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T15:03:44-07:00</name>
+<TimeStamp><when>2016-03-26T15:03:44-07:00</when></TimeStamp><Point><coordinates>-117.70667,46.38917,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T15:04:16-07:00</name>
+<TimeStamp><when>2016-03-26T15:04:16-07:00</when></TimeStamp><Point><coordinates>-117.69133,46.36917,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T15:04:46-07:00</name>
+<TimeStamp><when>2016-03-26T15:04:46-07:00</when></TimeStamp><Point><coordinates>-117.68167,46.36833,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T15:05:18-07:00</name>
+<TimeStamp><when>2016-03-26T15:05:18-07:00</when></TimeStamp><Point><coordinates>-117.67417,46.36433,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T15:05:50-07:00</name>
+<TimeStamp><when>2016-03-26T15:05:50-07:00</when></TimeStamp><Point><coordinates>-117.66617,46.35833,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T15:06:20-07:00</name>
+<TimeStamp><when>2016-03-26T15:06:20-07:00</when></TimeStamp><Point><coordinates>-117.65717,46.35217,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T15:06:51-07:00</name>
+<TimeStamp><when>2016-03-26T15:06:51-07:00</when></TimeStamp><Point><coordinates>-117.64883,46.34633,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T15:07:53-07:00</name>
+<TimeStamp><when>2016-03-26T15:07:53-07:00</when></TimeStamp><Point><coordinates>-117.63583,46.33683,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T15:08:23-07:00</name>
+<TimeStamp><when>2016-03-26T15:08:23-07:00</when></TimeStamp><Point><coordinates>-117.62783,46.33250,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T15:08:55-07:00</name>
+<TimeStamp><when>2016-03-26T15:08:55-07:00</when></TimeStamp><Point><coordinates>-117.61933,46.32867,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T15:09:26-07:00</name>
+<TimeStamp><when>2016-03-26T15:09:26-07:00</when></TimeStamp><Point><coordinates>-117.61350,46.32500,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T15:10:59-07:00</name>
+<TimeStamp><when>2016-03-26T15:10:59-07:00</when></TimeStamp><Point><coordinates>-117.59650,46.31367,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T15:11:30-07:00</name>
+<TimeStamp><when>2016-03-26T15:11:30-07:00</when></TimeStamp><Point><coordinates>-117.59083,46.30967,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T15:12:32-07:00</name>
+<TimeStamp><when>2016-03-26T15:12:32-07:00</when></TimeStamp><Point><coordinates>-117.57983,46.30267,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T15:13:34-07:00</name>
+<TimeStamp><when>2016-03-26T15:13:34-07:00</when></TimeStamp><Point><coordinates>-117.56933,46.29683,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T15:14:37-07:00</name>
+<TimeStamp><when>2016-03-26T15:14:37-07:00</when></TimeStamp><Point><coordinates>-117.55950,46.29450,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T15:17:43-07:00</name>
+<TimeStamp><when>2016-03-26T15:17:43-07:00</when></TimeStamp><Point><coordinates>-117.54067,46.29567,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 at 2016-03-26T16:53:18-07:00</name>
+<TimeStamp><when>2016-03-26T16:53:18-07:00</when></TimeStamp><Point><coordinates>-117.52633,46.30467,0 </coordinates></Point></Placemark>
+<Placemark><name>KG7WFR-11 (trail)</name>
+<LineString>
+<coordinates>-122.19400,47.61467,0 -118.93967,47.12900,0 -118.93850,47.12933,0 -118.93883,47.12967,0 -118.93850,47.12933,0 -118.93733,47.12967,0 -118.93850,47.12933,0 -118.93867,47.12933,0 -118.93883,47.12933,0 -118.93867,47.12950,0 -118.93900,47.12917,0 -118.93833,47.12933,0 -118.93883,47.12983,0 -118.93833,47.12933,0 -118.93833,47.12933,0 -118.93833,47.12950,0 -118.93833,47.12933,0 -118.93850,47.12933,0 -118.93850,47.12933,0 -118.93850,47.12933,0 -118.93833,47.12933,0 -118.93850,47.12933,0 -118.93850,47.12933,0 -118.93817,47.12917,0 -118.93850,47.12933,0 -118.93867,47.12933,0 -118.93850,47.12933,0 -118.93850,47.12933,0 -118.93850,47.12933,0 -118.93667,47.14567,0 -118.94250,47.14350,0 -118.93650,47.15333,0 -118.94217,47.14617,0 -118.94133,47.14750,0 -118.93817,47.14950,0 -118.92900,47.15033,0 -118.92083,47.15017,0 -118.91250,47.14917,0 -118.83000,47.10983,0 -118.82317,47.10583,0 -118.79500,47.08950,0 -118.77000,47.07450,0 -118.75300,47.06717,0 -118.74500,47.06300,0 -118.73733,47.05883,0 -118.72517,47.05033,0 -118.71017,47.03983,0 -118.70200,47.03517,0 -118.69217,47.02933,0 -118.68100,47.02333,0 -118.66333,47.01200,0 -118.64217,46.99867,0 -118.63383,46.99583,0 -118.61400,46.99300,0 -118.60267,46.99183,0 -118.59183,46.98950,0 -118.58467,46.98783,0 -118.57050,46.98217,0 -118.46967,46.94467,0 -118.44083,46.93233,0 -118.41750,46.91967,0 -118.40050,46.90833,0 -118.38950,46.90383,0 -118.37750,46.89917,0 -118.36783,46.89300,0 -118.35950,46.88700,0 -118.35217,46.88267,0 -118.34383,46.87733,0 -118.33700,46.87350,0 -118.32817,46.86950,0 -118.32167,46.86450,0 -118.31350,46.86033,0 -118.30650,46.85500,0 -118.29367,46.83883,0 -118.29067,46.83317,0 -118.28667,46.82750,0 -118.28300,46.82183,0 -118.27750,46.81617,0 -118.27200,46.81000,0 -118.57050,46.98217,0 -118.26617,46.80300,0 -118.26383,46.79600,0 -118.26067,46.79000,0 -118.25850,46.78350,0 -118.25517,46.77700,0 -118.25067,46.76933,0 -118.24633,46.76217,0 -118.24133,46.75417,0 -118.23583,46.74300,0 -118.23467,46.73100,0 -118.23200,46.71983,0 -118.22883,46.70800,0 -118.22533,46.69550,0 -118.21733,46.68367,0 -118.20867,46.67000,0 -118.20400,46.65600,0 -118.19667,46.64300,0 -118.19333,46.63617,0 -118.18933,46.62983,0 -118.18400,46.62333,0 -118.17950,46.61633,0 -118.17467,46.60950,0 -118.16867,46.60400,0 -118.16150,46.59800,0 -118.15567,46.59133,0 -118.15167,46.58417,0 -118.14750,46.57667,0 -118.14450,46.56967,0 -118.14150,46.56383,0 -118.13633,46.55900,0 -118.13117,46.55367,0 -118.12683,46.54917,0 -118.11983,46.54483,0 -118.11150,46.53967,0 -118.10567,46.53367,0 -118.10117,46.52783,0 -118.09417,46.52250,0 -118.08750,46.51767,0 -118.08217,46.51383,0 -118.07733,46.51200,0 -118.07183,46.51167,0 -118.06450,46.51050,0 -118.05683,46.50900,0 -118.05100,46.50733,0 -118.04367,46.50567,0 -118.03517,46.50400,0 -118.02717,46.50333,0 -118.01767,46.50217,0 -117.87417,46.47367,0 -117.87317,46.47350,0 -117.85583,46.46967,0 -117.84650,46.46817,0 -117.83783,46.46583,0 -117.83150,46.46267,0 -117.82533,46.45667,0 -117.82083,46.45050,0 -117.81700,46.44383,0 -117.81383,46.43767,0 -117.81217,46.43283,0 -117.81017,46.42867,0 -117.80783,46.42517,0 -117.80583,46.42250,0 -117.80283,46.41950,0 -117.80000,46.41500,0 -117.79517,46.41083,0 -117.79067,46.40883,0 -117.78667,46.40650,0 -117.78217,46.40400,0 -117.70667,46.38917,0 -117.69133,46.36917,0 -117.68167,46.36833,0 -117.67417,46.36433,0 -117.66617,46.35833,0 -117.65717,46.35217,0 -117.64883,46.34633,0 -117.63583,46.33683,0 -117.62783,46.33250,0 -117.61933,46.32867,0 -117.61350,46.32500,0 -117.59650,46.31367,0 -117.59083,46.30967,0 -117.57983,46.30267,0 -117.56933,46.29683,0 -117.55950,46.29450,0 -117.54067,46.29567,0 -117.52633,46.30467,0 </coordinates>
+</LineString>
+</Placemark>
+</Document>
+</kml>
